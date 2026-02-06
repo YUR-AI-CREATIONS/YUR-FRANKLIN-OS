@@ -329,8 +329,6 @@ async def llm_refine_callback(artifact: Dict, priorities: List[str],
                              scores: List[Dict]) -> Dict:
     """LLM-powered refinement callback for Ouroboros loop"""
     try:
-        chat = create_chat(f"refine_{uuid.uuid4()}", REFINEMENT_SYSTEM_PROMPT)
-        
         context = f"""
 Artifact to improve:
 {json.dumps(artifact, indent=2)}
@@ -344,10 +342,14 @@ Detailed scores and recommendations:
 Apply improvements and return the enhanced artifact as JSON.
 """
         
-        user_message = UserMessage(text=context)
-        response = await chat.send_message(user_message)
+        # Use hybrid LLM provider (prefers local for cost savings)
+        result = await generate_with_hybrid_llm(
+            system_prompt=REFINEMENT_SYSTEM_PROMPT,
+            user_message=context,
+            prefer_local=True
+        )
         
-        improved = extract_json_from_response(response)
+        improved = extract_json_from_response(result["response"])
         if "error" not in improved:
             return improved
         return artifact
