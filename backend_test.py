@@ -286,6 +286,289 @@ class SGPAPITester:
             self.log_test("Session Retrieval", False, str(e))
             return False
 
+    def test_genesis_project_init(self) -> Dict[str, Any]:
+        """Test POST /api/genesis/project/init - Initialize orchestrator with agents"""
+        try:
+            response = requests.post(
+                f"{self.api_url}/genesis/project/init",
+                json={
+                    "name": "Test Genesis Project",
+                    "description": "Testing the Genesis Pipeline v2.0"
+                },
+                headers={"Content-Type": "application/json"},
+                timeout=30
+            )
+            
+            if response.status_code != 200:
+                self.log_test("Genesis Project Init", False, f"HTTP {response.status_code}: {response.text}")
+                return {}
+            
+            data = response.json()
+            
+            # Verify required fields
+            required_fields = ["orchestrator_id", "primary_kernel_id", "agents", "status"]
+            missing_fields = [f for f in required_fields if f not in data]
+            if missing_fields:
+                self.log_test("Genesis Project Init", False, f"Missing fields: {missing_fields}")
+                return {}
+            
+            # Store IDs for subsequent tests
+            self.orchestrator_id = data["orchestrator_id"]
+            self.project_id = data["orchestrator_id"]  # Using orchestrator_id as project_id
+            
+            # Verify agents are initialized
+            agents = data.get("agents", [])
+            if len(agents) >= 6:  # Should have 6 agent tiers
+                agent_tiers = [agent.get("tier") for agent in agents]
+                expected_tiers = ["commander", "architect", "builder", "validator", "guardian", "executor"]
+                if all(tier in agent_tiers for tier in expected_tiers):
+                    self.log_test("Agent Hierarchy Initialized", True, f"Found {len(agents)} agents with all tiers")
+                else:
+                    self.log_test("Agent Hierarchy Initialized", False, f"Missing tiers. Found: {agent_tiers}")
+            else:
+                self.log_test("Agent Hierarchy Initialized", False, f"Expected 6+ agents, got {len(agents)}")
+            
+            self.log_test("Genesis Project Init", True, f"Project {self.project_id} initialized with {len(agents)} agents")
+            return data
+            
+        except Exception as e:
+            self.log_test("Genesis Project Init", False, str(e))
+            return {}
+
+    def test_quality_assessment(self) -> Dict[str, Any]:
+        """Test POST /api/genesis/quality/assess - 8-dimensional quality assessment"""
+        test_artifact = {
+            "name": "Test System",
+            "components": ["auth", "api", "database"],
+            "security": {"authentication": "oauth2", "encryption": "aes256"},
+            "performance_requirements": {"latency": "100ms", "throughput": "1000rps"}
+        }
+        
+        try:
+            response = requests.post(
+                f"{self.api_url}/genesis/quality/assess",
+                json={
+                    "artifact": test_artifact,
+                    "stage": "architecture"
+                },
+                headers={"Content-Type": "application/json"},
+                timeout=30
+            )
+            
+            if response.status_code != 200:
+                self.log_test("Quality Assessment", False, f"HTTP {response.status_code}: {response.text}")
+                return {}
+            
+            data = response.json()
+            
+            # Verify 8-dimensional assessment
+            required_fields = ["aggregate_score", "passed", "dimension_scores", "improvement_priority"]
+            missing_fields = [f for f in required_fields if f not in data]
+            if missing_fields:
+                self.log_test("Quality Assessment", False, f"Missing fields: {missing_fields}")
+                return {}
+            
+            # Check 8 dimensions
+            dimensions = data.get("dimension_scores", [])
+            expected_dimensions = [
+                "completeness", "coherence", "correctness", "security", 
+                "performance", "scalability", "maintainability", "compliance"
+            ]
+            
+            dimension_names = [d.get("dimension") for d in dimensions]
+            if len(dimensions) == 8 and all(dim in dimension_names for dim in expected_dimensions):
+                self.log_test("8-Dimensional Scoring", True, f"All 8 dimensions assessed: {dimension_names}")
+            else:
+                self.log_test("8-Dimensional Scoring", False, f"Expected 8 dimensions, got {len(dimensions)}: {dimension_names}")
+            
+            # Verify aggregate score
+            score = data.get("aggregate_score", 0)
+            if 0 <= score <= 100:
+                self.log_test("Quality Score Range", True, f"Score: {score}%")
+            else:
+                self.log_test("Quality Score Range", False, f"Invalid score: {score}")
+            
+            self.log_test("Quality Assessment", True, f"8D assessment complete, score: {score}%")
+            return data
+            
+        except Exception as e:
+            self.log_test("Quality Assessment", False, str(e))
+            return {}
+
+    def test_ouroboros_execution(self) -> Dict[str, Any]:
+        """Test POST /api/genesis/ouroboros/execute - Improvement loop until 99% convergence"""
+        if not self.project_id:
+            self.log_test("Ouroboros Execution", False, "No project initialized")
+            return {}
+        
+        test_artifact = {
+            "name": "Test System",
+            "components": ["auth", "api", "database"],
+            "validated": True,
+            "documentation": "Complete system documentation"
+        }
+        
+        try:
+            response = requests.post(
+                f"{self.api_url}/genesis/ouroboros/execute",
+                json={
+                    "project_id": self.project_id,
+                    "artifact": test_artifact,
+                    "stage": "validation"
+                },
+                headers={"Content-Type": "application/json"},
+                timeout=60  # Longer timeout for iterative improvement
+            )
+            
+            if response.status_code != 200:
+                self.log_test("Ouroboros Execution", False, f"HTTP {response.status_code}: {response.text}")
+                return {}
+            
+            data = response.json()
+            
+            # Verify Ouroboros result structure
+            required_fields = ["status", "final_score", "iterations", "artifact", "history"]
+            missing_fields = [f for f in required_fields if f not in data]
+            if missing_fields:
+                self.log_test("Ouroboros Execution", False, f"Missing fields: {missing_fields}")
+                return {}
+            
+            # Check convergence behavior
+            status = data.get("status")
+            final_score = data.get("final_score", 0)
+            iterations = data.get("iterations", 0)
+            
+            if status in ["CONVERGED", "MAX_ITERATIONS", "DRIFT_ALERT"]:
+                self.log_test("Ouroboros Status", True, f"Status: {status}, Score: {final_score}%, Iterations: {iterations}")
+            else:
+                self.log_test("Ouroboros Status", False, f"Invalid status: {status}")
+            
+            # Check if improvement occurred
+            if iterations > 0:
+                self.log_test("Iterative Improvement", True, f"Completed {iterations} improvement iterations")
+            else:
+                self.log_test("Iterative Improvement", False, "No iterations performed")
+            
+            self.log_test("Ouroboros Execution", True, f"Loop executed: {status} after {iterations} iterations")
+            return data
+            
+        except Exception as e:
+            self.log_test("Ouroboros Execution", False, str(e))
+            return {}
+
+    def test_compliance_audit(self) -> Dict[str, Any]:
+        """Test POST /api/governance/compliance/audit - Compliance checking"""
+        test_artifact = {
+            "security": {
+                "authentication": "oauth2",
+                "authorization": "rbac",
+                "encryption": {"at_rest": "aes256", "in_transit": "tls13"}
+            },
+            "features": {
+                "audit_log": True,
+                "consent_management": True
+            },
+            "policies": {
+                "data_retention": "7 years"
+            }
+        }
+        
+        try:
+            response = requests.post(
+                f"{self.api_url}/governance/compliance/audit",
+                json={
+                    "artifact": test_artifact,
+                    "categories": ["security", "data_privacy"]
+                },
+                headers={"Content-Type": "application/json"},
+                timeout=30
+            )
+            
+            if response.status_code != 200:
+                self.log_test("Compliance Audit", False, f"HTTP {response.status_code}: {response.text}")
+                return {}
+            
+            data = response.json()
+            
+            # Verify compliance audit structure
+            required_fields = ["compliance_score", "total_checks", "passed", "failed", "results"]
+            missing_fields = [f for f in required_fields if f not in data]
+            if missing_fields:
+                self.log_test("Compliance Audit", False, f"Missing fields: {missing_fields}")
+                return {}
+            
+            # Check compliance categories
+            results = data.get("results", [])
+            categories_found = set(r.get("category") for r in results)
+            if "security" in categories_found and "data_privacy" in categories_found:
+                self.log_test("Compliance Categories", True, f"Categories audited: {list(categories_found)}")
+            else:
+                self.log_test("Compliance Categories", False, f"Expected security & data_privacy, got: {list(categories_found)}")
+            
+            # Check compliance score
+            score = data.get("compliance_score", 0)
+            if 0 <= score <= 100:
+                self.log_test("Compliance Score", True, f"Score: {score}%")
+            else:
+                self.log_test("Compliance Score", False, f"Invalid score: {score}")
+            
+            self.log_test("Compliance Audit", True, f"Audit complete: {score}% compliance across {len(categories_found)} categories")
+            return data
+            
+        except Exception as e:
+            self.log_test("Compliance Audit", False, str(e))
+            return {}
+
+    def test_orchestrator_agents(self) -> Dict[str, Any]:
+        """Test GET /api/orchestrator/agents - List all agents with tiers"""
+        try:
+            response = requests.get(
+                f"{self.api_url}/orchestrator/agents",
+                timeout=10
+            )
+            
+            if response.status_code != 200:
+                self.log_test("Orchestrator Agents", False, f"HTTP {response.status_code}: {response.text}")
+                return {}
+            
+            data = response.json()
+            
+            # Verify agents structure
+            if "agents" not in data:
+                self.log_test("Orchestrator Agents", False, "No agents field in response")
+                return {}
+            
+            agents = data.get("agents", [])
+            if len(agents) == 0:
+                self.log_test("Orchestrator Agents", False, "No agents found")
+                return {}
+            
+            # Check agent tiers
+            agent_tiers = [agent.get("tier") for agent in agents]
+            expected_tiers = ["commander", "architect", "builder", "validator", "guardian", "executor"]
+            found_tiers = [tier for tier in expected_tiers if tier in agent_tiers]
+            
+            if len(found_tiers) >= 6:
+                self.log_test("Agent Tiers", True, f"Found all tiers: {found_tiers}")
+            else:
+                self.log_test("Agent Tiers", False, f"Missing tiers. Found: {found_tiers}")
+            
+            # Check agent structure
+            first_agent = agents[0]
+            required_agent_fields = ["agent_id", "name", "tier", "status", "capabilities"]
+            missing_agent_fields = [f for f in required_agent_fields if f not in first_agent]
+            if not missing_agent_fields:
+                self.log_test("Agent Structure", True, "Agents have all required fields")
+            else:
+                self.log_test("Agent Structure", False, f"Missing fields: {missing_agent_fields}")
+            
+            self.log_test("Orchestrator Agents", True, f"Listed {len(agents)} agents across {len(found_tiers)} tiers")
+            return data
+            
+        except Exception as e:
+            self.log_test("Orchestrator Agents", False, str(e))
+            return {}
+
     def run_full_test_suite(self) -> Dict[str, Any]:
         """Run complete test suite"""
         print("🚀 Starting Sovereign Genesis Platform API Tests")
