@@ -570,30 +570,46 @@ class SGPAPITester:
             return {}
 
     def run_full_test_suite(self) -> Dict[str, Any]:
-        """Run complete test suite"""
-        print("🚀 Starting Sovereign Genesis Platform API Tests")
+        """Run complete test suite for Genesis Pipeline v2.0"""
+        print("🚀 Starting Sovereign Genesis Platform v2.0 API Tests")
         print(f"🔗 Testing against: {self.api_url}")
         print("=" * 60)
         
-        # Test 1: Basic connectivity
+        # Test 1: Basic connectivity and v2.0 features
         if not self.test_api_health():
             print("❌ API not accessible, stopping tests")
             return self.get_summary()
         
-        # Test 2: Core Socratic Engine
+        # Test 2: Genesis Project Initialization
+        genesis_data = self.test_genesis_project_init()
+        if not genesis_data:
+            print("❌ Genesis project initialization failed")
+        
+        # Test 3: Quality Assessment (8-dimensional)
+        quality_data = self.test_quality_assessment()
+        
+        # Test 4: Ouroboros Loop Execution
+        ouroboros_data = self.test_ouroboros_execution()
+        
+        # Test 5: Compliance Audit
+        compliance_data = self.test_compliance_audit()
+        
+        # Test 6: Orchestrator Agents
+        agents_data = self.test_orchestrator_agents()
+        
+        # Test 7: Core Socratic Engine (backward compatibility)
         analysis_data = self.test_analyze_endpoint()
         if not analysis_data:
-            print("❌ Analysis failed, stopping tests")
-            return self.get_summary()
+            print("❌ Socratic Engine analysis failed")
+        else:
+            # Test 8: Resolution process
+            resolution_data = self.test_resolve_endpoint(analysis_data)
+            
+            # Test 9: Spec generation (should fail with low confidence)
+            can_proceed = resolution_data.get("can_proceed", False) if resolution_data else False
+            self.test_generate_spec_endpoint(can_proceed)
         
-        # Test 3: Resolution process
-        resolution_data = self.test_resolve_endpoint(analysis_data)
-        
-        # Test 4: Spec generation (should fail with low confidence)
-        can_proceed = resolution_data.get("can_proceed", False) if resolution_data else False
-        self.test_generate_spec_endpoint(can_proceed)
-        
-        # Test 5: Session management
+        # Test 10: Session management
         self.test_session_retrieval()
         
         return self.get_summary()
