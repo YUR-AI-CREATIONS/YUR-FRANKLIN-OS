@@ -40,7 +40,7 @@ class SGPAPITester:
         })
 
     def test_api_health(self) -> bool:
-        """Test basic API connectivity"""
+        """Test basic API connectivity and v2.0 modules"""
         try:
             response = requests.get(f"{self.api_url}/", timeout=10)
             success = response.status_code == 200
@@ -48,6 +48,26 @@ class SGPAPITester:
             if success:
                 data = response.json()
                 details += f" - {data.get('message', 'No message')}"
+                
+                # Check v2.0 version
+                version = data.get('version', '')
+                if version == '2.0.0':
+                    self.log_test("API Version 2.0", True, f"Version: {version}")
+                else:
+                    self.log_test("API Version 2.0", False, f"Expected 2.0.0, got {version}")
+                
+                # Check all 6 modules are listed
+                modules = data.get('modules', [])
+                expected_modules = [
+                    "Socratic Engine", "Genesis Kernel", "Ouroboros Loop", 
+                    "Quality Gate", "Governance Engine", "Multi-Kernel Orchestrator"
+                ]
+                
+                if len(modules) >= 6 and all(mod in modules for mod in expected_modules):
+                    self.log_test("All 6 Modules Listed", True, f"Found: {modules}")
+                else:
+                    self.log_test("All 6 Modules Listed", False, f"Expected {expected_modules}, got {modules}")
+                    
             self.log_test("API Health Check", success, details)
             return success
         except Exception as e:
