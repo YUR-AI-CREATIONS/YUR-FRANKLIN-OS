@@ -306,6 +306,25 @@ def extract_json_from_response(response: str) -> Dict[str, Any]:
     return {"error": "Failed to parse JSON", "raw_response": response[:500]}
 
 
+async def generate_with_hybrid_llm(system_prompt: str, user_message: str, 
+                                   prefer_local: bool = True) -> Dict[str, Any]:
+    """
+    Generate response using the hybrid LLM provider.
+    Supports automatic switching between cloud and local LLMs.
+    
+    Returns:
+        Dict with 'response', 'provider', 'model', and metadata
+    """
+    provider = await get_llm_provider()
+    result = await provider.generate(
+        system_prompt=system_prompt,
+        user_message=user_message,
+        prefer_local=prefer_local,
+        temperature=0.7
+    )
+    return result
+
+
 async def llm_refine_callback(artifact: Dict, priorities: List[str], 
                              scores: List[Dict]) -> Dict:
     """LLM-powered refinement callback for Ouroboros loop"""
