@@ -1,7 +1,8 @@
 import React from 'react';
 import { Zap, RotateCcw, GitBranch, Activity } from 'lucide-react';
+import LLMSelector from './LLMSelector';
 
-export const Header = ({ session, genesisProject, currentStage, onClear, onTogglePipeline }) => {
+export const Header = ({ session, genesisProject, currentStage, onClear, onTogglePipeline, onLLMStatusChange }) => {
   return (
     <header className="sgp-header" data-testid="sgp-header">
       <div className="flex items-center gap-4">
@@ -54,6 +55,9 @@ export const Header = ({ session, genesisProject, currentStage, onClear, onToggl
       </div>
       
       <div className="flex items-center gap-3">
+        {/* LLM Mode Selector */}
+        <LLMSelector onStatusChange={onLLMStatusChange} />
+        
         {genesisProject && (
           <button
             data-testid="toggle-pipeline-btn"
