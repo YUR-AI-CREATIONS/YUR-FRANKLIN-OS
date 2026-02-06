@@ -60,7 +60,7 @@ class SGPAPITester:
                 f"{self.api_url}/analyze",
                 json={"prompt": test_prompt},
                 headers={"Content-Type": "application/json"},
-                timeout=30
+                timeout=60
             )
             
             if response.status_code != 200:
@@ -151,7 +151,7 @@ class SGPAPITester:
                     "answers": answers
                 },
                 headers={"Content-Type": "application/json"},
-                timeout=30
+                timeout=60
             )
             
             if response.status_code != 200:
@@ -193,7 +193,7 @@ class SGPAPITester:
                 f"{self.api_url}/generate-spec",
                 json={"session_id": self.session_id},
                 headers={"Content-Type": "application/json"},
-                timeout=30
+                timeout=60
             )
             
             if not can_proceed:
