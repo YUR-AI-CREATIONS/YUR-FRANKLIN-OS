@@ -1,0 +1,77 @@
+{
+  "id": "b354cf0c-358f-4c33-8f48-ab378137a9ca",
+  "project_name": "TaskManager",
+  "tech_stack": {
+    "frontend_framework": "nextjs",
+    "backend_framework": "fastapi",
+    "database": "postgresql",
+    "css_framework": "tailwindcss",
+    "ci_cd": "github_actions"
+  },
+  "deployment_config": {},
+  "environment_variables": {
+    "NODE_ENV": "production",
+    "API_URL": "https://api.example.com",
+    "DATABASE_URL": "postgresql://user:password@host:5432/dbname"
+  },
+  "created_at": "2026-02-06T23:24:30.286944+00:00",
+  "total_files": 14,
+  "files": [
+    {
+      "path": "TaskManager/frontend/package.json",
+      "language": "json"
+    },
+    {
+      "path": "TaskManager/frontend/app/layout.tsx",
+      "language": "typescript"
+    },
+    {
+      "path": "TaskManager/frontend/app/page.tsx",
+      "language": "typescript"
+    },
+    {
+      "path": "TaskManager/frontend/tailwind.config.ts",
+      "language": "typescript"
+    },
+    {
+      "path": "TaskManager/backend/requirements.txt",
+      "language": "text"
+    },
+    {
+      "path": "TaskManager/backend/app/main.py",
+      "language": "python"
+    },
+    {
+      "path": "TaskManager/backend/app/models.py",
+      "language": "python"
+    },
+    {
+      "path": "TaskManager/backend/app/routes.py",
+      "language": "python"
+    },
+    {
+      "path": "TaskManager/database/schema.sql",
+      "language": "sql"
+    },
+    {
+      "path": "TaskManager/backend/Dockerfile",
+      "language": "dockerfile"
+    },
+    {
+      "path": "TaskManager/frontend/Dockerfile",
+      "language": "dockerfile"
+    },
+    {
+      "path": "TaskManager/docker-compose.yml",
+      "language": "yaml"
+    },
+    {
+      "path": "TaskManager/.github/workflows/ci.yml",
+      "language": "yaml"
+    },
+    {
+      "path": "TaskManager/.github/workflows/deploy.yml",
+      "language": "yaml"
+    }
+  ]
+}
