@@ -64,6 +64,7 @@ function App() {
   const [roadmap, setRoadmap] = useState(null);
   const [showPipeline, setShowPipeline] = useState(false);
   const [showQualityGate, setShowQualityGate] = useState(false);
+  const [llmStatus, setLLMStatus] = useState(null);
   
   const nodeIdCounter = useRef(0);
 
