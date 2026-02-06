@@ -885,3 +885,105 @@ jobs:
             "deployment_config": self.manifest.deployment_config,
             "environment_variables": list(self.manifest.environment_variables.keys())
         }
+    
+    def write_to_disk(self, output_dir: str) -> Dict[str, Any]:
+        """
+        Write all generated artifacts to disk as actual files.
+        
+        Args:
+            output_dir: Base directory to write files to (e.g., '/app/generated')
+            
+        Returns:
+            Summary of written files and any errors
+        """
+        if not self.manifest:
+            return {"success": False, "error": "No build manifest generated. Run generate_project() first."}
+        
+        written_files = []
+        errors = []
+        
+        base_path = Path(output_dir)
+        
+        for artifact in self.artifacts:
+            try:
+                # Create full path
+                file_path = base_path / artifact.path
+                
+                # Create parent directories
+                file_path.parent.mkdir(parents=True, exist_ok=True)
+                
+                # Write the file
+                file_path.write_text(artifact.content, encoding='utf-8')
+                
+                written_files.append({
+                    "path": str(file_path),
+                    "relative_path": artifact.path,
+                    "language": artifact.language,
+                    "size_bytes": len(artifact.content)
+                })
+                
+            except Exception as e:
+                errors.append({
+                    "path": artifact.path,
+                    "error": str(e)
+                })
+        
+        # Write manifest file
+        try:
+            manifest_path = base_path / self.manifest.project_name / "sgp-manifest.json"
+            manifest_path.parent.mkdir(parents=True, exist_ok=True)
+            manifest_data = {
+                "id": self.manifest.id,
+                "project_name": self.manifest.project_name,
+                "tech_stack": self.manifest.tech_stack,
+                "deployment_config": self.manifest.deployment_config,
+                "environment_variables": self.manifest.environment_variables,
+                "created_at": self.manifest.created_at,
+                "total_files": len(self.artifacts),
+                "files": [{"path": a.path, "language": a.language} for a in self.artifacts]
+            }
+            manifest_path.write_text(json.dumps(manifest_data, indent=2), encoding='utf-8')
+            written_files.append({
+                "path": str(manifest_path),
+                "relative_path": f"{self.manifest.project_name}/sgp-manifest.json",
+                "language": "json",
+                "size_bytes": len(json.dumps(manifest_data, indent=2))
+            })
+        except Exception as e:
+            errors.append({"path": "sgp-manifest.json", "error": str(e)})
+        
+        return {
+            "success": len(errors) == 0,
+            "output_directory": str(base_path / self.manifest.project_name),
+            "total_files_written": len(written_files),
+            "files": written_files,
+            "errors": errors,
+            "project_name": self.manifest.project_name,
+            "tech_stack": self.manifest.tech_stack
+        }
+    
+    def get_file_tree(self) -> List[Dict[str, Any]]:
+        """Get the file tree structure of generated artifacts"""
+        if not self.manifest:
+            return []
+        
+        tree = {}
+        for artifact in self.artifacts:
+            parts = artifact.path.split('/')
+            current = tree
+            
+            for i, part in enumerate(parts):
+                if i == len(parts) - 1:
+                    # File
+                    current[part] = {
+                        "type": "file",
+                        "language": artifact.language,
+                        "size": len(artifact.content)
+                    }
+                else:
+                    # Directory
+                    if part not in current:
+                        current[part] = {"type": "directory", "children": {}}
+                    current = current[part].get("children", current[part])
+        
+        return tree
