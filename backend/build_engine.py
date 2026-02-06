@@ -594,7 +594,7 @@ async def health_check():
             
             code += f'''@router.{method}("{endpoint}")
 async def {endpoint.replace("/", "_").strip("_")}():
-    return {{{"message": "endpoint generated"}}}
+    return {{"message": "endpoint generated"}}
 
 '''
         
