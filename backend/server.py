@@ -10,6 +10,10 @@ from typing import List, Optional, Dict, Any
 import uuid
 from datetime import datetime, timezone
 from emergentintegrations.llm.chat import LlmChat, UserMessage
+from llm_providers import (
+    HybridLLMProvider, LLMConfig, LLMMode, OllamaProvider,
+    RECOMMENDED_MODELS, get_recommended_model
+)
 import json
 import re
 import asyncio
