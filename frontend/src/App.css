@@ -63,6 +63,7 @@
   width: 380px;
   max-height: 400px;
   overflow-y: auto;
+  z-index: 30;
 }
 
 /* Confidence Meter */
