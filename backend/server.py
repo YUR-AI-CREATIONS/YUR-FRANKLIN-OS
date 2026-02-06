@@ -92,7 +92,14 @@ async def initialize_llm_provider():
     config = get_default_llm_config()
     llm_provider = HybridLLMProvider(config)
     await llm_provider.initialize()
-    logging.info(f"LLM Provider initialized: mode={config.mode.value}, local_available={llm_provider.local_available}")
+    
+    # If local is not available and mode is local-only, auto-switch to hybrid
+    if not llm_provider.local_available and config.mode == LLMMode.LOCAL:
+        logging.warning("Local LLM unavailable, switching to hybrid mode with cloud fallback")
+        llm_provider.config.mode = LLMMode.HYBRID
+        llm_provider.config.fallback_to_cloud = True
+    
+    logging.info(f"LLM Provider initialized: mode={llm_provider.config.mode.value}, local_available={llm_provider.local_available}")
 
 async def get_llm_provider() -> HybridLLMProvider:
     """Get the global LLM provider, initializing if needed"""
