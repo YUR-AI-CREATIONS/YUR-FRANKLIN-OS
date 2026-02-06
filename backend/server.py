@@ -662,6 +662,211 @@ async def get_orchestrator_overview():
 
 
 # ============================================================================
+#                       TECH STACK ENDPOINTS
+# ============================================================================
+
+@stack_router.get("/catalog")
+async def get_tech_catalog():
+    """Get complete technology catalog organized by category"""
+    return tech_registry.get_catalog()
+
+
+@stack_router.get("/category/{category}")
+async def get_tech_by_category(category: str):
+    """Get technologies by category"""
+    try:
+        cat = TechCategory(category)
+        techs = tech_registry.get_by_category(cat)
+        return {
+            "category": category,
+            "technologies": [
+                {
+                    "id": t.id,
+                    "name": t.name,
+                    "description": t.description,
+                    "tier": t.tier,
+                    "features": t.features,
+                    "complexity": t.setup_complexity,
+                    "documentation_url": t.documentation_url
+                } for t in techs
+            ]
+        }
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Invalid category: {category}")
+
+
+@stack_router.get("/tech/{tech_id}")
+async def get_tech_details(tech_id: str):
+    """Get detailed info for a specific technology"""
+    tech = tech_registry.get(tech_id)
+    if not tech:
+        raise HTTPException(status_code=404, detail=f"Technology not found: {tech_id}")
+    
+    return {
+        "id": tech.id,
+        "name": tech.name,
+        "category": tech.category.value,
+        "description": tech.description,
+        "tier": tech.tier,
+        "features": tech.features,
+        "config_schema": tech.config_schema,
+        "dependencies": tech.dependencies,
+        "incompatible_with": tech.incompatible_with,
+        "setup_complexity": tech.setup_complexity,
+        "documentation_url": tech.documentation_url
+    }
+
+
+@stack_router.get("/search")
+async def search_technologies(q: str):
+    """Search technologies by name or features"""
+    results = tech_registry.search(q)
+    return {
+        "query": q,
+        "results": [
+            {
+                "id": t.id,
+                "name": t.name,
+                "category": t.category.value,
+                "description": t.description
+            } for t in results
+        ]
+    }
+
+
+class ValidateStackRequest(BaseModel):
+    tech_ids: List[str]
+
+
+@stack_router.post("/validate")
+async def validate_stack(request: ValidateStackRequest):
+    """Validate technology stack compatibility"""
+    return tech_registry.validate_stack(request.tech_ids)
+
+
+# ============================================================================
+#                         BUILD ENGINE ENDPOINTS
+# ============================================================================
+
+class ConfigureStackRequest(BaseModel):
+    project_id: str
+    selections: Dict[str, str]  # category -> tech_id
+
+
+@build_router.post("/configure")
+async def configure_build_stack(request: ConfigureStackRequest):
+    """Configure technology stack for a project"""
+    engine = BuildEngine()
+    result = engine.configure_stack(request.selections)
+    
+    build_engines[request.project_id] = engine
+    
+    return {
+        "project_id": request.project_id,
+        "configuration": result
+    }
+
+
+class GenerateBuildRequest(BaseModel):
+    project_id: str
+    project_name: str
+    specification: Dict[str, Any]
+    tech_stack: Dict[str, str]
+
+
+@build_router.post("/generate")
+async def generate_build(request: GenerateBuildRequest):
+    """Generate complete project code from specification"""
+    engine = build_engines.get(request.project_id)
+    
+    if not engine:
+        engine = BuildEngine()
+        build_engines[request.project_id] = engine
+    
+    manifest = engine.generate_project(
+        specification=request.specification,
+        tech_stack=request.tech_stack,
+        project_name=request.project_name
+    )
+    
+    # Store manifest in database
+    await db.build_manifests.update_one(
+        {"build_id": manifest.id},
+        {"$set": {
+            "build_id": manifest.id,
+            "project_id": request.project_id,
+            "project_name": manifest.project_name,
+            "tech_stack": manifest.tech_stack,
+            "artifact_count": len(manifest.artifacts),
+            "deployment_config": manifest.deployment_config,
+            "environment_variables": list(manifest.environment_variables.keys()),
+            "created_at": manifest.created_at,
+            "status": manifest.status
+        }},
+        upsert=True
+    )
+    
+    return engine.get_artifacts_summary()
+
+
+@build_router.get("/artifacts/{project_id}")
+async def get_build_artifacts(project_id: str):
+    """Get generated artifacts for a project"""
+    engine = build_engines.get(project_id)
+    
+    if not engine or not engine.manifest:
+        raise HTTPException(status_code=404, detail="Build not found")
+    
+    return {
+        "project_id": project_id,
+        "artifacts": [
+            {
+                "id": a.id,
+                "path": a.path,
+                "language": a.language,
+                "type": a.artifact_type,
+                "content_preview": a.content[:500] if len(a.content) > 500 else a.content
+            } for a in engine.artifacts
+        ]
+    }
+
+
+@build_router.get("/artifact/{project_id}/{artifact_id}")
+async def get_artifact_content(project_id: str, artifact_id: str):
+    """Get full content of a specific artifact"""
+    engine = build_engines.get(project_id)
+    
+    if not engine:
+        raise HTTPException(status_code=404, detail="Build not found")
+    
+    for artifact in engine.artifacts:
+        if artifact.id == artifact_id:
+            return {
+                "id": artifact.id,
+                "path": artifact.path,
+                "language": artifact.language,
+                "content": artifact.content
+            }
+    
+    raise HTTPException(status_code=404, detail="Artifact not found")
+
+
+@build_router.get("/deployment/{project_id}")
+async def get_deployment_config(project_id: str):
+    """Get deployment configuration for a project"""
+    engine = build_engines.get(project_id)
+    
+    if not engine or not engine.manifest:
+        raise HTTPException(status_code=404, detail="Build not found")
+    
+    return {
+        "project_id": project_id,
+        "deployment_config": engine.manifest.deployment_config,
+        "environment_variables": engine.manifest.environment_variables
+    }
+
+
+# ============================================================================
 #                              APP SETUP
 # ============================================================================
 
@@ -670,6 +875,8 @@ app.include_router(api_router)
 app.include_router(genesis_router)
 app.include_router(governance_router)
 app.include_router(orchestrator_router)
+app.include_router(stack_router)
+app.include_router(build_router)
 
 app.add_middleware(
     CORSMiddleware,
