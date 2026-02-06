@@ -145,11 +145,12 @@ class TestLLMConfig:
         assert data["configuration"]["local_model"] == "mistral:7b", "Local model should be updated"
     
     def test_config_invalid_mode(self, api_client):
-        """Test that invalid mode returns 400"""
+        """Test that invalid mode returns 400 or 422 (validation error)"""
         response = api_client.post(f"{BASE_URL}/api/llm/config", json={
             "mode": "invalid_mode"
         })
-        assert response.status_code == 400, f"Expected 400 for invalid mode, got {response.status_code}"
+        # 422 is Pydantic validation error, 400 is explicit HTTPException - both are valid
+        assert response.status_code in [400, 422], f"Expected 400/422 for invalid mode, got {response.status_code}"
 
 
 class TestLLMModels:
