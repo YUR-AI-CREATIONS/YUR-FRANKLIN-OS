@@ -201,6 +201,32 @@ def create_chat(session_id: str, system_message: str) -> LlmChat:
     return chat
 
 
+async def send_message_with_retry(chat: LlmChat, message: UserMessage, max_retries: int = 3) -> str:
+    """Send message with automatic retry on transient errors"""
+    last_error = None
+    
+    for attempt in range(max_retries):
+        try:
+            response = await chat.send_message(message)
+            return response
+        except Exception as e:
+            last_error = e
+            error_str = str(e).lower()
+            
+            # Retry on transient errors (502, 503, 504, timeout)
+            if any(code in error_str for code in ['502', '503', '504', 'timeout', 'gateway']):
+                wait_time = (2 ** attempt) + 1  # Exponential backoff: 2, 3, 5 seconds
+                logging.warning(f"Transient error (attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s: {e}")
+                await asyncio.sleep(wait_time)
+                continue
+            else:
+                # Non-transient error, don't retry
+                raise e
+    
+    # All retries exhausted
+    raise last_error
+
+
 def extract_json_from_response(response: str) -> Dict[str, Any]:
     code_block_pattern = r'```(?:json)?\s*([\s\S]*?)```'
     matches = re.findall(code_block_pattern, response)
