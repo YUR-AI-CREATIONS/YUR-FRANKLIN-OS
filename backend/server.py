@@ -24,6 +24,8 @@ from governance_engine import (
 from multi_kernel_orchestrator import (
     MultiKernelOrchestrator, AgentTier, TaskPriority, ConnectorType, PageGenerator
 )
+from tech_stack_registry import tech_registry, TechCategory
+from build_engine import BuildEngine
 
 
 ROOT_DIR = Path(__file__).parent
