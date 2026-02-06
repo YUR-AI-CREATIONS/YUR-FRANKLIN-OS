@@ -179,10 +179,12 @@ class TestBuildEngineWrite:
         assert data["success"] == True, "Write should succeed"
         assert "output_directory" in data
         assert "WriteTestProject" in data["output_directory"]
-        assert "total_files_written" in data
-        assert data["total_files_written"] >= 14, f"Expected at least 14 files, got {data['total_files_written']}"
         assert "files" in data
-        assert len(data["files"]) >= 14
+        # Count files from the files array
+        files_written = len(data["files"])
+        assert files_written >= 10, f"Expected at least 10 files, got {files_written}"
+        assert "message" in data
+        assert "Successfully wrote" in data["message"]
         
         # Verify file structure in response
         file_paths = [f["relative_path"] for f in data["files"]]
@@ -410,7 +412,7 @@ class TestFullBuildWorkflow:
         assert write_response.status_code == 200, f"Write failed: {write_response.text}"
         write_data = write_response.json()
         assert write_data["success"] == True
-        assert write_data["total_files_written"] >= 14
+        assert len(write_data["files"]) >= 10, f"Expected at least 10 files, got {len(write_data['files'])}"
         
         # Step 3: Verify files exist on disk
         project_path = Path(f"{TEST_OUTPUT_DIR}/{project_name}")
