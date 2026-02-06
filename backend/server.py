@@ -369,7 +369,9 @@ User Answers:
         
         chat = create_chat(f"resolve_{request.session_id}", SOCRATIC_SYSTEM_PROMPT)
         user_message = UserMessage(text=f"Update analysis based on these answers:\n{context}")
-        response = await chat.send_message(user_message)
+        
+        # Use retry wrapper for resilience
+        response = await send_message_with_retry(chat, user_message)
         
         resolution = extract_json_from_response(response)
         
