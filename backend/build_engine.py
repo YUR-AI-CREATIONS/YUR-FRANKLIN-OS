@@ -588,13 +588,26 @@ async def health_check():
     def _fastapi_routes(self, api_contracts: List) -> str:
         code = "from fastapi import APIRouter, HTTPException\nfrom typing import List\n\nrouter = APIRouter()\n\n"
         
+        seen_names = set()
         for contract in api_contracts:
             endpoint = contract.get("endpoint", "/")
             method = contract.get("method", "GET").lower()
             
+            # Create unique function name from endpoint + method
+            base_name = endpoint.replace("/", "_").strip("_") or "root"
+            func_name = f"{method}_{base_name}"
+            
+            # Handle duplicates by adding counter
+            if func_name in seen_names:
+                counter = 2
+                while f"{func_name}_{counter}" in seen_names:
+                    counter += 1
+                func_name = f"{func_name}_{counter}"
+            seen_names.add(func_name)
+            
             code += f'''@router.{method}("{endpoint}")
-async def {endpoint.replace("/", "_").strip("_")}():
-    return {{"message": "endpoint generated"}}
+async def {func_name}():
+    return {{"message": "{method.upper()} {endpoint} endpoint"}}
 
 '''
         
