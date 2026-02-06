@@ -181,3 +181,38 @@
 .spec-output .string {
   color: #F59E0B;
 }
+
+/* Glass Panel Effect */
+.glass-panel {
+  background: rgba(24, 24, 27, 0.9);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(63, 63, 70, 0.5);
+}
+
+/* Slide In Animation */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.2s ease-out;
+}
+
+/* Pulse Glow for status indicators */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 4px currentColor;
+  }
+  50% {
+    opacity: 0.7;
+    box-shadow: 0 0 8px currentColor;
+  }
+}
