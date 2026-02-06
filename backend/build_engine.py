@@ -765,7 +765,7 @@ CMD ["npm", "start"]
         return yaml
     
     def _github_actions_ci(self, name: str, tech_stack: Dict) -> str:
-        return f'''name: CI
+        return '''name: CI
 
 on:
   push:
