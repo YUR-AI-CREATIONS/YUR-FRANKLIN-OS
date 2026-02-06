@@ -107,6 +107,9 @@ class TestLLMConfig:
         if not data["configuration"]["local_available"]:
             assert "warnings" in data
             assert len(data["warnings"]) > 0
+        
+        # Restore cloud mode for subsequent tests
+        api_client.post(f"{BASE_URL}/api/llm/config", json={"mode": "cloud"})
 
 
 class TestAnalyzeEndpoint:
