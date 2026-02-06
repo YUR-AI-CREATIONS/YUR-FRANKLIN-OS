@@ -550,11 +550,11 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    return {{{"message": "{name} API is running"}}}
+    return {{"message": "{name} API is running"}}
 
 @app.get("/health")
 async def health_check():
-    return {{{"status": "healthy"}}}
+    return {{"status": "healthy"}}
 '''
     
     def _fastapi_models(self, data_model: Dict, database_id: str) -> str:
