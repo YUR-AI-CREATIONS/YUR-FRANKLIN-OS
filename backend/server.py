@@ -308,7 +308,9 @@ async def analyze_prompt(request: AnalyzeRequest):
     try:
         chat = create_chat(f"socratic_{session_id}", SOCRATIC_SYSTEM_PROMPT)
         user_message = UserMessage(text=f"Analyze this request: {request.prompt}")
-        response = await chat.send_message(user_message)
+        
+        # Use retry wrapper for resilience against transient errors
+        response = await send_message_with_retry(chat, user_message)
         
         analysis = extract_json_from_response(response)
         
