@@ -1,7 +1,7 @@
 import React from 'react';
-import { Zap, RotateCcw } from 'lucide-react';
+import { Zap, RotateCcw, GitBranch, Activity } from 'lucide-react';
 
-export const Header = ({ session, onClear }) => {
+export const Header = ({ session, genesisProject, currentStage, onClear, onTogglePipeline }) => {
   return (
     <header className="sgp-header" data-testid="sgp-header">
       <div className="flex items-center gap-4">
@@ -14,12 +14,30 @@ export const Header = ({ session, onClear }) => {
               SOVEREIGN GENESIS
             </h1>
             <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest">
-              Neural-Symbolic Engine
+              Ouroboros-Lattice Core v2.0
             </p>
           </div>
         </div>
         
-        {session && (
+        {genesisProject && (
+          <div className="ml-4 flex items-center gap-3">
+            <div className="h-6 w-px bg-zinc-800" />
+            <div className="flex items-center gap-2 px-3 py-1 rounded bg-indigo-500/10 border border-indigo-500/30">
+              <GitBranch size={12} className="text-indigo-400" />
+              <span className="text-xs font-mono text-indigo-300">
+                {genesisProject.orchestrator_id?.substring(0, 8)}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-1 rounded bg-zinc-900 border border-zinc-800">
+              <Activity size={12} className="text-emerald-400" />
+              <span className="text-xs font-mono text-zinc-300">
+                Stage: {currentStage}
+              </span>
+            </div>
+          </div>
+        )}
+        
+        {session && !genesisProject && (
           <div className="ml-6 flex items-center gap-3">
             <div className="h-6 w-px bg-zinc-800" />
             <div className="flex items-center gap-2">
@@ -36,6 +54,17 @@ export const Header = ({ session, onClear }) => {
       </div>
       
       <div className="flex items-center gap-3">
+        {genesisProject && (
+          <button
+            data-testid="toggle-pipeline-btn"
+            onClick={onTogglePipeline}
+            className="flex items-center gap-2 px-3 py-1.5 rounded bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/30 transition-colors"
+          >
+            <GitBranch size={14} />
+            <span className="text-xs font-mono">Pipeline</span>
+          </button>
+        )}
+        
         {session && (
           <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-zinc-900 border border-zinc-800">
             <span className="text-xs text-zinc-500 font-mono">Confidence:</span>

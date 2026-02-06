@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 import './App.css';
 import ReactFlow, {
   Background,
@@ -18,6 +18,7 @@ import AmbiguityNode from './components/nodes/AmbiguityNode';
 import ResolutionNode from './components/nodes/ResolutionNode';
 import SpecNode from './components/nodes/SpecNode';
 import ProcessingNode from './components/nodes/ProcessingNode';
+import StageNode from './components/nodes/StageNode';
 
 // Panel Components
 import Header from './components/panels/Header';
@@ -25,6 +26,8 @@ import InputPanel from './components/panels/InputPanel';
 import ClarificationPanel from './components/panels/ClarificationPanel';
 import NodeInspector from './components/panels/NodeInspector';
 import SpecificationPanel from './components/panels/SpecificationPanel';
+import PipelinePanel from './components/panels/PipelinePanel';
+import QualityGatePanel from './components/panels/QualityGatePanel';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -35,20 +38,33 @@ const nodeTypes = {
   resolution: ResolutionNode,
   spec: SpecNode,
   processing: ProcessingNode,
+  stage: StageNode,
 };
 
-const initialNodes = [];
-const initialEdges = [];
+const PIPELINE_STAGES = [
+  'inception', 'specification', 'architecture', 
+  'construction', 'validation', 'evolution', 
+  'deployment', 'governance'
+];
 
 function App() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNode, setSelectedNode] = useState(null);
   const [session, setSession] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [answers, setAnswers] = useState({});
   const [specification, setSpecification] = useState(null);
   const [error, setError] = useState(null);
+  
+  // Genesis Pipeline state
+  const [genesisProject, setGenesisProject] = useState(null);
+  const [currentStage, setCurrentStage] = useState('inception');
+  const [qualityAssessment, setQualityAssessment] = useState(null);
+  const [roadmap, setRoadmap] = useState(null);
+  const [showPipeline, setShowPipeline] = useState(false);
+  const [showQualityGate, setShowQualityGate] = useState(false);
+  
   const nodeIdCounter = useRef(0);
 
   const generateNodeId = () => {
@@ -78,44 +94,166 @@ function App() {
     setAnswers({});
     setSpecification(null);
     setError(null);
+    setGenesisProject(null);
+    setQualityAssessment(null);
+    setRoadmap(null);
     nodeIdCounter.current = 0;
   };
 
+  // Initialize Genesis Project
+  const initializeGenesisProject = async (name) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await axios.post(`${API}/genesis/project/init`, {
+        name: name,
+        description: `Genesis Project: ${name}`
+      });
+      
+      setGenesisProject(response.data);
+      setShowPipeline(true);
+      
+      // Create pipeline visualization nodes
+      const stageNodes = PIPELINE_STAGES.map((stage, index) => ({
+        id: `stage_${stage}`,
+        type: 'stage',
+        position: { x: 100 + (index * 180), y: 100 },
+        data: {
+          label: stage.charAt(0).toUpperCase() + stage.slice(1),
+          stage: stage,
+          status: index === 0 ? 'active' : 'pending',
+          score: 0
+        }
+      }));
+      
+      const stageEdges = PIPELINE_STAGES.slice(0, -1).map((stage, index) => ({
+        id: `edge_${stage}_${PIPELINE_STAGES[index + 1]}`,
+        source: `stage_${stage}`,
+        target: `stage_${PIPELINE_STAGES[index + 1]}`,
+        animated: index === 0,
+        style: { stroke: index === 0 ? '#6366F1' : '#3F3F46' },
+        markerEnd: { type: MarkerType.ArrowClosed, color: index === 0 ? '#6366F1' : '#3F3F46' }
+      }));
+      
+      setNodes(stageNodes);
+      setEdges(stageEdges);
+      
+      return response.data;
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to initialize project');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Run Quality Assessment
+  const runQualityAssessment = async (artifact, stage) => {
+    setIsLoading(true);
+    
+    try {
+      const response = await axios.post(`${API}/genesis/quality/assess`, {
+        artifact: artifact,
+        stage: stage
+      });
+      
+      setQualityAssessment(response.data);
+      setShowQualityGate(true);
+      
+      // Update stage node with score
+      setNodes((nds) => nds.map((n) => 
+        n.id === `stage_${stage}` 
+          ? { ...n, data: { ...n.data, score: response.data.aggregate_score, status: response.data.passed ? 'passed' : 'active' } }
+          : n
+      ));
+      
+      return response.data;
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Quality assessment failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Execute Ouroboros Loop
+  const executeOuroboros = async (artifact, stage) => {
+    if (!genesisProject) {
+      setError('Initialize a Genesis project first');
+      return;
+    }
+    
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await axios.post(`${API}/genesis/ouroboros/execute`, {
+        project_id: genesisProject.orchestrator_id,
+        artifact: artifact,
+        stage: stage
+      });
+      
+      const result = response.data;
+      
+      // Update stage node
+      setNodes((nds) => nds.map((n) => {
+        if (n.id === `stage_${stage}`) {
+          return {
+            ...n,
+            data: {
+              ...n.data,
+              score: result.final_score,
+              status: result.status === 'CONVERGED' ? 'passed' : 
+                      result.status === 'DRIFT_ALERT' ? 'drift' : 'active',
+              iterations: result.iterations
+            }
+          };
+        }
+        return n;
+      }));
+      
+      // If converged, activate next stage
+      if (result.status === 'CONVERGED') {
+        const currentIndex = PIPELINE_STAGES.indexOf(stage);
+        if (currentIndex < PIPELINE_STAGES.length - 1) {
+          const nextStage = PIPELINE_STAGES[currentIndex + 1];
+          setCurrentStage(nextStage);
+          
+          setNodes((nds) => nds.map((n) => 
+            n.id === `stage_${nextStage}` 
+              ? { ...n, data: { ...n.data, status: 'active' } }
+              : n
+          ));
+          
+          setEdges((eds) => eds.map((e) => 
+            e.target === `stage_${nextStage}`
+              ? { ...e, animated: true, style: { stroke: '#6366F1' } }
+              : e
+          ));
+        }
+      }
+      
+      setQualityAssessment(result.assessment);
+      setShowQualityGate(true);
+      
+      return result;
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Ouroboros execution failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Analyze prompt (Socratic Engine)
   const analyzePrompt = async (prompt) => {
     setIsLoading(true);
     setError(null);
-    clearCanvas();
 
     try {
-      // Add input node
-      const inputNodeId = generateNodeId();
-      const inputNode = {
-        id: inputNodeId,
-        type: 'input',
-        position: { x: 100, y: 250 },
-        data: { label: 'User Input', content: prompt },
-      };
-
-      // Add processing node
-      const processingNodeId = generateNodeId();
-      const processingNode = {
-        id: processingNodeId,
-        type: 'processing',
-        position: { x: 350, y: 250 },
-        data: { label: 'Socratic Engine', status: 'analyzing' },
-      };
-
-      setNodes([inputNode, processingNode]);
-      setEdges([{
-        id: `e_${inputNodeId}_${processingNodeId}`,
-        source: inputNodeId,
-        target: processingNodeId,
-        animated: true,
-        style: { stroke: '#6366F1' },
-        markerEnd: { type: MarkerType.ArrowClosed, color: '#6366F1' }
-      }]);
-
-      // Call API
+      // Initialize project if not exists
+      if (!genesisProject) {
+        await initializeGenesisProject(prompt.substring(0, 30));
+      }
+      
       const response = await axios.post(`${API}/analyze`, { prompt });
       const { session_id, analysis, confidence_score, can_proceed } = response.data;
 
@@ -127,51 +265,39 @@ function App() {
         can_proceed
       });
 
-      // Update processing node
-      setNodes((nds) => nds.map((n) => 
-        n.id === processingNodeId 
-          ? { ...n, data: { ...n.data, status: 'complete', confidence: confidence_score } }
-          : n
-      ));
+      // Add input node to canvas
+      const inputNodeId = generateNodeId();
+      const newNode = {
+        id: inputNodeId,
+        type: 'input',
+        position: { x: 100, y: 300 },
+        data: { label: 'User Input', content: prompt },
+      };
+      
+      setNodes((nds) => [...nds, newNode]);
 
       // Add ambiguity nodes
       const ambiguities = analysis.ambiguities || [];
-      const newNodes = [];
-      const newEdges = [];
-
-      ambiguities.forEach((amb, index) => {
-        const ambNodeId = generateNodeId();
-        const yOffset = 150 + (index * 120);
-        
-        newNodes.push({
-          id: ambNodeId,
-          type: 'ambiguity',
-          position: { x: 600, y: yOffset },
-          data: {
-            ...amb,
-            label: amb.id,
-            category: amb.category,
-            question: amb.question,
-            options: amb.options,
-            priority: amb.priority,
-          },
-        });
-
-        newEdges.push({
-          id: `e_${processingNodeId}_${ambNodeId}`,
-          source: processingNodeId,
-          target: ambNodeId,
-          animated: true,
-          style: { stroke: '#F59E0B' },
-          markerEnd: { type: MarkerType.ArrowClosed, color: '#F59E0B' }
-        });
-      });
-
-      setNodes((nds) => [...nds, ...newNodes]);
-      setEdges((eds) => [...eds, ...newEdges]);
+      const ambNodes = ambiguities.map((amb, index) => ({
+        id: generateNodeId(),
+        type: 'ambiguity',
+        position: { x: 350, y: 200 + (index * 100) },
+        data: { ...amb, label: amb.id },
+      }));
+      
+      const ambEdges = ambNodes.map((n) => ({
+        id: `e_${inputNodeId}_${n.id}`,
+        source: inputNodeId,
+        target: n.id,
+        animated: true,
+        style: { stroke: '#F59E0B' },
+        markerEnd: { type: MarkerType.ArrowClosed, color: '#F59E0B' }
+      }));
+      
+      setNodes((nds) => [...nds, ...ambNodes]);
+      setEdges((eds) => [...eds, ...ambEdges]);
 
     } catch (err) {
-      console.error('Analysis error:', err);
       setError(err.response?.data?.detail || 'Failed to analyze prompt');
     } finally {
       setIsLoading(false);
@@ -202,127 +328,27 @@ function App() {
         answers: formattedAnswers
       });
 
-      const { resolution, resolved_parameters, confidence_score, can_proceed } = response.data;
+      const { analysis, confidence_score, can_proceed } = response.data;
 
-      // Add resolution nodes for answered questions
-      const newNodes = [];
-      const newEdges = [];
-
-      Object.entries(answers).forEach(([ambId, answerData], index) => {
-        const resNodeId = generateNodeId();
-        
-        // Find the ambiguity node position
-        const ambNode = nodes.find(n => n.data?.id === ambId || n.data?.label === ambId);
-        const xPos = ambNode ? ambNode.position.x + 250 : 850;
-        const yPos = ambNode ? ambNode.position.y : 150 + (index * 120);
-
-        newNodes.push({
-          id: resNodeId,
-          type: 'resolution',
-          position: { x: xPos, y: yPos },
-          data: {
-            label: `Resolved: ${ambId}`,
-            ambiguity_id: ambId,
-            answer: answerData.answer || answerData.selected_option,
-          },
-        });
-
-        // Find source node
-        const sourceNode = nodes.find(n => n.data?.id === ambId || n.data?.label === ambId);
-        if (sourceNode) {
-          newEdges.push({
-            id: `e_${sourceNode.id}_${resNodeId}`,
-            source: sourceNode.id,
-            target: resNodeId,
-            animated: true,
-            style: { stroke: '#10B981' },
-            markerEnd: { type: MarkerType.ArrowClosed, color: '#10B981' }
-          });
-        }
-      });
-
-      setNodes((nds) => [...nds, ...newNodes]);
-      setEdges((eds) => [...eds, ...newEdges]);
-
-      // Update session
       setSession((prev) => ({
         ...prev,
-        analysis: {
-          ...prev.analysis,
-          ambiguities: [
-            ...(resolution.remaining_ambiguities || []),
-            ...(resolution.new_ambiguities || [])
-          ]
-        },
-        resolved_parameters: resolved_parameters,
+        analysis,
         confidence_score,
         can_proceed
       }));
 
       setAnswers({});
 
-      // If can proceed, add spec generation node
-      if (can_proceed) {
-        const specNodeId = generateNodeId();
-        const lastResNode = newNodes[newNodes.length - 1];
-        
-        setNodes((nds) => [...nds, {
-          id: specNodeId,
-          type: 'processing',
-          position: { x: (lastResNode?.position?.x || 850) + 250, y: 250 },
-          data: { label: 'Specification Ready', status: 'ready', confidence: confidence_score }
-        }]);
+      // If ready, run quality assessment
+      if (can_proceed && genesisProject) {
+        await runQualityAssessment(
+          { ...analysis, prompt: session.original_prompt },
+          currentStage
+        );
       }
 
     } catch (err) {
-      console.error('Resolution error:', err);
       setError(err.response?.data?.detail || 'Failed to resolve ambiguities');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const generateSpecification = async () => {
-    if (!session || !session.can_proceed) return;
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await axios.post(`${API}/generate-spec`, {
-        session_id: session.session_id
-      });
-
-      setSpecification(response.data);
-
-      // Add spec node to canvas
-      const specNodeId = generateNodeId();
-      const lastNode = nodes[nodes.length - 1];
-      
-      setNodes((nds) => [...nds, {
-        id: specNodeId,
-        type: 'spec',
-        position: { x: (lastNode?.position?.x || 850) + 200, y: 250 },
-        data: { 
-          label: 'Formal Specification',
-          spec: response.data.specification
-        }
-      }]);
-
-      // Connect to previous node
-      if (lastNode) {
-        setEdges((eds) => [...eds, {
-          id: `e_${lastNode.id}_${specNodeId}`,
-          source: lastNode.id,
-          target: specNodeId,
-          animated: true,
-          style: { stroke: '#10B981' },
-          markerEnd: { type: MarkerType.ArrowClosed, color: '#10B981' }
-        }]);
-      }
-
-    } catch (err) {
-      console.error('Spec generation error:', err);
-      setError(err.response?.data?.detail || 'Failed to generate specification');
     } finally {
       setIsLoading(false);
     }
@@ -353,6 +379,12 @@ function App() {
               if (n.type === 'ambiguity') return '#F59E0B';
               if (n.type === 'resolution') return '#10B981';
               if (n.type === 'spec') return '#6366F1';
+              if (n.type === 'stage') {
+                if (n.data?.status === 'passed') return '#10B981';
+                if (n.data?.status === 'active') return '#6366F1';
+                if (n.data?.status === 'drift') return '#EF4444';
+                return '#3F3F46';
+              }
               return '#3F3F46';
             }}
             maskColor="rgba(5, 5, 5, 0.8)"
@@ -363,7 +395,10 @@ function App() {
       {/* Header */}
       <Header 
         session={session}
+        genesisProject={genesisProject}
+        currentStage={currentStage}
         onClear={clearCanvas}
+        onTogglePipeline={() => setShowPipeline(!showPipeline)}
       />
 
       {/* Input Panel */}
@@ -385,33 +420,27 @@ function App() {
         />
       )}
 
-      {/* Generate Spec Button */}
-      {session && session.can_proceed && !specification && (
-        <div className="floating-panel" style={{ top: '80px', right: '24px' }}>
-          <div className="glass-panel p-4 rounded-lg">
-            <div className="text-center">
-              <div className="text-emerald-400 font-mono text-sm mb-2">SPECIFICATION READY</div>
-              <div className="text-2xl font-bold text-emerald-400 mb-3">
-                {session.confidence_score?.toFixed(1)}%
-              </div>
-              <button
-                data-testid="generate-spec-btn"
-                onClick={generateSpecification}
-                disabled={isLoading}
-                className="w-full px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded transition-colors disabled:opacity-50"
-              >
-                {isLoading ? 'Generating...' : 'Generate Specification'}
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Quality Gate Panel */}
+      {showQualityGate && qualityAssessment && (
+        <QualityGatePanel
+          assessment={qualityAssessment}
+          stage={currentStage}
+          onClose={() => setShowQualityGate(false)}
+          onRunOuroboros={() => executeOuroboros(
+            { ...session?.analysis, prompt: session?.original_prompt },
+            currentStage
+          )}
+          isLoading={isLoading}
+        />
       )}
 
-      {/* Specification Panel */}
-      {specification && (
-        <SpecificationPanel
-          specification={specification}
-          onClose={() => setSpecification(null)}
+      {/* Pipeline Panel */}
+      {showPipeline && genesisProject && (
+        <PipelinePanel
+          project={genesisProject}
+          currentStage={currentStage}
+          stages={PIPELINE_STAGES}
+          onClose={() => setShowPipeline(false)}
         />
       )}
 
@@ -426,7 +455,7 @@ function App() {
       {/* Error Toast */}
       {error && (
         <div 
-          className="fixed bottom-24 left-1/2 -translate-x-1/2 glass-panel px-4 py-3 rounded-lg border-l-4 border-red-500 animate-slide-in"
+          className="fixed bottom-24 left-1/2 -translate-x-1/2 glass-panel px-4 py-3 rounded-lg border-l-4 border-red-500 animate-slide-in z-50"
           data-testid="error-toast"
         >
           <div className="flex items-center gap-3">
