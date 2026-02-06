@@ -986,6 +986,122 @@ async def get_deployment_config(project_id: str):
 
 
 # ============================================================================
+#                           LLM PROVIDER ENDPOINTS
+# ============================================================================
+
+@llm_router.get("/status")
+async def get_llm_status():
+    """Get current LLM provider status and configuration"""
+    provider = await get_llm_provider()
+    status = provider.get_status()
+    
+    return {
+        "status": "active",
+        "configuration": status,
+        "recommended_models": RECOMMENDED_MODELS,
+        "instructions": {
+            "cloud": "Uses Emergent LLM Key for Claude/GPT access. Costs per request.",
+            "local": "Requires Ollama installed locally. Free unlimited usage.",
+            "hybrid": "Uses local when available, falls back to cloud.",
+            "setup_ollama": "curl -fsSL https://ollama.com/install.sh | sh && ollama pull llama3.1:8b"
+        }
+    }
+
+
+@llm_router.post("/config")
+async def configure_llm(request: LLMConfigRequest):
+    """
+    Configure LLM provider mode.
+    
+    Modes:
+    - 'cloud': Always use Claude via Emergent Key (costs per request)
+    - 'local': Use Ollama (free, requires local setup)
+    - 'hybrid': Local with cloud fallback (recommended for development)
+    """
+    global llm_provider
+    
+    try:
+        mode = LLMMode(request.mode)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Invalid mode: {request.mode}. Use 'cloud', 'local', or 'hybrid'")
+    
+    # Create new configuration
+    config = LLMConfig(
+        mode=mode,
+        cloud_provider="anthropic",
+        cloud_model="claude-sonnet-4-5-20250929",
+        emergent_key=EMERGENT_LLM_KEY,
+        local_url=request.local_url or "http://localhost:11434",
+        local_model=request.local_model or "llama3.1:8b",
+        fallback_to_cloud=request.fallback_to_cloud if request.fallback_to_cloud is not None else True,
+        max_retries=3
+    )
+    
+    # Reinitialize provider with new config
+    llm_provider = HybridLLMProvider(config)
+    await llm_provider.initialize()
+    
+    status = llm_provider.get_status()
+    
+    return {
+        "message": f"LLM provider configured to '{mode.value}' mode",
+        "configuration": status,
+        "warnings": [] if status["local_available"] or mode == LLMMode.CLOUD else [
+            "Local LLM (Ollama) is not available. Will fall back to cloud if enabled.",
+            "To set up Ollama: curl -fsSL https://ollama.com/install.sh | sh && ollama pull llama3.1:8b"
+        ]
+    }
+
+
+@llm_router.get("/models")
+async def list_local_models():
+    """List available local models (if Ollama is running)"""
+    provider = await get_llm_provider()
+    
+    if not provider.local_available:
+        return {
+            "available": False,
+            "models": [],
+            "message": "Ollama is not running. Start it with: ollama serve"
+        }
+    
+    models = await provider.local_provider.list_models()
+    
+    return {
+        "available": True,
+        "models": models,
+        "recommended": RECOMMENDED_MODELS
+    }
+
+
+@llm_router.post("/test")
+async def test_llm(request: LLMTestRequest):
+    """Test LLM generation with a simple prompt"""
+    try:
+        result = await generate_with_hybrid_llm(
+            system_prompt="You are a helpful assistant. Keep responses brief.",
+            user_message=request.prompt,
+            prefer_local=request.prefer_local if request.prefer_local is not None else True
+        )
+        
+        return {
+            "success": True,
+            "response": result["response"][:500] if len(result["response"]) > 500 else result["response"],
+            "provider_used": result["provider"],
+            "model_used": result["model"],
+            "request_counts": result.get("request_counts", {})
+        }
+        
+    except Exception as e:
+        logging.error(f"LLM test error: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "suggestion": "Check LLM configuration with GET /api/llm/status"
+        }
+
+
+# ============================================================================
 #                              APP SETUP
 # ============================================================================
 
