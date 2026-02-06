@@ -227,6 +227,18 @@ class GeneratePagesRequest(BaseModel):
     specification: Dict[str, Any]
 
 
+class LLMConfigRequest(BaseModel):
+    mode: Literal["cloud", "local", "hybrid"]
+    local_model: Optional[str] = "llama3.1:8b"
+    local_url: Optional[str] = "http://localhost:11434"
+    fallback_to_cloud: Optional[bool] = True
+
+
+class LLMTestRequest(BaseModel):
+    prompt: str
+    prefer_local: Optional[bool] = True
+
+
 # ============================================================================
 #                              HELPER FUNCTIONS
 # ============================================================================
