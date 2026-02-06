@@ -50,6 +50,7 @@ export const LLMSelector = ({ onStatusChange }) => {
 
   useEffect(() => {
     fetchStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const switchMode = async (mode) => {
