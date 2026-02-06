@@ -65,6 +65,41 @@ orchestrators: Dict[str, MultiKernelOrchestrator] = {}
 page_generators: Dict[str, PageGenerator] = {}
 build_engines: Dict[str, BuildEngine] = {}
 
+# ============================================================================
+#                        LLM PROVIDER MANAGEMENT
+# ============================================================================
+
+# Global LLM Provider - supports cloud/local switching
+llm_provider: Optional[HybridLLMProvider] = None
+
+def get_default_llm_config() -> LLMConfig:
+    """Create default LLM configuration"""
+    return LLMConfig(
+        mode=LLMMode.CLOUD,  # Default to cloud
+        cloud_provider="anthropic",
+        cloud_model="claude-sonnet-4-5-20250929",
+        emergent_key=EMERGENT_LLM_KEY,
+        local_url="http://localhost:11434",
+        local_model="llama3.1:8b",
+        fallback_to_cloud=True,
+        max_retries=3
+    )
+
+async def initialize_llm_provider():
+    """Initialize the global LLM provider"""
+    global llm_provider
+    config = get_default_llm_config()
+    llm_provider = HybridLLMProvider(config)
+    await llm_provider.initialize()
+    logging.info(f"LLM Provider initialized: mode={config.mode.value}, local_available={llm_provider.local_available}")
+
+async def get_llm_provider() -> HybridLLMProvider:
+    """Get the global LLM provider, initializing if needed"""
+    global llm_provider
+    if llm_provider is None:
+        await initialize_llm_provider()
+    return llm_provider
+
 
 # ============================================================================
 #                           SOCRATIC ENGINE PROMPTS
