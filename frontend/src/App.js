@@ -400,6 +400,7 @@ function App() {
         currentStage={currentStage}
         onClear={clearCanvas}
         onTogglePipeline={() => setShowPipeline(!showPipeline)}
+        onLLMStatusChange={setLLMStatus}
       />
 
       {/* Input Panel */}
