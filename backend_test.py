@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Sovereign Genesis Platform (SGP) Backend API Testing
-Tests the Socratic Pre-Prompt Engine and Neural-Symbolic reasoning endpoints
+Sovereign Genesis Platform (SGP) v2.0 Backend API Testing
+Tests the Genesis Pipeline with Ouroboros Loop, Quality Gate, Governance Engine, 
+Multi-Kernel Orchestrator, and Socratic Pre-Prompt Engine
 """
 
 import requests
