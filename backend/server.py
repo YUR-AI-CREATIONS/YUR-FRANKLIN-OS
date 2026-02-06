@@ -375,17 +375,18 @@ async def root():
 
 @api_router.post("/analyze")
 async def analyze_prompt(request: AnalyzeRequest):
-    """Analyze a user prompt using the Socratic Engine"""
+    """Analyze a user prompt using the Socratic Engine with hybrid LLM support"""
     session_id = request.session_id or str(uuid.uuid4())
     
     try:
-        chat = create_chat(f"socratic_{session_id}", SOCRATIC_SYSTEM_PROMPT)
-        user_message = UserMessage(text=f"Analyze this request: {request.prompt}")
+        # Use hybrid LLM provider (respects cloud/local mode setting)
+        result = await generate_with_hybrid_llm(
+            system_prompt=SOCRATIC_SYSTEM_PROMPT,
+            user_message=f"Analyze this request: {request.prompt}",
+            prefer_local=True  # Default to local for cost savings
+        )
         
-        # Use retry wrapper for resilience against transient errors
-        response = await send_message_with_retry(chat, user_message)
-        
-        analysis = extract_json_from_response(response)
+        analysis = extract_json_from_response(result["response"])
         
         session_doc = {
             "session_id": session_id,
@@ -398,6 +399,8 @@ async def analyze_prompt(request: AnalyzeRequest):
             ],
             "confidence_score": analysis.get("confidence_score", 0),
             "can_proceed": analysis.get("can_proceed", False),
+            "llm_provider": result.get("provider", "unknown"),
+            "llm_model": result.get("model", "unknown"),
             "created_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
@@ -412,7 +415,11 @@ async def analyze_prompt(request: AnalyzeRequest):
             "session_id": session_id,
             "analysis": analysis,
             "confidence_score": analysis.get("confidence_score", 0),
-            "can_proceed": analysis.get("can_proceed", False)
+            "can_proceed": analysis.get("can_proceed", False),
+            "llm_info": {
+                "provider": result.get("provider"),
+                "model": result.get("model")
+            }
         }
         
     except Exception as e:
