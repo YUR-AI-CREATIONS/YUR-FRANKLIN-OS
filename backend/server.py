@@ -1112,6 +1112,7 @@ app.include_router(governance_router)
 app.include_router(orchestrator_router)
 app.include_router(stack_router)
 app.include_router(build_router)
+app.include_router(llm_router)
 
 app.add_middleware(
     CORSMiddleware,
