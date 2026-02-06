@@ -17,6 +17,8 @@ class SGPAPITester:
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.session_id = None
+        self.project_id = None
+        self.orchestrator_id = None
         self.tests_run = 0
         self.tests_passed = 0
         self.test_results = []
