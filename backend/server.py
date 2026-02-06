@@ -992,6 +992,64 @@ async def get_deployment_config(project_id: str):
     }
 
 
+class WriteToDiskRequest(BaseModel):
+    project_id: str
+    output_directory: Optional[str] = "/app/generated"
+
+
+@build_router.post("/write")
+async def write_build_to_disk(request: WriteToDiskRequest):
+    """
+    Write all generated code artifacts to actual files on disk.
+    
+    This is the critical step that transforms JSON artifacts into real code.
+    """
+    engine = build_engines.get(request.project_id)
+    
+    if not engine or not engine.manifest:
+        raise HTTPException(status_code=404, detail="Build not found. Run /api/build/generate first.")
+    
+    # Write files to disk
+    result = engine.write_to_disk(request.output_directory)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=500, detail=f"Failed to write files: {result.get('errors')}")
+    
+    # Store record in database
+    await db.build_writes.insert_one({
+        "project_id": request.project_id,
+        "build_id": engine.manifest.id,
+        "output_directory": result["output_directory"],
+        "total_files": result["total_files_written"],
+        "files": result["files"],
+        "written_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {
+        "success": True,
+        "message": f"Successfully wrote {result['total_files_written']} files to disk",
+        "output_directory": result["output_directory"],
+        "project_name": result["project_name"],
+        "tech_stack": result["tech_stack"],
+        "files": result["files"]
+    }
+
+
+@build_router.get("/tree/{project_id}")
+async def get_build_file_tree(project_id: str):
+    """Get the file tree structure of generated artifacts"""
+    engine = build_engines.get(project_id)
+    
+    if not engine or not engine.manifest:
+        raise HTTPException(status_code=404, detail="Build not found")
+    
+    return {
+        "project_id": project_id,
+        "project_name": engine.manifest.project_name,
+        "tree": engine.get_file_tree()
+    }
+
+
 # ============================================================================
 #                           LLM PROVIDER ENDPOINTS
 # ============================================================================
