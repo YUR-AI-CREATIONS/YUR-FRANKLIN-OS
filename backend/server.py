@@ -57,6 +57,7 @@ EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
 # Global instances
 orchestrators: Dict[str, MultiKernelOrchestrator] = {}
 page_generators: Dict[str, PageGenerator] = {}
+build_engines: Dict[str, BuildEngine] = {}
 
 
 # ============================================================================
