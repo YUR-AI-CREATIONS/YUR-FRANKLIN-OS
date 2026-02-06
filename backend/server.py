@@ -342,7 +342,7 @@ User Answers:
         
         # Update conversation history
         conversation_history = session.get('conversation_history', [])
-        conversation_history.append({"role": "user", "content": request.answers})
+        conversation_history.append({"role": "user", "content": [ans.dict() for ans in request.answers]})
         conversation_history.append({"role": "assistant", "content": resolution})
         
         await db.sessions.update_one(
