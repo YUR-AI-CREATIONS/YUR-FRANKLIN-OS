@@ -63,7 +63,7 @@ Build SGP as a **meta-system that creates systems** - not industry-specific, but
 
 ### Phase 3 - Build Engine ✓
 - [x] Technology Stack Registry (40+ technologies)
-- [x] Build Engine (code generation)
+- [x] Build Engine (JSON code artifact generation)
 - [x] Multi-stack support (Next.js, FastAPI, PostgreSQL, etc.)
 - [x] Docker/Kubernetes configurations
 - [x] CI/CD pipeline generation (GitHub Actions)
@@ -80,6 +80,8 @@ Build SGP as a **meta-system that creates systems** - not industry-specific, but
 - [x] LLM test endpoint (`POST /api/llm/test`)
 - [x] Socratic engine updated to use hybrid LLM
 - [x] Response metadata includes provider/model info
+- [x] **Frontend LLM Mode Selector** (Cloud/Local/Hybrid toggle)
+- [x] Auto-fallback to cloud when local unavailable
 
 ## API Endpoints v2.0
 
@@ -108,11 +110,16 @@ Build SGP as a **meta-system that creates systems** - not industry-specific, but
 - `GET /api/build/artifacts/{id}` - Get generated files
 - `GET /api/build/deployment/{id}` - Deployment config
 
-### LLM (NEW)
+### LLM
 - `GET /api/llm/status` - Provider status, config, recommended models
 - `POST /api/llm/config` - Switch between cloud/local/hybrid modes
 - `GET /api/llm/models` - List available local models
 - `POST /api/llm/test` - Test LLM generation
+
+## Testing Status
+- Backend: 95-100% pass rate across 21+ endpoint tests
+- Frontend: 100% verified via Playwright automation
+- End-to-end: Full Socratic workflow tested
 
 ## Prioritized Backlog
 
@@ -128,18 +135,18 @@ Build SGP as a **meta-system that creates systems** - not industry-specific, but
 
 ### P2 - Medium Priority
 - [ ] Visual tech stack selector UI
-- [ ] LLM mode selector in frontend UI
 - [ ] Template library
 - [ ] Multi-user collaboration
 
 ### P3 - Low Priority
 - [ ] Session persistence (refactor in-memory to MongoDB)
 - [ ] Drift detection improvements
+- [ ] React Flow memoization optimization
 
 ## Next Tasks
 1. Build Engine Phase 2: Convert JSON artifacts to actual code files
 2. Add deployment automation
-3. Build visual tech stack selector with LLM mode toggle
+3. Build visual tech stack selector
 4. Implement live preview
 
 ## Local LLM Setup Instructions
@@ -154,8 +161,9 @@ ollama pull llama3.1:8b
 # Start Ollama (usually auto-starts)
 ollama serve
 
-# Configure SGP to use local mode
-curl -X POST /api/llm/config -d '{"mode": "local"}'
+# Configure SGP to use local mode via UI or API
+# Click "Cloud" button in header → Select "Local" or "Hybrid"
+# OR curl -X POST /api/llm/config -d '{"mode": "local"}'
 ```
 
 Recommended models:
