@@ -429,7 +429,7 @@ async def analyze_prompt(request: AnalyzeRequest):
 
 @api_router.post("/resolve")
 async def resolve_ambiguities(request: ResolveRequest):
-    """Process user answers to clarification questions"""
+    """Process user answers to clarification questions using hybrid LLM"""
     session = await db.sessions.find_one({"session_id": request.session_id}, {"_id": 0})
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -447,13 +447,14 @@ User Answers:
                 context += f" (Selected: {ans.selected_option})"
             context += "\n"
         
-        chat = create_chat(f"resolve_{request.session_id}", SOCRATIC_SYSTEM_PROMPT)
-        user_message = UserMessage(text=f"Update analysis based on these answers:\n{context}")
+        # Use hybrid LLM provider
+        result = await generate_with_hybrid_llm(
+            system_prompt=SOCRATIC_SYSTEM_PROMPT,
+            user_message=f"Update analysis based on these answers:\n{context}",
+            prefer_local=True
+        )
         
-        # Use retry wrapper for resilience
-        response = await send_message_with_retry(chat, user_message)
-        
-        resolution = extract_json_from_response(response)
+        resolution = extract_json_from_response(result["response"])
         
         # Update session
         answers_dict = [{"ambiguity_id": a.ambiguity_id, "answer": a.answer, "selected_option": a.selected_option} for a in request.answers]
@@ -468,6 +469,8 @@ User Answers:
                 "conversation_history": conversation_history,
                 "confidence_score": resolution.get('confidence_score', 0),
                 "can_proceed": resolution.get('can_proceed', False),
+                "llm_provider": result.get("provider", "unknown"),
+                "llm_model": result.get("model", "unknown"),
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }}
         )
@@ -476,7 +479,11 @@ User Answers:
             "session_id": request.session_id,
             "analysis": resolution,
             "confidence_score": resolution.get('confidence_score', 0),
-            "can_proceed": resolution.get('can_proceed', False)
+            "can_proceed": resolution.get('can_proceed', False),
+            "llm_info": {
+                "provider": result.get("provider"),
+                "model": result.get("model")
+            }
         }
         
     except Exception as e:
