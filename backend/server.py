@@ -48,6 +48,8 @@ api_router = APIRouter(prefix="/api")
 genesis_router = APIRouter(prefix="/api/genesis")
 governance_router = APIRouter(prefix="/api/governance")
 orchestrator_router = APIRouter(prefix="/api/orchestrator")
+stack_router = APIRouter(prefix="/api/stack")
+build_router = APIRouter(prefix="/api/build")
 
 # LLM Configuration
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
