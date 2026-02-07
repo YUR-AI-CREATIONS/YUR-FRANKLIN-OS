@@ -1000,3 +1000,492 @@ jobs:
                     current = current[part].get("children", current[part])
         
         return tree
+    
+    # ════════════════════════════════════════════════════════════════════════
+    #                    ENHANCED CODE GENERATION
+    # ════════════════════════════════════════════════════════════════════════
+    
+    def generate_crud_routes(self, entity_name: str, attributes: List[Dict]) -> str:
+        """Generate complete CRUD routes for an entity"""
+        name_lower = entity_name.lower()
+        name_plural = f"{name_lower}s"
+        
+        # Build attribute list for create/update
+        create_attrs = ", ".join([f'{a["name"]}: {self._py_type(a["type"])}' for a in attributes])
+        
+        return f'''from fastapi import APIRouter, HTTPException, Depends, Query
+from typing import List, Optional
+from pydantic import BaseModel
+from datetime import datetime
+import uuid
+
+router = APIRouter(prefix="/{name_plural}", tags=["{entity_name}"])
+
+# ═══════════════════════════════════════════════════════════════════════════
+#                              DATA MODELS
+# ═══════════════════════════════════════════════════════════════════════════
+
+class {entity_name}Create(BaseModel):
+    {self._model_fields(attributes, optional=False)}
+
+class {entity_name}Update(BaseModel):
+    {self._model_fields(attributes, optional=True)}
+
+class {entity_name}Response(BaseModel):
+    id: str
+    {self._model_fields(attributes, optional=False)}
+    created_at: datetime
+    updated_at: datetime
+
+# ═══════════════════════════════════════════════════════════════════════════
+#                           IN-MEMORY STORAGE
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Replace with actual database in production
+{name_plural}_db: dict = {{}}
+
+# ═══════════════════════════════════════════════════════════════════════════
+#                              CRUD ENDPOINTS
+# ═══════════════════════════════════════════════════════════════════════════
+
+@router.post("/", response_model={entity_name}Response, status_code=201)
+async def create_{name_lower}(data: {entity_name}Create):
+    """Create a new {name_lower}"""
+    item_id = str(uuid.uuid4())
+    now = datetime.utcnow()
+    
+    item = {{
+        "id": item_id,
+        **data.model_dump(),
+        "created_at": now,
+        "updated_at": now
+    }}
+    
+    {name_plural}_db[item_id] = item
+    return item
+
+@router.get("/", response_model=List[{entity_name}Response])
+async def list_{name_plural}(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000)
+):
+    """List all {name_plural} with pagination"""
+    items = list({name_plural}_db.values())
+    return items[skip:skip + limit]
+
+@router.get("/{{item_id}}", response_model={entity_name}Response)
+async def get_{name_lower}(item_id: str):
+    """Get a specific {name_lower} by ID"""
+    if item_id not in {name_plural}_db:
+        raise HTTPException(status_code=404, detail="{entity_name} not found")
+    return {name_plural}_db[item_id]
+
+@router.put("/{{item_id}}", response_model={entity_name}Response)
+async def update_{name_lower}(item_id: str, data: {entity_name}Update):
+    """Update a {name_lower}"""
+    if item_id not in {name_plural}_db:
+        raise HTTPException(status_code=404, detail="{entity_name} not found")
+    
+    item = {name_plural}_db[item_id]
+    update_data = data.model_dump(exclude_unset=True)
+    
+    for field, value in update_data.items():
+        item[field] = value
+    
+    item["updated_at"] = datetime.utcnow()
+    return item
+
+@router.delete("/{{item_id}}", status_code=204)
+async def delete_{name_lower}(item_id: str):
+    """Delete a {name_lower}"""
+    if item_id not in {name_plural}_db:
+        raise HTTPException(status_code=404, detail="{entity_name} not found")
+    
+    del {name_plural}_db[item_id]
+    return None
+
+@router.get("/search/", response_model=List[{entity_name}Response])
+async def search_{name_plural}(q: str = Query(..., min_length=1)):
+    """Search {name_plural} by query string"""
+    results = []
+    q_lower = q.lower()
+    
+    for item in {name_plural}_db.values():
+        # Search in string fields
+        for key, value in item.items():
+            if isinstance(value, str) and q_lower in value.lower():
+                results.append(item)
+                break
+    
+    return results
+'''
+    
+    def generate_auth_module(self, project_name: str) -> Dict[str, str]:
+        """Generate complete authentication module"""
+        
+        auth_models = '''from pydantic import BaseModel, EmailStr
+from typing import Optional
+from datetime import datetime
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+    name: str
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class UserResponse(BaseModel):
+    id: str
+    email: str
+    name: str
+    is_active: bool
+    created_at: datetime
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int
+
+class TokenData(BaseModel):
+    user_id: Optional[str] = None
+    email: Optional[str] = None
+'''
+        
+        auth_utils = '''import os
+import hashlib
+import secrets
+from datetime import datetime, timedelta
+from typing import Optional
+import jwt
+
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", secrets.token_hex(32))
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
+
+def hash_password(password: str) -> str:
+    """Hash password using SHA-256 with salt"""
+    salt = secrets.token_hex(16)
+    hashed = hashlib.sha256((password + salt).encode()).hexdigest()
+    return f"{salt}${hashed}"
+
+def verify_password(password: str, hashed: str) -> bool:
+    """Verify password against hash"""
+    try:
+        salt, hash_value = hashed.split("$")
+        return hashlib.sha256((password + salt).encode()).hexdigest() == hash_value
+    except:
+        return False
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """Create JWT access token"""
+    to_encode = data.copy()
+    
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+def decode_token(token: str) -> Optional[dict]:
+    """Decode and validate JWT token"""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None
+'''
+        
+        auth_routes = f'''from fastapi import APIRouter, HTTPException, Depends, Header
+from typing import Optional
+import uuid
+from datetime import datetime
+
+from .auth_models import UserCreate, UserLogin, UserResponse, Token
+from .auth_utils import hash_password, verify_password, create_access_token, decode_token
+
+router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+# In-memory user storage (replace with database)
+users_db: dict = {{}}
+
+async def get_current_user(authorization: Optional[str] = Header(None)) -> UserResponse:
+    """Dependency to get current authenticated user"""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    try:
+        scheme, token = authorization.split()
+        if scheme.lower() != "bearer":
+            raise HTTPException(status_code=401, detail="Invalid auth scheme")
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Invalid auth header")
+    
+    payload = decode_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    user_id = payload.get("user_id")
+    if user_id not in users_db:
+        raise HTTPException(status_code=401, detail="User not found")
+    
+    return UserResponse(**users_db[user_id])
+
+@router.post("/register", response_model=UserResponse, status_code=201)
+async def register(data: UserCreate):
+    """Register a new user"""
+    # Check if email exists
+    for user in users_db.values():
+        if user["email"] == data.email:
+            raise HTTPException(status_code=400, detail="Email already registered")
+    
+    user_id = str(uuid.uuid4())
+    now = datetime.utcnow()
+    
+    user = {{
+        "id": user_id,
+        "email": data.email,
+        "name": data.name,
+        "password_hash": hash_password(data.password),
+        "is_active": True,
+        "created_at": now
+    }}
+    
+    users_db[user_id] = user
+    return UserResponse(**user)
+
+@router.post("/login", response_model=Token)
+async def login(data: UserLogin):
+    """Login and get access token"""
+    # Find user by email
+    user = None
+    for u in users_db.values():
+        if u["email"] == data.email:
+            user = u
+            break
+    
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    if not verify_password(data.password, user["password_hash"]):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    if not user["is_active"]:
+        raise HTTPException(status_code=401, detail="Account disabled")
+    
+    access_token = create_access_token({{
+        "user_id": user["id"],
+        "email": user["email"]
+    }})
+    
+    return Token(access_token=access_token, expires_in=86400)
+
+@router.get("/me", response_model=UserResponse)
+async def get_me(current_user: UserResponse = Depends(get_current_user)):
+    """Get current user profile"""
+    return current_user
+
+@router.post("/logout")
+async def logout(current_user: UserResponse = Depends(get_current_user)):
+    """Logout (client should discard token)"""
+    return {{"message": "Successfully logged out"}}
+'''
+        
+        return {
+            "auth_models.py": auth_models,
+            "auth_utils.py": auth_utils,
+            "auth_routes.py": auth_routes
+        }
+    
+    def generate_test_suite(self, entity_name: str, attributes: List[Dict]) -> str:
+        """Generate pytest test suite for an entity"""
+        name_lower = entity_name.lower()
+        name_plural = f"{name_lower}s"
+        
+        # Build sample data
+        sample_data = {}
+        for attr in attributes:
+            if attr["type"] == "string":
+                sample_data[attr["name"]] = f"test_{attr['name']}"
+            elif attr["type"] == "integer":
+                sample_data[attr["name"]] = 1
+            elif attr["type"] == "boolean":
+                sample_data[attr["name"]] = True
+            elif attr["type"] == "float":
+                sample_data[attr["name"]] = 1.5
+        
+        sample_json = json.dumps(sample_data, indent=8)
+        
+        return f'''import pytest
+from fastapi.testclient import TestClient
+from app.main import app
+
+client = TestClient(app)
+
+# ═══════════════════════════════════════════════════════════════════════════
+#                         {entity_name.upper()} CRUD TESTS
+# ═══════════════════════════════════════════════════════════════════════════
+
+class Test{entity_name}CRUD:
+    """Test suite for {entity_name} CRUD operations"""
+    
+    created_id = None
+    
+    @pytest.fixture(autouse=True)
+    def sample_data(self):
+        return {sample_json}
+    
+    def test_create_{name_lower}(self, sample_data):
+        """Test creating a new {name_lower}"""
+        response = client.post("/{name_plural}/", json=sample_data)
+        assert response.status_code == 201
+        
+        data = response.json()
+        assert "id" in data
+        assert data["created_at"] is not None
+        
+        Test{entity_name}CRUD.created_id = data["id"]
+    
+    def test_get_{name_lower}(self):
+        """Test getting a {name_lower} by ID"""
+        if not Test{entity_name}CRUD.created_id:
+            pytest.skip("No {name_lower} created")
+        
+        response = client.get(f"/{name_plural}/{{Test{entity_name}CRUD.created_id}}")
+        assert response.status_code == 200
+        assert response.json()["id"] == Test{entity_name}CRUD.created_id
+    
+    def test_list_{name_plural}(self):
+        """Test listing all {name_plural}"""
+        response = client.get("/{name_plural}/")
+        assert response.status_code == 200
+        assert isinstance(response.json(), list)
+    
+    def test_update_{name_lower}(self, sample_data):
+        """Test updating a {name_lower}"""
+        if not Test{entity_name}CRUD.created_id:
+            pytest.skip("No {name_lower} created")
+        
+        # Modify sample data
+        updated_data = {{k: f"updated_{{v}}" if isinstance(v, str) else v for k, v in sample_data.items()}}
+        
+        response = client.put(
+            f"/{name_plural}/{{Test{entity_name}CRUD.created_id}}",
+            json=updated_data
+        )
+        assert response.status_code == 200
+    
+    def test_delete_{name_lower}(self):
+        """Test deleting a {name_lower}"""
+        if not Test{entity_name}CRUD.created_id:
+            pytest.skip("No {name_lower} created")
+        
+        response = client.delete(f"/{name_plural}/{{Test{entity_name}CRUD.created_id}}")
+        assert response.status_code == 204
+        
+        # Verify deletion
+        response = client.get(f"/{name_plural}/{{Test{entity_name}CRUD.created_id}}")
+        assert response.status_code == 404
+    
+    def test_get_nonexistent_{name_lower}(self):
+        """Test getting a non-existent {name_lower}"""
+        response = client.get("/{name_plural}/nonexistent-id")
+        assert response.status_code == 404
+    
+    def test_search_{name_plural}(self, sample_data):
+        """Test searching {name_plural}"""
+        # Create a {name_lower} first
+        client.post("/{name_plural}/", json=sample_data)
+        
+        response = client.get("/{name_plural}/search/?q=test")
+        assert response.status_code == 200
+        assert isinstance(response.json(), list)
+
+
+class TestAuthEndpoints:
+    """Test suite for authentication endpoints"""
+    
+    test_user = {{
+        "email": "test@example.com",
+        "password": "TestPass123!",
+        "name": "Test User"
+    }}
+    access_token = None
+    
+    def test_register(self):
+        """Test user registration"""
+        response = client.post("/auth/register", json=self.test_user)
+        # May fail if user already exists
+        assert response.status_code in [201, 400]
+    
+    def test_login(self):
+        """Test user login"""
+        response = client.post("/auth/login", json={{
+            "email": self.test_user["email"],
+            "password": self.test_user["password"]
+        }})
+        
+        if response.status_code == 200:
+            data = response.json()
+            assert "access_token" in data
+            TestAuthEndpoints.access_token = data["access_token"]
+    
+    def test_get_me(self):
+        """Test getting current user"""
+        if not TestAuthEndpoints.access_token:
+            pytest.skip("No access token")
+        
+        response = client.get(
+            "/auth/me",
+            headers={{"Authorization": f"Bearer {{TestAuthEndpoints.access_token}}"}}
+        )
+        assert response.status_code == 200
+    
+    def test_unauthorized(self):
+        """Test unauthorized access"""
+        response = client.get("/auth/me")
+        assert response.status_code == 401
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#                            HEALTH CHECKS
+# ═══════════════════════════════════════════════════════════════════════════
+
+def test_health():
+    """Test health endpoint"""
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json()["status"] == "healthy"
+
+def test_root():
+    """Test root endpoint"""
+    response = client.get("/")
+    assert response.status_code == 200
+'''
+    
+    def _py_type(self, type_str: str) -> str:
+        """Convert type string to Python type"""
+        type_map = {
+            "string": "str",
+            "integer": "int",
+            "boolean": "bool",
+            "datetime": "datetime",
+            "float": "float"
+        }
+        return type_map.get(type_str, "str")
+    
+    def _model_fields(self, attributes: List[Dict], optional: bool = False) -> str:
+        """Generate Pydantic model fields"""
+        lines = []
+        for attr in attributes:
+            py_type = self._py_type(attr.get("type", "string"))
+            if optional:
+                lines.append(f'{attr["name"]}: Optional[{py_type}] = None')
+            else:
+                lines.append(f'{attr["name"]}: {py_type}')
+        return "\n    ".join(lines) if lines else "pass"
