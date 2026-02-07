@@ -14,7 +14,7 @@ from marketing_content import (
     ContentType
 )
 
-marketing_router = APIRouter(prefix="/api/marketing")
+marketing_router = APIRouter(prefix="/api/marketing/content")
 
 
 # ============================================================================
