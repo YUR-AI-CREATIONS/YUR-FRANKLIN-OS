@@ -1049,4 +1049,13 @@ function AppContent() {
   );
 }
 
+// Wrap with ReactFlowProvider for useReactFlow hook
+function App() {
+  return (
+    <ReactFlowProvider>
+      <AppContent />
+    </ReactFlowProvider>
+  );
+}
+
 export default App;
