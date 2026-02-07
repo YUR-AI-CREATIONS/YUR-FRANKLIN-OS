@@ -6,6 +6,7 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   addEdge,
+  MarkerType,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import axios from 'axios';
@@ -27,8 +28,15 @@ const nodeTypes = {
   spec: SpecNode,
 };
 
+// Page Navigation
+const PAGES = {
+  LANDING: 'landing',
+  IDE: 'ide',
+  WORKFLOW: 'workflow'
+};
+
 // Stars & Galactic Background Component
-const GalacticBackground = () => {
+const GalacticBackground = ({ opacity = 1 }) => {
   const canvasRef = useRef(null);
   const starsRef = useRef(null);
   
@@ -74,46 +82,22 @@ const GalacticBackground = () => {
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      const lasers = [
-        { x1: 0, y1: canvas.height * 0.3, angle: 15, alpha: 0.12, width: 1 },
-        { x1: canvas.width, y1: canvas.height * 0.2, angle: 165, alpha: 0.08, width: 1 },
-        { x1: 0, y1: canvas.height * 0.7, angle: 10, alpha: 0.08, width: 1 },
-        { x1: canvas.width, y1: canvas.height * 0.8, angle: 170, alpha: 0.12, width: 1 },
-      ];
-      
-      lasers.forEach(laser => {
-        const length = Math.max(canvas.width, canvas.height) * 1.5;
-        const rad = laser.angle * Math.PI / 180;
-        const x2 = laser.x1 + Math.cos(rad) * length;
-        const y2 = laser.y1 + Math.sin(rad) * length;
-        
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = `rgba(255, 255, 255, ${laser.alpha})`;
-        ctx.beginPath();
-        ctx.strokeStyle = `rgba(255, 255, 255, ${laser.alpha})`;
-        ctx.lineWidth = laser.width;
-        ctx.moveTo(laser.x1, laser.y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-      });
-      
       if (starsRef.current) {
         starsRef.current.forEach(star => {
           const twinkle = Math.sin(time * star.speed * 0.05 + star.phase) * 0.5 + 0.5;
           
           if (star.type === 'bright') {
             ctx.shadowBlur = 12;
-            ctx.shadowColor = `rgba(255, 255, 255, ${twinkle * 0.6})`;
+            ctx.shadowColor = `rgba(255, 255, 255, ${twinkle * 0.6 * opacity})`;
             ctx.beginPath();
             ctx.arc(star.x, star.y, star.size * twinkle + 0.5, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255, 255, 255, ${twinkle * 0.9 + 0.1})`;
+            ctx.fillStyle = `rgba(255, 255, 255, ${(twinkle * 0.9 + 0.1) * opacity})`;
             ctx.fill();
             ctx.shadowBlur = 0;
           } else {
             ctx.beginPath();
             ctx.arc(star.x, star.y, star.size * (twinkle * 0.3 + 0.7), 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255, 255, 255, ${twinkle * 0.6 + 0.2})`;
+            ctx.fillStyle = `rgba(255, 255, 255, ${(twinkle * 0.6 + 0.2) * opacity})`;
             ctx.fill();
           }
         });
@@ -131,7 +115,7 @@ const GalacticBackground = () => {
       cancelAnimationFrame(animationId);
       window.removeEventListener('resize', resize);
     };
-  }, []);
+  }, [opacity]);
   
   return <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />;
 };
@@ -146,7 +130,7 @@ const INTERFACE_MODES = [
   { id: 'workflow', label: 'WORKFLOW', icon: '◈' },
 ];
 
-// Build Categories with nested subcategories
+// Build Categories
 const BUILD_CATEGORIES = [
   { 
     id: 'frontend', 
@@ -170,12 +154,202 @@ const BUILD_CATEGORIES = [
   },
 ];
 
-function App() {
-  // State
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [showLanding, setShowLanding] = useState(true);
-  
+// ============================================================================
+// PAGE 3: ELECTRIC WORKFLOW
+// ============================================================================
+const ElectricWorkflowPage = ({ onBack, workflowNodes, workflowEdges, onNodesChange, onEdgesChange }) => {
+  const [selectedNode, setSelectedNode] = useState(null);
+  const [buildStatus, setBuildStatus] = useState(null);
+
+  // Load build status
+  useEffect(() => {
+    const loadStatus = async () => {
+      try {
+        const response = await axios.get(`${API}/api/quality/builds`);
+        if (response.data.builds?.length > 0) {
+          setBuildStatus(response.data.builds[response.data.builds.length - 1]);
+        }
+      } catch (err) {
+        console.error('Failed to load build status:', err);
+      }
+    };
+    loadStatus();
+    const interval = setInterval(loadStatus, 5000); // Poll every 5s
+    return () => clearInterval(interval);
+  }, []);
+
+  const onConnect = useCallback((params) => {
+    onEdgesChange((eds) => addEdge({ 
+      ...params, 
+      animated: true,
+      style: { stroke: '#00ff88', strokeWidth: 2 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: '#00ff88' }
+    }, eds));
+  }, [onEdgesChange]);
+
+  const onNodeClick = useCallback((event, node) => {
+    setSelectedNode(node);
+  }, []);
+
+  return (
+    <div className="h-screen w-screen overflow-hidden bg-black text-white relative" data-testid="workflow-page">
+      <GalacticBackground opacity={0.5} />
+      
+      {/* Header */}
+      <div className="absolute top-0 left-0 right-0 h-14 z-50 bg-black/80 backdrop-blur-md border-b border-white/10 flex items-center px-6">
+        <button
+          onClick={onBack}
+          className="px-4 py-2 text-xs font-mono text-white/70 hover:text-white hover:bg-white/10 rounded transition-all flex items-center gap-2"
+          data-testid="back-to-ide"
+        >
+          ◀ BACK TO IDE
+        </button>
+        
+        <div className="flex-1 text-center">
+          <h1 className="text-lg font-mono tracking-widest text-white/90">
+            ◈ ELECTRIC WORKFLOW
+          </h1>
+          <p className="text-[10px] text-white/40 tracking-wider">VISUAL BUILD PIPELINE</p>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          {buildStatus && (
+            <div className="text-[10px] font-mono text-white/50">
+              BUILD: <span className="text-cyan-400">{buildStatus.build_id}</span>
+              <span className="ml-2 text-white/30">|</span>
+              <span className={`ml-2 ${buildStatus.status === 'certified' ? 'text-green-400' : 'text-amber-400'}`}>
+                {buildStatus.status?.toUpperCase()}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Main Workflow Canvas */}
+      <div className="absolute top-14 left-0 right-72 bottom-0 z-10">
+        <ReactFlow
+          nodes={workflowNodes}
+          edges={workflowEdges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onNodeClick={onNodeClick}
+          nodeTypes={nodeTypes}
+          fitView
+          minZoom={0.2}
+          maxZoom={2}
+          className="bg-transparent"
+          defaultEdgeOptions={{
+            style: { stroke: '#00ff88', strokeWidth: 2 },
+            animated: true
+          }}
+        >
+          <Background color="rgba(255,255,255,0.03)" gap={30} />
+          <Controls className="!bg-black/70 !border-white/20 !rounded-lg" />
+          <MiniMap 
+            className="!bg-black/70 !border-white/20 !rounded-lg"
+            nodeColor={(node) => {
+              if (node.data?.status === 'completed') return '#00ff88';
+              if (node.data?.status === 'active') return '#00aaff';
+              if (node.data?.status === 'failed') return '#ff4444';
+              return '#666666';
+            }}
+            maskColor="rgba(0, 0, 0, 0.8)"
+          />
+        </ReactFlow>
+      </div>
+
+      {/* Right Panel - Node Details & Controls */}
+      <div className="absolute top-14 right-0 bottom-0 w-72 z-40 bg-black/90 border-l border-white/10 backdrop-blur-md overflow-y-auto">
+        <div className="p-4">
+          <div className="text-[10px] font-mono text-white/40 tracking-wider mb-4">◆ WORKFLOW CONTROLS</div>
+          
+          {/* Stage Progress */}
+          <div className="mb-6">
+            <div className="text-xs font-mono text-white/60 mb-2">STAGE PROGRESS</div>
+            <div className="space-y-2">
+              {['Specification', 'Architecture', 'Implementation', 'Integration', 'Quality', 'Certification'].map((stage, idx) => (
+                <div key={stage} className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${
+                    buildStatus?.stages_completed > idx ? 'bg-green-400' :
+                    buildStatus?.stages_completed === idx ? 'bg-cyan-400 animate-pulse' :
+                    'bg-white/20'
+                  }`} />
+                  <span className="text-[10px] font-mono text-white/60">{stage}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Selected Node Details */}
+          {selectedNode && (
+            <div className="mb-6 p-3 bg-white/5 rounded-lg border border-white/10">
+              <div className="text-xs font-mono text-white/60 mb-2">SELECTED NODE</div>
+              <div className="text-sm font-mono text-white/90">{selectedNode.data?.label || selectedNode.id}</div>
+              <div className="text-[10px] text-white/50 mt-1">{selectedNode.data?.type || 'stage'}</div>
+              {selectedNode.data?.status && (
+                <div className={`text-[10px] mt-2 ${
+                  selectedNode.data.status === 'completed' ? 'text-green-400' :
+                  selectedNode.data.status === 'active' ? 'text-cyan-400' :
+                  'text-white/40'
+                }`}>
+                  Status: {selectedNode.data.status.toUpperCase()}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Add Node Controls */}
+          <div className="mb-6">
+            <div className="text-xs font-mono text-white/60 mb-2">ADD NODE</div>
+            <div className="grid grid-cols-2 gap-2">
+              {['Stage', 'Decision', 'Action', 'Check'].map(type => (
+                <button
+                  key={type}
+                  className="px-3 py-2 text-[10px] font-mono bg-white/5 border border-white/10 rounded hover:bg-white/10 hover:border-white/20 transition-all"
+                >
+                  + {type}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Workflow Actions */}
+          <div className="space-y-2">
+            <button className="w-full px-4 py-3 text-xs font-mono bg-green-500/20 border border-green-500/30 rounded-lg text-green-400 hover:bg-green-500/30 transition-all">
+              ▶ RUN WORKFLOW
+            </button>
+            <button className="w-full px-4 py-3 text-xs font-mono bg-white/5 border border-white/10 rounded-lg text-white/60 hover:bg-white/10 transition-all">
+              ⟳ RESET
+            </button>
+            <button className="w-full px-4 py-3 text-xs font-mono bg-white/5 border border-white/10 rounded-lg text-white/60 hover:bg-white/10 transition-all">
+              ↓ EXPORT
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Electric Grid Overlay */}
+      <div className="absolute inset-0 pointer-events-none z-[5] opacity-10">
+        <div 
+          className="w-full h-full"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(0, 255, 136, 0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(0, 255, 136, 0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: '50px 50px'
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// PAGE 2: MAIN IDE
+// ============================================================================
+const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, setWorkflowEdges }) => {
   // Panel states
   const [leftPanelView, setLeftPanelView] = useState('interface');
   const [rightTab, setRightTab] = useState('agents');
@@ -231,10 +405,8 @@ function App() {
         console.error('Failed to load dashboard data:', err);
       }
     };
-    if (!showLanding) {
-      loadData();
-    }
-  }, [showLanding]);
+    loadData();
+  }, []);
 
   // Auto-scroll output
   useEffect(() => {
@@ -242,10 +414,6 @@ function App() {
       outputRef.current.scrollTop = outputRef.current.scrollHeight;
     }
   }, [outputLog]);
-
-  const onConnect = useCallback((params) => {
-    setEdges((eds) => addEdge({ ...params, animated: true }, eds));
-  }, [setEdges]);
 
   // Add output message
   const addOutput = (phase, message, type = 'info') => {
@@ -257,10 +425,22 @@ function App() {
     }]);
   };
 
+  // Add node to workflow
+  const addWorkflowNode = (label, status = 'pending') => {
+    const newNode = {
+      id: `node_${Date.now()}`,
+      type: 'stage',
+      position: { x: Math.random() * 500, y: Math.random() * 300 },
+      data: { label, status, type: 'stage' }
+    };
+    setWorkflowNodes(prev => [...prev, newNode]);
+  };
+
   // Handle Genesis command
   const handleGenesis = async (mission) => {
     setIsLoading(true);
     addOutput('GENESIS', `Starting mission: ${mission}`, 'system');
+    addWorkflowNode(`Genesis: ${mission.slice(0, 30)}...`, 'active');
     
     try {
       const response = await axios.post(`${API}/api/grok/genesis`, {
@@ -277,11 +457,12 @@ function App() {
       
       if (response.data.success) {
         addOutput('COMPLETE', `Task completed successfully!`, 'success');
-        // Trigger file tree glow
+        addWorkflowNode('Build Complete', 'completed');
         setFileTreeGlow(true);
         setTimeout(() => setFileTreeGlow(false), 2000);
       } else {
         addOutput('FAILED', `Task failed after ${response.data.task?.attempts || 0} attempts`, 'error');
+        addWorkflowNode('Build Failed', 'failed');
       }
     } catch (err) {
       addOutput('ERROR', err.response?.data?.detail || err.message, 'error');
@@ -297,14 +478,17 @@ function App() {
     const input = chatInput.trim();
     setChatInput('');
     
-    // Check for Genesis command
     if (input.toLowerCase().startsWith('/genesis ') || input.toLowerCase().startsWith('/build ')) {
       const mission = input.replace(/^\/(?:genesis|build)\s+/i, '');
       await handleGenesis(mission);
       return;
     }
     
-    // Regular chat - analyze prompt
+    if (input.toLowerCase() === '/workflow') {
+      onNavigate(PAGES.WORKFLOW);
+      return;
+    }
+    
     addOutput('USER', input, 'user');
     setIsLoading(true);
     
@@ -328,26 +512,22 @@ function App() {
     }
   };
 
-  // Toggle category expansion
   const toggleCategory = (id) => {
     setExpandedCategory(expandedCategory === id ? null : id);
   };
 
-  // Toggle subcategory selection
   const toggleSubcategory = (sub) => {
     setSelectedSubcategories(prev => 
       prev.includes(sub) ? prev.filter(x => x !== sub) : [...prev, sub]
     );
   };
 
-  // Switch to project view with glow
   const switchToProjectView = () => {
     setLeftPanelView('project');
     setFileTreeGlow(true);
     setTimeout(() => setFileTreeGlow(false), 2000);
   };
 
-  // Render file tree
   const renderFileTree = (items, depth = 0) => {
     return items.map((item, idx) => (
       <div key={idx} style={{ marginLeft: depth * 12 }}>
@@ -372,7 +552,6 @@ function App() {
     ));
   };
 
-  // Get phase color
   const getPhaseColor = (type) => {
     switch(type) {
       case 'success': return 'text-green-400';
@@ -384,43 +563,21 @@ function App() {
     }
   };
 
-  if (showLanding) {
-    return <LandingPage onEnterApp={() => setShowLanding(false)} />;
-  }
-
   return (
     <div className="h-screen w-screen overflow-hidden bg-black text-white relative" data-testid="franklin-os">
-      {/* Galactic Background with Stars */}
       <GalacticBackground />
-      
-      {/* Galactic Liquid Glassmorphism Overlay */}
-      <div className="absolute inset-0 z-[1] pointer-events-none">
-        <div 
-          className="absolute inset-0 opacity-30"
-          style={{
-            background: `
-              radial-gradient(ellipse at 20% 30%, rgba(100, 100, 120, 0.15) 0%, transparent 50%),
-              radial-gradient(ellipse at 80% 20%, rgba(80, 80, 100, 0.1) 0%, transparent 40%),
-              radial-gradient(ellipse at 50% 80%, rgba(60, 60, 80, 0.12) 0%, transparent 45%)
-            `
-          }}
-        />
-      </div>
       
       {/* Ghost FRANKLIN Text */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[2]">
-        <h1
-          className="text-[clamp(3rem,12vw,10rem)] font-semibold tracking-[0.55em] select-none franklin-chrome-dim"
-          style={{ fontFamily: "'Orbitron', sans-serif" }}
-        >
+        <h1 className="text-[clamp(3rem,12vw,10rem)] font-semibold tracking-[0.55em] select-none franklin-chrome-dim"
+            style={{ fontFamily: "'Orbitron', sans-serif" }}>
           FRANKLIN
         </h1>
       </div>
 
       {/* LEFT PANEL */}
       <div className="absolute left-0 top-0 bottom-0 w-56 z-40 border-r border-white/10 bg-black/80 backdrop-blur-md overflow-hidden">
-        {/* Interface Mode View */}
-        <div className={`absolute inset-0 transition-transform duration-300 ease-in-out ${leftPanelView === 'interface' ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className={`absolute inset-0 transition-transform duration-300 ${leftPanelView === 'interface' ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="p-4 h-full flex flex-col">
             <div className="text-[10px] font-mono text-white/40 mb-4 tracking-wider">◆ INTERFACE_MODE</div>
             
@@ -428,7 +585,12 @@ function App() {
               {INTERFACE_MODES.map(mode => (
                 <button
                   key={mode.id}
-                  onClick={() => setSelectedMode(mode.id)}
+                  onClick={() => {
+                    setSelectedMode(mode.id);
+                    if (mode.id === 'workflow') {
+                      onNavigate(PAGES.WORKFLOW);
+                    }
+                  }}
                   data-testid={`mode-${mode.id}`}
                   className={`w-full text-left px-3 py-2 rounded text-xs font-mono transition-all flex items-center gap-3 ${
                     selectedMode === mode.id 
@@ -455,8 +617,7 @@ function App() {
           </div>
         </div>
 
-        {/* Project Files View */}
-        <div className={`absolute inset-0 transition-transform duration-300 ease-in-out ${leftPanelView === 'project' ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className={`absolute inset-0 transition-transform duration-300 ${leftPanelView === 'project' ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className={`p-4 h-full flex flex-col ${fileTreeGlow ? 'file-tree-glow' : ''}`}>
             <button
               onClick={() => setLeftPanelView('interface')}
@@ -480,7 +641,7 @@ function App() {
         </div>
       </div>
 
-      {/* CENTER OUTPUT AREA - Scrolling Output */}
+      {/* CENTER OUTPUT AREA */}
       <div className="absolute top-4 left-60 right-68 bottom-72 z-30 flex justify-center">
         <div 
           ref={outputRef}
@@ -492,7 +653,7 @@ function App() {
               <div className="text-4xl mb-4 opacity-30">⬡</div>
               <p>FRANKLIN OS Ready</p>
               <p className="text-xs mt-2">Type a command or describe what you want to build...</p>
-              <p className="text-xs text-white/20 mt-4">Commands: /genesis, /build</p>
+              <p className="text-xs text-white/20 mt-4">Commands: /genesis, /build, /workflow</p>
             </div>
           ) : (
             outputLog.map((entry, idx) => (
@@ -511,31 +672,7 @@ function App() {
         </div>
       </div>
 
-      {/* MAIN CANVAS (Hidden behind output, for workflow) */}
-      <div className="absolute top-0 left-56 right-64 bottom-64 z-10 opacity-30">
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          nodeTypes={nodeTypes}
-          fitView
-          minZoom={0.1}
-          maxZoom={4}
-          className="bg-transparent"
-        >
-          <Background color="transparent" />
-          <Controls className="!bg-black/50 !border-white/10 !rounded" />
-          <MiniMap 
-            className="!bg-black/50 !border-white/10 !rounded"
-            nodeColor={() => '#ffffff'}
-            maskColor="rgba(0, 0, 0, 0.8)"
-          />
-        </ReactFlow>
-      </div>
-
-      {/* RIGHT PANEL - 3 Tabs */}
+      {/* RIGHT PANEL */}
       <div className="absolute right-0 top-0 bottom-64 w-64 z-40 border-l border-white/10 bg-black/80 backdrop-blur-md">
         <div className="flex border-b border-white/10">
           {['agents', 'bots', 'academy'].map(tab => (
@@ -555,16 +692,11 @@ function App() {
         </div>
 
         <div className="p-4 h-full overflow-y-auto">
-          {/* Agents Tab */}
           {rightTab === 'agents' && (
             <div className="space-y-3">
               <div className="text-[10px] font-mono text-white/40 tracking-wider mb-2">◆ ELITE_AGENTS</div>
               {marketplaceAgents.map((agent, idx) => (
-                <div 
-                  key={idx} 
-                  className="p-3 rounded bg-white/5 border border-white/10 hover:border-white/20 transition-all cursor-pointer"
-                  data-testid={`agent-card-${idx}`}
-                >
+                <div key={idx} className="p-3 rounded bg-white/5 border border-white/10 hover:border-white/20 transition-all cursor-pointer">
                   <div className="text-xs font-mono text-white/90">{agent.name}</div>
                   <div className="text-[9px] text-white/50 mt-1 truncate">{agent.primary_specialization}</div>
                   <div className="flex justify-between mt-2 text-[9px]">
@@ -576,16 +708,11 @@ function App() {
             </div>
           )}
 
-          {/* Bots Tab */}
           {rightTab === 'bots' && (
             <div className="space-y-3">
               <div className="text-[10px] font-mono text-white/40 tracking-wider mb-2">◆ BOT_TIERS</div>
               {botTiers.map((tier, idx) => (
-                <div 
-                  key={idx} 
-                  className="p-3 rounded bg-white/5 border border-white/10 hover:border-white/20 transition-all cursor-pointer"
-                  data-testid={`tier-card-${idx}`}
-                >
+                <div key={idx} className="p-3 rounded bg-white/5 border border-white/10 hover:border-white/20 transition-all cursor-pointer">
                   <div className="text-xs font-mono text-white/90">{tier.name}</div>
                   <div className="text-[9px] text-white/50 mt-1">{tier.description.slice(0, 60)}...</div>
                   <div className="flex justify-between mt-2 text-[9px]">
@@ -597,16 +724,11 @@ function App() {
             </div>
           )}
 
-          {/* Academy Tab */}
           {rightTab === 'academy' && (
             <div className="space-y-3">
               <div className="text-[10px] font-mono text-white/40 tracking-wider mb-2">◆ TRAINING_PROGRAMS</div>
               {academyPrograms.slice(0, 5).map((program, idx) => (
-                <div 
-                  key={idx} 
-                  className="p-3 rounded bg-white/5 border border-white/10 hover:border-white/20 transition-all cursor-pointer"
-                  data-testid={`program-card-${idx}`}
-                >
+                <div key={idx} className="p-3 rounded bg-white/5 border border-white/10 hover:border-white/20 transition-all cursor-pointer">
                   <div className="text-xs font-mono text-white/90 truncate">{program.name}</div>
                   <div className="text-[9px] text-white/50 mt-1">{program.field} • {program.duration_weeks} weeks</div>
                   <div className="flex justify-between mt-2 text-[9px]">
@@ -620,15 +742,13 @@ function App() {
         </div>
       </div>
 
-      {/* BOTTOM PANEL - Build Categories + Chat Input */}
+      {/* BOTTOM PANEL */}
       <div className="absolute bottom-0 left-56 right-64 h-64 z-40 bg-black/90 border-t border-white/10 backdrop-blur-md flex flex-col">
-        {/* Build Category Buttons - Top Row */}
         <div className="flex border-b border-white/10 shrink-0">
           {BUILD_CATEGORIES.map(cat => (
             <button
               key={cat.id}
               onClick={() => toggleCategory(cat.id)}
-              data-testid={`cat-${cat.id}`}
               className={`flex-1 py-2 text-[10px] font-mono uppercase tracking-wider transition-all border-r border-white/10 last:border-r-0 ${
                 expandedCategory === cat.id 
                   ? 'text-white bg-white/10' 
@@ -639,9 +759,17 @@ function App() {
               <span className="ml-1 opacity-50">{expandedCategory === cat.id ? '▼' : '▶'}</span>
             </button>
           ))}
+          
+          {/* Workflow Button */}
+          <button
+            onClick={() => onNavigate(PAGES.WORKFLOW)}
+            className="px-4 py-2 text-[10px] font-mono uppercase tracking-wider text-cyan-400 hover:bg-cyan-400/10 transition-all border-l border-white/10"
+            data-testid="open-workflow"
+          >
+            ◈ WORKFLOW
+          </button>
         </div>
 
-        {/* Expanded Subcategories */}
         {expandedCategory && (
           <div className="flex flex-wrap gap-2 p-2 border-b border-white/10 bg-white/5 shrink-0">
             {BUILD_CATEGORIES.find(c => c.id === expandedCategory)?.subcategories.map(sub => (
@@ -660,7 +788,6 @@ function App() {
           </div>
         )}
 
-        {/* Dashboard Status Bar */}
         {dashboard && (
           <div className="flex items-center gap-4 px-4 py-2 border-b border-white/10 bg-white/5 text-[9px] font-mono shrink-0">
             <span className="text-green-400 flex items-center gap-1">
@@ -670,11 +797,10 @@ function App() {
             <span className="text-cyan-400">PQC: ONLINE</span>
             <span className="text-purple-400">AUDIT: {dashboard.runtime?.audit?.total_entries || 0} entries</span>
             <span className="text-amber-400">AGENTS: {marketplaceAgents.length}</span>
-            <span className="text-white/40">BOTS: {botTiers.length} tiers</span>
+            <span className="text-white/40">GROK: ONLINE</span>
           </div>
         )}
 
-        {/* Main Chat/Command Input */}
         <div className="flex-1 flex flex-col min-h-0 p-4">
           <div className="text-[9px] font-mono text-white/40 mb-2">◆ COMMAND_INPUT</div>
           <div className="flex-1 flex items-end">
@@ -693,7 +819,7 @@ function App() {
                 onClick={handleChatSend}
                 disabled={isLoading || !chatInput.trim()}
                 data-testid="send-btn"
-                className="px-6 py-3 bg-white/10 border border-white/20 rounded-lg text-sm font-mono text-white hover:bg-white/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                className="px-6 py-3 bg-white/10 border border-white/20 rounded-lg text-sm font-mono text-white hover:bg-white/20 transition-all disabled:opacity-30"
               >
                 {isLoading ? '◐' : 'SEND ▶'}
               </button>
@@ -702,68 +828,81 @@ function App() {
         </div>
       </div>
 
-      {/* Styles */}
       <style>{`
         .franklin-chrome-dim {
-          background: linear-gradient(
-            135deg,
-            rgba(60, 60, 60, 1) 0%,
-            rgba(100, 100, 100, 1) 15%,
-            rgba(160, 160, 160, 1) 30%,
-            rgba(200, 200, 200, 1) 45%,
-            rgba(160, 160, 160, 1) 55%,
-            rgba(100, 100, 100, 1) 70%,
-            rgba(60, 60, 60, 1) 85%,
-            rgba(120, 120, 120, 1) 100%
-          );
+          background: linear-gradient(135deg, rgba(60,60,60,1) 0%, rgba(100,100,100,1) 15%, rgba(160,160,160,1) 30%, rgba(200,200,200,1) 45%, rgba(160,160,160,1) 55%, rgba(100,100,100,1) 70%, rgba(60,60,60,1) 85%, rgba(120,120,120,1) 100%);
           background-size: 200% 200%;
           -webkit-background-clip: text;
           background-clip: text;
           -webkit-text-fill-color: transparent;
           animation: chromeShimmer 25s ease-in-out infinite;
-          filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.1));
           opacity: 0.35;
         }
-        
-        @keyframes chromeShimmer {
-          0% { background-position: 200% 200%; }
-          50% { background-position: 0% 0%; }
-          100% { background-position: 200% 200%; }
-        }
-
-        .file-tree-glow {
-          animation: glowPulse 2s ease-out;
-        }
-
-        @keyframes glowPulse {
-          0% { box-shadow: inset 0 0 0 rgba(100, 200, 255, 0); }
-          50% { box-shadow: inset 0 0 30px rgba(100, 200, 255, 0.3); }
-          100% { box-shadow: inset 0 0 0 rgba(100, 200, 255, 0); }
-        }
-
-        @keyframes fade-in {
-          from { opacity: 0; transform: translateY(-4px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        .animate-fade-in {
-          animation: fade-in 0.3s ease-out;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar {
-          width: 4px;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-track {
-          background: transparent;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 2px;
-        }
+        @keyframes chromeShimmer { 0% { background-position: 200% 200%; } 50% { background-position: 0% 0%; } 100% { background-position: 200% 200%; } }
+        .file-tree-glow { animation: glowPulse 2s ease-out; }
+        @keyframes glowPulse { 0% { box-shadow: inset 0 0 0 rgba(100,200,255,0); } 50% { box-shadow: inset 0 0 30px rgba(100,200,255,0.3); } 100% { box-shadow: inset 0 0 0 rgba(100,200,255,0); } }
+        @keyframes fade-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fade-in 0.3s ease-out; }
+        .scrollbar-thin::-webkit-scrollbar { width: 4px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
       `}</style>
     </div>
+  );
+};
+
+// ============================================================================
+// MAIN APP - Page Router
+// ============================================================================
+function App() {
+  const [currentPage, setCurrentPage] = useState(PAGES.LANDING);
+  
+  // Shared workflow state (so it persists between IDE and Workflow pages)
+  const [workflowNodes, setWorkflowNodes, onNodesChange] = useNodesState([
+    { id: 'start', type: 'stage', position: { x: 100, y: 100 }, data: { label: 'Start', status: 'completed', type: 'start' } },
+    { id: 'spec', type: 'stage', position: { x: 300, y: 100 }, data: { label: 'Specification', status: 'pending', type: 'stage' } },
+    { id: 'arch', type: 'stage', position: { x: 500, y: 100 }, data: { label: 'Architecture', status: 'pending', type: 'stage' } },
+    { id: 'impl', type: 'stage', position: { x: 700, y: 100 }, data: { label: 'Implementation', status: 'pending', type: 'stage' } },
+    { id: 'cert', type: 'stage', position: { x: 900, y: 100 }, data: { label: 'Certification', status: 'pending', type: 'stage' } },
+  ]);
+  
+  const [workflowEdges, setWorkflowEdges, onEdgesChange] = useEdgesState([
+    { id: 'e-start-spec', source: 'start', target: 'spec', animated: true, style: { stroke: '#00ff88' } },
+    { id: 'e-spec-arch', source: 'spec', target: 'arch', animated: false, style: { stroke: '#444' } },
+    { id: 'e-arch-impl', source: 'arch', target: 'impl', animated: false, style: { stroke: '#444' } },
+    { id: 'e-impl-cert', source: 'impl', target: 'cert', animated: false, style: { stroke: '#444' } },
+  ]);
+
+  const handleNavigate = (page) => {
+    setCurrentPage(page);
+  };
+
+  // Render current page
+  if (currentPage === PAGES.LANDING) {
+    return <LandingPage onEnterApp={() => handleNavigate(PAGES.IDE)} />;
+  }
+
+  if (currentPage === PAGES.WORKFLOW) {
+    return (
+      <ElectricWorkflowPage 
+        onBack={() => handleNavigate(PAGES.IDE)}
+        workflowNodes={workflowNodes}
+        workflowEdges={workflowEdges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+      />
+    );
+  }
+
+  // Default: IDE Page
+  return (
+    <IDEPage 
+      onNavigate={handleNavigate}
+      workflowNodes={workflowNodes}
+      setWorkflowNodes={setWorkflowNodes}
+      workflowEdges={workflowEdges}
+      setWorkflowEdges={setWorkflowEdges}
+    />
   );
 }
 
