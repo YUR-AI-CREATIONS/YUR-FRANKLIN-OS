@@ -302,7 +302,8 @@ function App() {
       setEdges((eds) => [...eds, ...ambEdges]);
 
       // Auto-advance to specification stage when analysis is complete
-      if (can_proceed || ambiguities.length === 0) {
+      // Allow proceeding even with ambiguities - user can resolve them or skip
+      if (confidence_score >= 15 || can_proceed) {
         setCurrentStage('specification');
         // Update stage nodes to show specification as active
         setNodes((nds) => nds.map(n => {
