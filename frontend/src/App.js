@@ -118,7 +118,7 @@ function App() {
       setGenesisProject(response.data);
       setShowPipeline(true);
       
-      // Create pipeline visualization nodes
+      // Create pipeline visualization nodes - onRunStage will be added via useEffect
       const stageNodes = PIPELINE_STAGES.map((stage, index) => ({
         id: `stage_${stage}`,
         type: 'stage',
@@ -127,8 +127,7 @@ function App() {
           label: stage.charAt(0).toUpperCase() + stage.slice(1),
           stage: stage,
           status: index === 0 ? 'active' : 'pending',
-          score: 0,
-          onRunStage: runStage
+          score: 0
         }
       }));
       
