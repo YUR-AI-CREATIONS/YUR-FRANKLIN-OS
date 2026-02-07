@@ -106,13 +106,11 @@ export const LandingPage = ({ onEnterApp }) => {
       {/* Main Content */}
       <div className="relative z-20 min-h-screen flex flex-col items-center justify-center px-6">
         
-        {/* FRANKLIN Title - Outline Only */}
+        {/* FRANKLIN Title - Gradient Fill */}
         <h1
-          className="text-[clamp(3rem,12vw,9rem)] font-semibold tracking-[0.55em] opacity-70 mb-12 select-none"
+          className="text-[clamp(3rem,12vw,9rem)] font-semibold tracking-[0.55em] text-transparent bg-clip-text bg-gradient-to-r from-white/30 via-white/70 to-white/20 opacity-70 mb-12 select-none"
           style={{ 
             fontFamily: "'Orbitron', sans-serif",
-            color: 'transparent',
-            WebkitTextStroke: '1.5px rgba(255, 255, 255, 0.6)',
             textShadow: '0 0 70px rgba(255, 255, 255, 0.2)',
           }}
           data-testid="franklin-title"
