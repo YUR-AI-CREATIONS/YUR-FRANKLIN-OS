@@ -50,6 +50,7 @@ const PIPELINE_STAGES = [
 ];
 
 function App() {
+  const [showLanding, setShowLanding] = useState(true);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNode, setSelectedNode] = useState(null);
