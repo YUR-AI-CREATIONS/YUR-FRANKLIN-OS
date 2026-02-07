@@ -41,6 +41,12 @@ from marketing_generator import marketing_generator, MARKETING_SYSTEM_PROMPT
 from kling_generator import kling_generator
 from supabase import create_client, Client as SupabaseClient
 
+# Import FRANKLIN OS routes
+from franklin_routes import (
+    franklin_router, academy_router, bots_router, 
+    marketplace_router, grok_router
+)
+
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -1796,6 +1802,13 @@ app.include_router(prompt_router)
 app.include_router(marketing_router)
 app.include_router(video_router)
 app.include_router(supabase_router)
+
+# FRANKLIN OS routers
+app.include_router(franklin_router)
+app.include_router(academy_router)
+app.include_router(bots_router)
+app.include_router(marketplace_router)
+app.include_router(grok_router)
 
 app.add_middleware(
     CORSMiddleware,
