@@ -86,7 +86,7 @@ export const ClarificationPanel = ({
             className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 hover:from-emerald-500/30 hover:to-cyan-500/30 border border-emerald-500/50 text-emerald-300 text-xs font-mono transition-all disabled:opacity-50"
           >
             <Zap size={14} className="text-yellow-400" />
-            <span>Simulate Full Build</span>
+            <span>Auto Build All Stages</span>
           </button>
         </div>
 
