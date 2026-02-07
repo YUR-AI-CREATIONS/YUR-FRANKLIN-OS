@@ -216,7 +216,7 @@ class QualityGateSystem:
         
         # Primary Genesis Kernel with Ouroboros
         self.primary_kernel = GenesisKernel()
-        self.primary_kernel.initialize()
+        # Kernel initializes itself in __init__, no separate initialize needed
         
         logger.info("[QUALITY] Integrated with Genesis Kernel, Orchestrator, and Governance Engine")
         
