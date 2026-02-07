@@ -243,11 +243,11 @@ function AppContent() {
     
     const stageIndex = PIPELINE_STAGES.indexOf(stageId);
     
-    // Mark stage as active
+    // Mark stage as active AND processing (shows tracer animation)
     setCurrentStage(stageId);
     setNodes(nds => nds.map(n => {
       if (n.id === `stage_${stageId}`) {
-        return { ...n, data: { ...n.data, status: 'active' } };
+        return { ...n, data: { ...n.data, status: 'active', isProcessing: true } };
       }
       return n;
     }));
