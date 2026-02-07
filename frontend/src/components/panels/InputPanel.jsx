@@ -39,9 +39,9 @@ export const InputPanel = ({ onSubmit, onQuickSimulate, isLoading, disabled }) =
       <div className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span className="font-mono text-xs text-zinc-400 uppercase tracking-wider">
-              Socratic Input Terminal
+            <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
+            <span className="font-mono text-xs text-cyan-600 uppercase tracking-wider">
+              Neural Command Terminal
             </span>
           </div>
           <button
@@ -49,16 +49,16 @@ export const InputPanel = ({ onSubmit, onQuickSimulate, isLoading, disabled }) =
             data-testid="quick-simulate-btn"
             onClick={handleQuickSimulate}
             disabled={disabled || isLoading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 hover:from-emerald-500/30 hover:to-cyan-500/30 border border-emerald-500/50 text-emerald-300 text-[10px] font-mono uppercase tracking-wider transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 text-[10px] font-mono uppercase tracking-wider transition-all disabled:opacity-50"
           >
-            <Zap size={12} className="text-yellow-400" />
+            <Zap size={12} className="text-cyan-300" />
             <span>Quick Build</span>
           </button>
         </div>
         
         <form onSubmit={handleSubmit}>
-          <div className="flex items-start gap-2 bg-zinc-950 rounded border border-zinc-800 p-3">
-            <span className="text-indigo-500 font-mono text-sm mt-0.5">{'>'}</span>
+          <div className="flex items-start gap-2 rounded border border-cyan-800/50 p-3" style={{background: 'rgba(0, 30, 50, 0.8)'}}>
+            <span className="text-cyan-500 font-mono text-sm mt-0.5">{'>'}</span>
             <textarea
               data-testid="prompt-input"
               value={input}
@@ -66,26 +66,26 @@ export const InputPanel = ({ onSubmit, onQuickSimulate, isLoading, disabled }) =
               onKeyDown={handleKeyDown}
               placeholder="Describe your system requirements..."
               disabled={disabled}
-              className="terminal-input flex-1 resize-none text-sm leading-relaxed min-h-[60px] max-h-[120px]"
+              className="terminal-input flex-1 resize-none text-sm leading-relaxed min-h-[60px] max-h-[120px] bg-transparent text-cyan-100 placeholder-cyan-700 focus:outline-none"
               rows={2}
             />
             <button
               type="submit"
               data-testid="submit-prompt-btn"
               disabled={disabled || !input.trim()}
-              className="flex items-center justify-center w-8 h-8 rounded bg-indigo-500 hover:bg-indigo-600 disabled:bg-zinc-800 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center justify-center w-8 h-8 rounded bg-cyan-500/20 hover:bg-cyan-500/40 border border-cyan-500/50 disabled:bg-slate-800 disabled:border-slate-700 disabled:cursor-not-allowed transition-colors"
             >
               {isLoading ? (
-                <Loader2 size={16} className="text-white animate-spin" />
+                <Loader2 size={16} className="text-cyan-400 animate-spin" />
               ) : (
-                <ChevronRight size={16} className="text-white" />
+                <ChevronRight size={16} className="text-cyan-400" />
               )}
             </button>
           </div>
         </form>
         
-        <div className="mt-2 text-[10px] text-zinc-600 font-mono">
-          Press Enter to submit • Shift+Enter for new line • Or click Quick Demo for instant simulation
+        <div className="mt-2 text-[10px] text-cyan-700 font-mono">
+          Press Enter to submit • Shift+Enter for new line • Or click Quick Build for instant simulation
         </div>
       </div>
     </div>
