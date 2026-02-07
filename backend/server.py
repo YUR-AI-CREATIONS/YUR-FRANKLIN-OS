@@ -254,6 +254,27 @@ class LLMTestRequest(BaseModel):
     prefer_local: Optional[bool] = True
 
 
+class PromptOptimizeRequest(BaseModel):
+    prompt: str
+    use_llm: Optional[bool] = True
+
+
+class MarketingGenerateRequest(BaseModel):
+    project_name: str
+    specification: Dict[str, Any]
+    tech_stack: Optional[Dict[str, str]] = None
+
+
+class EnhancedBuildRequest(BaseModel):
+    project_id: str
+    project_name: str
+    specification: Dict[str, Any]
+    tech_stack: Optional[Dict[str, str]] = None
+    include_auth: Optional[bool] = True
+    include_tests: Optional[bool] = True
+    include_crud: Optional[bool] = True
+
+
 # ============================================================================
 #                              HELPER FUNCTIONS
 # ============================================================================
