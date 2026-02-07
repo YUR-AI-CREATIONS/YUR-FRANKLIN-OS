@@ -1,11 +1,12 @@
 import React, { memo } from 'react';
 import { Handle, Position } from 'reactflow';
-import { Layers, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
+import { Layers, CheckCircle2, AlertTriangle, Loader2, Play } from 'lucide-react';
 
 const statusConfig = {
   pending: { color: 'zinc', icon: Layers, glow: false },
   active: { color: 'indigo', icon: Loader2, glow: true, animate: true },
   passed: { color: 'emerald', icon: CheckCircle2, glow: true },
+  completed: { color: 'emerald', icon: CheckCircle2, glow: true },
   failed: { color: 'red', icon: AlertTriangle, glow: true },
   drift: { color: 'amber', icon: AlertTriangle, glow: true },
 };
@@ -28,6 +29,13 @@ const StageNode = memo(({ data, selected }) => {
     emerald: 'shadow-[0_0_20px_rgba(16,185,129,0.4)]',
     red: 'shadow-[0_0_20px_rgba(239,68,68,0.4)]',
     amber: 'shadow-[0_0_20px_rgba(245,158,11,0.4)]',
+  };
+
+  const handleRunStage = (e) => {
+    e.stopPropagation();
+    if (data.onRunStage) {
+      data.onRunStage(data.stage);
+    }
   };
 
   return (
@@ -70,6 +78,18 @@ const StageNode = memo(({ data, selected }) => {
           <div className="text-[10px] text-zinc-500">
             {data.iterations} iterations
           </div>
+        )}
+        
+        {/* Simple Run button - only show if stage is pending or active */}
+        {(status === 'pending' || status === 'active') && data.onRunStage && (
+          <button
+            onClick={handleRunStage}
+            className="mt-1 flex items-center gap-1 px-2 py-1 text-[10px] font-mono uppercase bg-emerald-500/20 hover:bg-emerald-500/40 border border-emerald-500/50 rounded text-emerald-300 transition-colors"
+            data-testid={`run-stage-${data.stage}`}
+          >
+            <Play size={10} />
+            Run
+          </button>
         )}
       </div>
     </div>
