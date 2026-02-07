@@ -1,7 +1,15 @@
 import React, { useState } from 'react';
-import { ChevronRight, Loader2 } from 'lucide-react';
+import { ChevronRight, Loader2, Zap } from 'lucide-react';
 
-export const InputPanel = ({ onSubmit, isLoading, disabled }) => {
+const DEMO_PROMPTS = [
+  "Build an e-commerce store with product catalog, shopping cart, and checkout",
+  "Build a project management app with tasks, teams, and deadlines",
+  "Build a CRM system with contacts, deals, and pipeline management",
+  "Build a blog platform with posts, comments, and user accounts",
+  "Build an inventory management system with stock tracking and alerts"
+];
+
+export const InputPanel = ({ onSubmit, onQuickSimulate, isLoading, disabled }) => {
   const [input, setInput] = useState('');
 
   const handleSubmit = (e) => {
@@ -19,14 +27,33 @@ export const InputPanel = ({ onSubmit, isLoading, disabled }) => {
     }
   };
 
+  const handleQuickSimulate = () => {
+    const randomPrompt = DEMO_PROMPTS[Math.floor(Math.random() * DEMO_PROMPTS.length)];
+    if (onQuickSimulate) {
+      onQuickSimulate(randomPrompt);
+    }
+  };
+
   return (
     <div className="input-panel glass-panel rounded-lg" data-testid="input-panel">
       <div className="p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-2 h-2 rounded-full bg-emerald-500" />
-          <span className="font-mono text-xs text-zinc-400 uppercase tracking-wider">
-            Socratic Input Terminal
-          </span>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span className="font-mono text-xs text-zinc-400 uppercase tracking-wider">
+              Socratic Input Terminal
+            </span>
+          </div>
+          <button
+            type="button"
+            data-testid="quick-simulate-btn"
+            onClick={handleQuickSimulate}
+            disabled={disabled || isLoading}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 hover:from-emerald-500/30 hover:to-cyan-500/30 border border-emerald-500/50 text-emerald-300 text-[10px] font-mono uppercase tracking-wider transition-all disabled:opacity-50"
+          >
+            <Zap size={12} className="text-yellow-400" />
+            <span>Quick Demo</span>
+          </button>
         </div>
         
         <form onSubmit={handleSubmit}>
@@ -58,7 +85,7 @@ export const InputPanel = ({ onSubmit, isLoading, disabled }) => {
         </form>
         
         <div className="mt-2 text-[10px] text-zinc-600 font-mono">
-          Press Enter to submit • Shift+Enter for new line
+          Press Enter to submit • Shift+Enter for new line • Or click Quick Demo for instant simulation
         </div>
       </div>
     </div>
