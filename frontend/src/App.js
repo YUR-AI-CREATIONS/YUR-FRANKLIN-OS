@@ -1,6 +1,4 @@
-import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
-import './App.css';
-import LandingPage from './components/LandingPage';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -9,1097 +7,489 @@ import ReactFlow, {
   useEdgesState,
   addEdge,
   MarkerType,
-  useReactFlow,
-  ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import axios from 'axios';
-import dagre from 'dagre';
 
-// Custom Node Components
-import InputNode from './components/nodes/InputNode';
+import StageNode from './components/nodes/StageNode';
 import AmbiguityNode from './components/nodes/AmbiguityNode';
 import ResolutionNode from './components/nodes/ResolutionNode';
 import SpecNode from './components/nodes/SpecNode';
-import ProcessingNode from './components/nodes/ProcessingNode';
-import StageNode from './components/nodes/StageNode';
 
-// Panel Components
-import Header from './components/panels/Header';
-import InputPanel from './components/panels/InputPanel';
-import ClarificationPanel from './components/panels/ClarificationPanel';
-import NodeInspector from './components/panels/NodeInspector';
-import SpecificationPanel from './components/panels/SpecificationPanel';
-import PipelinePanel from './components/panels/PipelinePanel';
-import QualityGatePanel from './components/panels/QualityGatePanel';
-import BuildPanel from './components/panels/BuildPanel';
+import './App.css';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
-// Helper to safely extract error message from API responses
-const getErrorMessage = (err, fallback = 'An error occurred') => {
-  const detail = err?.response?.data?.detail;
-  if (typeof detail === 'string') return detail;
-  if (Array.isArray(detail)) return detail.map(d => d.msg || String(d)).join(', ');
-  if (detail?.msg) return detail.msg;
-  if (err?.message) return err.message;
-  return fallback;
-};
+const API = process.env.REACT_APP_BACKEND_URL || '';
 
 const nodeTypes = {
-  input: InputNode,
+  stage: StageNode,
   ambiguity: AmbiguityNode,
   resolution: ResolutionNode,
   spec: SpecNode,
-  processing: ProcessingNode,
-  stage: StageNode,
 };
 
-const PIPELINE_STAGES = [
-  'inception', 'specification', 'architecture', 
-  'construction', 'validation', 'evolution', 
-  'deployment', 'governance'
+// Stars Background Component (matching landing page)
+const StarsBackground = () => {
+  const canvasRef = useRef(null);
+  const starsRef = useRef(null);
+  
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    let animationId;
+    let time = 0;
+    
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      starsRef.current = generateStars(canvas.width, canvas.height);
+    };
+    
+    const generateStars = (w, h) => {
+      const stars = [];
+      for (let i = 0; i < 100; i++) {
+        stars.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          size: Math.random() * 1.5 + 0.5,
+          speed: Math.random() * 0.5 + 0.2,
+          phase: Math.random() * Math.PI * 2,
+          type: 'regular'
+        });
+      }
+      for (let i = 0; i < 12; i++) {
+        stars.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          size: Math.random() * 1.5 + 1.5,
+          speed: Math.random() * 0.3 + 0.1,
+          phase: Math.random() * Math.PI * 2,
+          type: 'bright'
+        });
+      }
+      return stars;
+    };
+    
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Subtle laser beams
+      const lasers = [
+        { x1: 0, y1: canvas.height * 0.3, angle: 15, alpha: 0.1, width: 1 },
+        { x1: canvas.width, y1: canvas.height * 0.2, angle: 165, alpha: 0.08, width: 1 },
+        { x1: 0, y1: canvas.height * 0.7, angle: 10, alpha: 0.08, width: 1 },
+        { x1: canvas.width, y1: canvas.height * 0.8, angle: 170, alpha: 0.1, width: 1 },
+      ];
+      
+      lasers.forEach(laser => {
+        const length = Math.max(canvas.width, canvas.height) * 1.5;
+        const rad = laser.angle * Math.PI / 180;
+        const x2 = laser.x1 + Math.cos(rad) * length;
+        const y2 = laser.y1 + Math.sin(rad) * length;
+        
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = `rgba(255, 255, 255, ${laser.alpha})`;
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(255, 255, 255, ${laser.alpha})`;
+        ctx.lineWidth = laser.width;
+        ctx.moveTo(laser.x1, laser.y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      });
+      
+      // Draw stars
+      if (starsRef.current) {
+        starsRef.current.forEach(star => {
+          const twinkle = Math.sin(time * star.speed * 0.05 + star.phase) * 0.5 + 0.5;
+          
+          if (star.type === 'bright') {
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = `rgba(255, 255, 255, ${twinkle * 0.6})`;
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.size * twinkle + 0.5, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 255, ${twinkle * 0.9 + 0.1})`;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+          } else {
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.size * (twinkle * 0.3 + 0.7), 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 255, ${twinkle * 0.6 + 0.2})`;
+            ctx.fill();
+          }
+        });
+      }
+      
+      time += 1;
+      animationId = requestAnimationFrame(draw);
+    };
+    
+    resize();
+    draw();
+    
+    window.addEventListener('resize', resize);
+    return () => {
+      cancelAnimationFrame(animationId);
+      window.removeEventListener('resize', resize);
+    };
+  }, []);
+  
+  return <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />;
+};
+
+// Interface Mode Items
+const INTERFACE_MODES = [
+  { id: 'neural_chat', label: 'NEURAL_CHAT', icon: '⚡' },
+  { id: 'vision_ai', label: 'VISION_AI', icon: '◐' },
+  { id: 'code_editor', label: 'CODE_EDITOR', icon: '▣' },
+  { id: 'genesis', label: 'GENESIS', icon: '⚡' },
+  { id: 'neural_net', label: 'NEURAL_NET', icon: '◉' },
+  { id: 'ouroboros', label: 'OUROBOROS', icon: '◈' },
+  { id: 'lattice', label: 'LATTICE', icon: '▦' },
 ];
 
-// Auto-layout using dagre - improved spacing and centering
-const getLayoutedElements = (nodes, edges, direction = 'LR') => {
-  const dagreGraph = new dagre.graphlib.Graph();
-  dagreGraph.setDefaultEdgeLabel(() => ({}));
-  
-  const nodeWidth = 180;
-  const nodeHeight = 100;
-  
-  // Increased node separation and rank separation for cleaner layout
-  dagreGraph.setGraph({ 
-    rankdir: direction, 
-    nodesep: 100,  // Increased from 80
-    ranksep: 150,  // Increased from 100
-    marginx: 50,
-    marginy: 50
-  });
-  
-  nodes.forEach((node) => {
-    dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
-  });
-  
-  edges.forEach((edge) => {
-    dagreGraph.setEdge(edge.source, edge.target);
-  });
-  
-  dagre.layout(dagreGraph);
-  
-  const layoutedNodes = nodes.map((node) => {
-    const nodeWithPosition = dagreGraph.node(node.id);
-    return {
-      ...node,
-      position: {
-        x: nodeWithPosition.x - nodeWidth / 2 + 100, // Offset to center better
-        y: nodeWithPosition.y - nodeHeight / 2 + 50,
-      },
-    };
-  });
-  
-  return { nodes: layoutedNodes, edges };
-};
+// AI Models
+const AI_MODELS = [
+  { id: 'chatgpt', label: 'ChatGPT 4.0' },
+  { id: 'gemini_pro', label: 'Gemini Pro 3' },
+  { id: 'gemini_flash', label: 'Gemini Flash' },
+  { id: 'gemini_nano', label: 'Gemini Nano' },
+  { id: 'voice', label: 'Voice 3 (V0)' },
+];
 
-function AppContent() {
-  const { fitView } = useReactFlow();
-  const [showLanding, setShowLanding] = useState(true);
+function App() {
+  // State
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [selectedNode, setSelectedNode] = useState(null);
-  const [session, setSession] = useState(null);
+  const [showLanding, setShowLanding] = useState(true);
+  const [leftPanelOpen, setLeftPanelOpen] = useState(true);
+  const [rightPanelOpen, setRightPanelOpen] = useState(true);
+  const [selectedMode, setSelectedMode] = useState('neural_chat');
+  const [selectedModel, setSelectedModel] = useState('chatgpt');
+  const [prompt, setPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [answers, setAnswers] = useState({});
-  const [specification, setSpecification] = useState(null);
-  const [error, setError] = useState(null);
-  
-  // Genesis Pipeline state
-  const [genesisProject, setGenesisProject] = useState(null);
-  const [currentStage, setCurrentStage] = useState('inception');
-  const [qualityAssessment, setQualityAssessment] = useState(null);
-  const [roadmap, setRoadmap] = useState(null);
-  const [showPipeline, setShowPipeline] = useState(false);
-  const [showQualityGate, setShowQualityGate] = useState(false);
-  const [llmStatus, setLLMStatus] = useState(null);
-  
-  const nodeIdCounter = useRef(0);
-  const layoutTimeout = useRef(null);
+  const [session, setSession] = useState(null);
+  const [coreStatus, setCoreStatus] = useState('online');
+  const [mediaItems, setMediaItems] = useState([]);
+  const [fileTree, setFileTree] = useState([]);
+  const [fileTreeGlow, setFileTreeGlow] = useState(false);
 
-  const generateNodeId = () => {
-    nodeIdCounter.current += 1;
-    return `node_${nodeIdCounter.current}`;
-  };
+  // Import LandingPage
+  const LandingPage = React.lazy(() => import('./components/LandingPage'));
 
-  // Auto-layout and fit view when nodes/edges change
-  const applyAutoLayout = useCallback(() => {
-    if (nodes.length < 2) return;
-    
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(nodes, edges, 'LR');
-    setNodes(layoutedNodes);
-    setEdges(layoutedEdges);
-    
-    // Fit view after layout
-    setTimeout(() => {
-      fitView({ padding: 0.2, duration: 300 });
-    }, 50);
-  }, [nodes, edges, setNodes, setEdges, fitView]);
-
-  // Debounced auto-layout trigger
-  useEffect(() => {
-    if (layoutTimeout.current) {
-      clearTimeout(layoutTimeout.current);
-    }
-    layoutTimeout.current = setTimeout(() => {
-      if (nodes.length > 1) {
-        applyAutoLayout();
-      }
-    }, 500);
-    
-    return () => {
-      if (layoutTimeout.current) {
-        clearTimeout(layoutTimeout.current);
-      }
-    };
-  }, [nodes.length]); // Only trigger on node count change
-
-  const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge({
-      ...params,
-      animated: true,
-      style: { stroke: '#6366F1' },
-      markerEnd: { type: MarkerType.ArrowClosed, color: '#6366F1' }
-    }, eds)),
-    [setEdges]
-  );
-
-  const onNodeClick = useCallback((event, node) => {
-    setSelectedNode(node);
-  }, []);
-
-  const clearCanvas = () => {
-    setNodes([]);
-    setEdges([]);
-    setSelectedNode(null);
-    setSession(null);
-    setAnswers({});
-    setSpecification(null);
-    setError(null);
-    setGenesisProject(null);
-    setQualityAssessment(null);
-    setRoadmap(null);
-    nodeIdCounter.current = 0;
-  };
-
-  // Add a workflow node visually
-  const addWorkflowNode = useCallback((label, type, parentStageId, data = {}) => {
-    const nodeId = `workflow_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const stageIndex = PIPELINE_STAGES.indexOf(parentStageId);
-    
-    // Calculate position - spread out from the stage node
-    const baseX = 100 + (stageIndex * 180);
-    const baseY = 100;
-    const offsetX = (Math.random() - 0.5) * 100;
-    const offsetY = 180 + (Math.random() * 100);
-    
-    const newNode = {
-      id: nodeId,
-      type: type || 'processing',
-      position: { x: baseX + offsetX, y: baseY + offsetY },
-      data: { label, ...data }
-    };
-    
-    const newEdge = {
-      id: `edge_${nodeId}`,
-      source: `stage_${parentStageId}`,
-      target: nodeId,
-      animated: true,
-      style: { stroke: '#6366F1' }
-    };
-    
-    setNodes(nds => [...nds, newNode]);
-    setEdges(eds => [...eds, newEdge]);
-    
-    return nodeId;
-  }, [setNodes, setEdges]);
-
-  // Connect two workflow nodes
-  const connectNodes = useCallback((sourceId, targetId, color = '#10B981') => {
-    const newEdge = {
-      id: `edge_${sourceId}_${targetId}`,
-      source: sourceId,
-      target: targetId,
-      animated: true,
-      style: { stroke: color }
-    };
-    setEdges(eds => [...eds, newEdge]);
+  const onConnect = useCallback((params) => {
+    setEdges((eds) => addEdge({ ...params, animated: true }, eds));
   }, [setEdges]);
 
-  // Handle running a stage from stage node
-  const handleRunStage = useCallback(async (stageId) => {
-    setIsLoading(true);
-    setError(null);
-    
-    const stageIndex = PIPELINE_STAGES.indexOf(stageId);
-    
-    // Mark stage as active AND processing (shows tracer animation)
-    setCurrentStage(stageId);
-    setNodes(nds => nds.map(n => {
-      if (n.id === `stage_${stageId}`) {
-        return { ...n, data: { ...n.data, status: 'active', isProcessing: true } };
-      }
-      return n;
-    }));
-
-    try {
-      switch (stageId) {
-        case 'inception':
-          if (!genesisProject) {
-            addWorkflowNode('Project Init', 'processing', 'inception', { status: 'active' });
-            await new Promise(r => setTimeout(r, 300));
-            await initializeGenesisProject('New Project');
-          }
-          break;
-          
-        case 'specification':
-          if (session?.analysis?.ambiguities?.length > 0) {
-            // Add nodes for each ambiguity being resolved
-            const specNode = addWorkflowNode('Resolving Specs', 'processing', 'specification');
-            await new Promise(r => setTimeout(r, 300));
-            
-            const autoAnswers = session.analysis.ambiguities.map(amb => ({
-              ambiguity_id: amb.id,
-              answer: amb.options?.[0] || 'Default',
-              selected_option: amb.options?.[0] || null
-            }));
-            
-            // Show some decision nodes
-            for (let i = 0; i < Math.min(3, autoAnswers.length); i++) {
-              const decisionNode = addWorkflowNode(`Decision ${i + 1}`, 'resolution', 'specification');
-              connectNodes(specNode, decisionNode);
-              await new Promise(r => setTimeout(r, 200));
-            }
-            
-            await axios.post(`${API}/resolve`, {
-              session_id: session.session_id,
-              answers: autoAnswers
-            });
-          }
-          break;
-          
-        case 'architecture':
-          // Show architecture components being designed
-          const archNode = addWorkflowNode('System Design', 'processing', 'architecture');
-          await new Promise(r => setTimeout(r, 500));
-          
-          const frontendNode = addWorkflowNode('Frontend', 'spec', 'architecture');
-          connectNodes(archNode, frontendNode);
-          await new Promise(r => setTimeout(r, 400));
-          
-          const backendNode = addWorkflowNode('Backend', 'spec', 'architecture');
-          connectNodes(archNode, backendNode);
-          await new Promise(r => setTimeout(r, 400));
-          
-          const dbNode = addWorkflowNode('Database', 'spec', 'architecture');
-          connectNodes(archNode, dbNode);
-          await new Promise(r => setTimeout(r, 400));
-          
-          // Connect components to each other (spider web effect)
-          connectNodes(frontendNode, backendNode, '#8B5CF6');
-          await new Promise(r => setTimeout(r, 200));
-          connectNodes(backendNode, dbNode, '#8B5CF6');
-          
-          if (session?.analysis) {
-            const qualityResponse = await axios.post(`${API}/genesis/quality/assess`, {
-              artifact: session.analysis,
-              stage: 'architecture'
-            });
-            setQualityAssessment(qualityResponse.data);
-          }
-          break;
-          
-        case 'construction':
-          // Show files being generated
-          const buildNode = addWorkflowNode('Build Engine', 'processing', 'construction');
-          await new Promise(r => setTimeout(r, 500));
-          
-          const filesNodes = ['main.py', 'routes.py', 'schema.sql'];
-          let prevNode = buildNode;
-          for (const file of filesNodes) {
-            const fileNode = addWorkflowNode(file, 'spec', 'construction');
-            connectNodes(prevNode, fileNode, '#F59E0B');
-            prevNode = fileNode;
-            await new Promise(r => setTimeout(r, 300));
-          }
-          
-          const projectId = `build-${Date.now()}`;
-          const projectName = session?.original_prompt?.substring(0, 20).replace(/[^a-zA-Z0-9]/g, '') + 'App' || 'GeneratedApp';
-          await axios.post(`${API}/build/generate`, {
-            project_id: projectId,
-            project_name: projectName,
-            specification: {
-              name: projectName,
-              data_model: {
-                entities: session?.analysis?.entities || []
-              },
-              api_contracts: session?.analysis?.api_contracts || []
-            },
-            tech_stack: {
-              frontend_framework: 'nextjs',
-              backend_framework: 'fastapi',
-              database: 'postgresql'
-            }
-          });
-          break;
-          
-        case 'validation':
-          // Show validation checks
-          const validNode = addWorkflowNode('Quality Gate', 'processing', 'validation');
-          await new Promise(r => setTimeout(r, 300));
-          
-          const checks = ['Code Quality', 'Security', 'Performance', 'API Tests'];
-          for (const check of checks) {
-            const checkNode = addWorkflowNode(check, 'resolution', 'validation');
-            connectNodes(validNode, checkNode, '#10B981');
-            await new Promise(r => setTimeout(r, 200));
-          }
-          
-          if (session?.analysis) {
-            await axios.post(`${API}/genesis/quality/assess`, {
-              artifact: session.analysis,
-              stage: 'validation'
-            });
-          }
-          break;
-        
-        case 'evolution':
-          // Show evolution/optimization nodes
-          const evolveNode = addWorkflowNode('Optimization', 'processing', 'evolution');
-          await new Promise(r => setTimeout(r, 300));
-          addWorkflowNode('Refactor', 'spec', 'evolution');
-          addWorkflowNode('Enhance', 'spec', 'evolution');
-          break;
-          
-        case 'deployment':
-          // Show deployment targets
-          const deployNode = addWorkflowNode('Deploy Engine', 'processing', 'deployment');
-          await new Promise(r => setTimeout(r, 300));
-          
-          const targets = ['Render', 'Vercel', 'Docker'];
-          for (const target of targets) {
-            const targetNode = addWorkflowNode(target, 'spec', 'deployment');
-            connectNodes(deployNode, targetNode, '#EF4444');
-            await new Promise(r => setTimeout(r, 200));
-          }
-          break;
-          
-        case 'governance':
-          // Show governance checks
-          const govNode = addWorkflowNode('Compliance', 'processing', 'governance');
-          await new Promise(r => setTimeout(r, 300));
-          addWorkflowNode('Audit Log', 'spec', 'governance');
-          addWorkflowNode('Approval', 'resolution', 'governance');
-          break;
-          
-        default:
-          break;
-      }
-      
-      // Mark stage as completed (clear isProcessing), activate next stage
-      setNodes(nds => nds.map(n => {
-        if (n.id === `stage_${stageId}`) {
-          return { ...n, data: { ...n.data, status: 'completed', isProcessing: false } };
-        }
-        if (stageIndex < PIPELINE_STAGES.length - 1 && n.id === `stage_${PIPELINE_STAGES[stageIndex + 1]}`) {
-          return { ...n, data: { ...n.data, status: 'active' } };
-        }
-        return n;
-      }));
-      
-      setEdges(eds => eds.map(e => {
-        if (e.source === `stage_${stageId}`) {
-          return { ...e, animated: true, style: { ...e.style, stroke: '#10B981', strokeWidth: 2 } };
-        }
-        return e;
-      }));
-      
-      if (stageIndex < PIPELINE_STAGES.length - 1) {
-        setCurrentStage(PIPELINE_STAGES[stageIndex + 1]);
-      }
-      
-      // Fit view after stage completion
-      setTimeout(() => {
-        fitView({ padding: 0.2, duration: 300 });
-      }, 100);
-      
-    } catch (err) {
-      let errorMsg = `Failed to run ${stageId}`;
-      if (typeof err === 'string') {
-        errorMsg = err;
-      } else if (err?.response?.data?.detail) {
-        const detail = err.response.data.detail;
-        errorMsg = typeof detail === 'string' ? detail : JSON.stringify(detail);
-      } else if (err?.message) {
-        errorMsg = err.message;
-      }
-      setError(errorMsg);
-      setNodes(nds => nds.map(n => {
-        if (n.id === `stage_${stageId}`) {
-          return { ...n, data: { ...n.data, status: 'failed', isProcessing: false } };
-        }
-        return n;
-      }));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [genesisProject, session, setNodes, setEdges]);
-
-  // Update stage nodes with the run handler when they change
-  useEffect(() => {
-    setNodes(nds => nds.map(n => {
-      if (n.type === 'stage') {
-        return { ...n, data: { ...n.data, onRunStage: handleRunStage } };
-      }
-      return n;
-    }));
-  }, [handleRunStage, setNodes]);
-
-  // Initialize Genesis Project
-  const initializeGenesisProject = async (name) => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const response = await axios.post(`${API}/genesis/project/init`, {
-        name: name,
-        description: `Genesis Project: ${name}`
-      });
-      
-      setGenesisProject(response.data);
-      setShowPipeline(false); // Don't auto-show pipeline panel - keeps canvas clean
-      
-      // Create pipeline visualization nodes with better spacing
-      const stageNodes = PIPELINE_STAGES.map((stage, index) => ({
-        id: `stage_${stage}`,
-        type: 'stage',
-        position: { x: 150 + (index * 220), y: 200 }, // Better starting position
-        data: {
-          label: stage.charAt(0).toUpperCase() + stage.slice(1),
-          stage: stage,
-          status: index === 0 ? 'active' : 'pending',
-          score: 0,
-          isProcessing: false
-        }
-      }));
-      
-      const stageEdges = PIPELINE_STAGES.slice(0, -1).map((stage, index) => ({
-        id: `edge_${stage}_${PIPELINE_STAGES[index + 1]}`,
-        source: `stage_${stage}`,
-        target: `stage_${PIPELINE_STAGES[index + 1]}`,
-        animated: index === 0,
-        style: { stroke: index === 0 ? '#6366F1' : '#3F3F46', strokeWidth: 2 },
-        markerEnd: { type: MarkerType.ArrowClosed, color: index === 0 ? '#6366F1' : '#3F3F46' }
-      }));
-      
-      setNodes(stageNodes);
-      setEdges(stageEdges);
-      
-      // Fit view after nodes are set
-      setTimeout(() => {
-        fitView({ padding: 0.3, duration: 500 });
-      }, 100);
-      
-      return response.data;
-    } catch (err) {
-      setError(getErrorMessage(err, 'Failed to initialize project'));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Run Quality Assessment
-  const runQualityAssessment = async (artifact, stage) => {
-    setIsLoading(true);
-    
-    try {
-      const response = await axios.post(`${API}/genesis/quality/assess`, {
-        artifact: artifact,
-        stage: stage
-      });
-      
-      setQualityAssessment(response.data);
-      setShowQualityGate(true);
-      
-      // Update stage node with score
-      setNodes((nds) => nds.map((n) => 
-        n.id === `stage_${stage}` 
-          ? { ...n, data: { ...n.data, score: response.data.aggregate_score, status: response.data.passed ? 'passed' : 'active' } }
-          : n
-      ));
-      
-      return response.data;
-    } catch (err) {
-      setError(getErrorMessage(err, 'Quality assessment failed'));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Execute Ouroboros Loop
-  const executeOuroboros = async (artifact, stage) => {
-    if (!genesisProject) {
-      setError('Initialize a Genesis project first');
-      return;
-    }
+  // Handle send prompt
+  const handleSendPrompt = async () => {
+    if (!prompt.trim() || isLoading) return;
     
     setIsLoading(true);
-    setError(null);
-    
     try {
-      const response = await axios.post(`${API}/genesis/ouroboros/execute`, {
-        project_id: genesisProject.orchestrator_id,
-        artifact: artifact,
-        stage: stage
+      const response = await axios.post(`${API}/api/analyze`, {
+        prompt: prompt.trim()
       });
-      
-      const result = response.data;
-      
-      // Update stage node
-      setNodes((nds) => nds.map((n) => {
-        if (n.id === `stage_${stage}`) {
-          return {
-            ...n,
-            data: {
-              ...n.data,
-              score: result.final_score,
-              status: result.status === 'CONVERGED' ? 'passed' : 
-                      result.status === 'DRIFT_ALERT' ? 'drift' : 'active',
-              iterations: result.iterations
-            }
-          };
-        }
-        return n;
-      }));
-      
-      // If converged, activate next stage
-      if (result.status === 'CONVERGED') {
-        const currentIndex = PIPELINE_STAGES.indexOf(stage);
-        if (currentIndex < PIPELINE_STAGES.length - 1) {
-          const nextStage = PIPELINE_STAGES[currentIndex + 1];
-          setCurrentStage(nextStage);
-          
-          setNodes((nds) => nds.map((n) => 
-            n.id === `stage_${nextStage}` 
-              ? { ...n, data: { ...n.data, status: 'active' } }
-              : n
-          ));
-          
-          setEdges((eds) => eds.map((e) => 
-            e.target === `stage_${nextStage}`
-              ? { ...e, animated: true, style: { stroke: '#6366F1' } }
-              : e
-          ));
-        }
-      }
-      
-      setQualityAssessment(result.assessment);
-      setShowQualityGate(true);
-      
-      return result;
-    } catch (err) {
-      setError(getErrorMessage(err, 'Ouroboros execution failed'));
+      setSession(response.data);
+      // Add nodes based on response
+      // This will be expanded with the workflow nodes
+    } catch (error) {
+      console.error('Error:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Analyze prompt (Socratic Engine)
-  const analyzePrompt = async (prompt) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Initialize project if not exists
-      if (!genesisProject) {
-        await initializeGenesisProject(prompt.substring(0, 30));
-      }
-      
-      const response = await axios.post(`${API}/analyze`, { prompt });
-      const { session_id, analysis, confidence_score, can_proceed } = response.data;
-
-      setSession({
-        session_id,
-        original_prompt: prompt,
-        analysis,
-        confidence_score,
-        can_proceed
-      });
-
-      // Add input node to canvas
-      const inputNodeId = generateNodeId();
-      const newNode = {
-        id: inputNodeId,
-        type: 'input',
-        position: { x: 100, y: 300 },
-        data: { label: 'User Input', content: prompt },
-      };
-      
-      setNodes((nds) => [...nds, newNode]);
-
-      // Add ambiguity nodes
-      const ambiguities = analysis.ambiguities || [];
-      const ambNodes = ambiguities.map((amb, index) => ({
-        id: generateNodeId(),
-        type: 'ambiguity',
-        position: { x: 350, y: 200 + (index * 100) },
-        data: { ...amb, label: amb.id },
-      }));
-      
-      const ambEdges = ambNodes.map((n) => ({
-        id: `e_${inputNodeId}_${n.id}`,
-        source: inputNodeId,
-        target: n.id,
-        animated: true,
-        style: { stroke: '#F59E0B' },
-        markerEnd: { type: MarkerType.ArrowClosed, color: '#F59E0B' }
-      }));
-      
-      setNodes((nds) => [...nds, ...ambNodes]);
-      setEdges((eds) => [...eds, ...ambEdges]);
-
-      // Always advance to specification stage after analysis completes
-      setCurrentStage('specification');
-      // Update stage nodes
-      setNodes((nds) => nds.map(n => {
-        if (n.id === 'stage_inception') {
-          return { ...n, data: { ...n.data, status: 'completed' } };
-        }
-        if (n.id === 'stage_specification') {
-          return { ...n, data: { ...n.data, status: 'active' } };
-        }
-        return n;
-      }));
-      // Highlight the edge
-      setEdges((eds) => eds.map(e => {
-        if (e.target === 'stage_specification') {
-          return { ...e, animated: true, style: { ...e.style, stroke: '#10B981' } };
-        }
-        return e;
-      }));
-
-    } catch (err) {
-      setError(getErrorMessage(err, 'Failed to analyze prompt'));
-    } finally {
-      setIsLoading(false);
-    }
+  // Auto-save and glow effect
+  const triggerAutoSave = () => {
+    setFileTreeGlow(true);
+    setTimeout(() => setFileTreeGlow(false), 2000);
   };
 
-  const handleAnswerChange = (ambiguityId, answer, selectedOption) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [ambiguityId]: { answer, selected_option: selectedOption }
-    }));
+  // Close chat panel triggers auto-save
+  const handleCloseChatPanel = () => {
+    setLeftPanelOpen(false);
+    triggerAutoSave();
   };
 
-  const submitAnswers = async () => {
-    if (!session) return;
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const formattedAnswers = Object.entries(answers).map(([id, data]) => ({
-        ambiguity_id: id,
-        answer: data.answer || data.selected_option || '',
-        selected_option: data.selected_option || null
-      }));
-
-      const response = await axios.post(`${API}/resolve`, {
-        session_id: session.session_id,
-        answers: formattedAnswers
-      });
-
-      const { analysis, confidence_score, can_proceed } = response.data;
-
-      setSession((prev) => ({
-        ...prev,
-        analysis,
-        confidence_score,
-        can_proceed
-      }));
-
-      setAnswers({});
-
-      // If ready, run quality assessment
-      if (can_proceed && genesisProject) {
-        await runQualityAssessment(
-          { ...analysis, prompt: session.original_prompt },
-          currentStage
-        );
-      }
-
-    } catch (err) {
-      setError(getErrorMessage(err, 'Failed to resolve ambiguities'));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Simulate Full Build - autonomous mode
-  const simulateFullBuild = async () => {
-    if (!session) return;
-    
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Step 1: Auto-select AI recommended answers (first option for each)
-      const autoAnswers = {};
-      const ambiguities = session.analysis?.ambiguities || [];
-      ambiguities.forEach(amb => {
-        if (amb.options && amb.options.length > 0) {
-          autoAnswers[amb.id] = { answer: amb.options[0], selected_option: amb.options[0] };
-        }
-      });
-      setAnswers(autoAnswers);
-
-      // Step 2: Submit the answers
-      const formattedAnswers = Object.entries(autoAnswers).map(([id, data]) => ({
-        ambiguity_id: id,
-        answer: data.answer,
-        selected_option: data.selected_option
-      }));
-
-      const resolveResponse = await axios.post(`${API}/resolve`, {
-        session_id: session.session_id,
-        answers: formattedAnswers
-      });
-
-      const { analysis, confidence_score, can_proceed } = resolveResponse.data;
-      setSession(prev => ({ ...prev, analysis, confidence_score, can_proceed }));
-
-      // Step 3: Advance to architecture stage
-      setCurrentStage('architecture');
-      setNodes(nds => nds.map(n => {
-        if (n.id === 'stage_specification') return { ...n, data: { ...n.data, status: 'completed' } };
-        if (n.id === 'stage_architecture') return { ...n, data: { ...n.data, status: 'active' } };
-        return n;
-      }));
-
-      // Step 4: Run quality assessment
-      const qualityResponse = await axios.post(`${API}/genesis/quality/assess`, {
-        artifact: { ...analysis, prompt: session.original_prompt },
-        stage: 'architecture'
-      });
-      setQualityAssessment(qualityResponse.data);
-
-      // Step 5: Advance to construction stage
-      setCurrentStage('construction');
-      setNodes(nds => nds.map(n => {
-        if (n.id === 'stage_architecture') return { ...n, data: { ...n.data, status: 'completed' } };
-        if (n.id === 'stage_construction') return { ...n, data: { ...n.data, status: 'active' } };
-        return n;
-      }));
-
-      // Step 6: Generate the build
-      const projectId = `sim-${Date.now()}`;
-      const projectName = session.original_prompt.substring(0, 20).replace(/[^a-zA-Z0-9]/g, '') + 'App';
-      
-      const buildResponse = await axios.post(`${API}/build/enhanced`, {
-        prompt: session.original_prompt,
-        options: {
-          include_auth: true,
-          include_tests: true,
-          include_crud: true
-        }
-      });
-
-      // Step 7: Advance to validation stage
-      setCurrentStage('validation');
-      setNodes(nds => nds.map(n => {
-        if (n.id === 'stage_construction') return { ...n, data: { ...n.data, status: 'completed' } };
-        if (n.id === 'stage_validation') return { ...n, data: { ...n.data, status: 'active' } };
-        return n;
-      }));
-
-      // Step 8: Complete - advance to deployment stage
-      setTimeout(() => {
-        setCurrentStage('deployment');
-        setNodes(nds => nds.map(n => {
-          if (n.id === 'stage_validation') return { ...n, data: { ...n.data, status: 'completed' } };
-          if (n.id === 'stage_deployment') return { ...n, data: { ...n.data, status: 'active' } };
-          return n;
-        }));
-      }, 1000);
-
-      // Show success and open build panel
-      alert(`✅ Simulation Complete!\n\nProject: ${projectName}\nFiles Generated: ${buildResponse.data?.artifacts?.length || 15}+\n\nClick "Build Project" to download your code.`);
-
-    } catch (err) {
-      setError(getErrorMessage(err, 'Simulation failed'));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Quick Demo - one click to full simulation
-  const quickSimulate = async (demoPrompt) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Initialize project
-      if (!genesisProject) {
-        await initializeGenesisProject(demoPrompt.substring(0, 30));
-      }
-
-      // Run analysis
-      const response = await axios.post(`${API}/analyze`, { prompt: demoPrompt });
-      const { session_id, analysis, confidence_score, can_proceed } = response.data;
-
-      setSession({
-        session_id,
-        original_prompt: demoPrompt,
-        analysis,
-        confidence_score,
-        can_proceed
-      });
-
-      // Advance to specification
-      setCurrentStage('specification');
-      setNodes(nds => nds.map(n => {
-        if (n.id === 'stage_inception') return { ...n, data: { ...n.data, status: 'completed' } };
-        if (n.id === 'stage_specification') return { ...n, data: { ...n.data, status: 'active' } };
-        return n;
-      }));
-
-      // Auto-select answers
-      const autoAnswers = {};
-      const ambiguities = analysis?.ambiguities || [];
-      ambiguities.forEach(amb => {
-        if (amb.options && amb.options.length > 0) {
-          autoAnswers[amb.id] = { answer: amb.options[0], selected_option: amb.options[0] };
-        }
-      });
-      setAnswers(autoAnswers);
-
-      // Submit answers
-      const formattedAnswers = Object.entries(autoAnswers).map(([id, data]) => ({
-        ambiguity_id: id,
-        answer: data.answer,
-        selected_option: data.selected_option
-      }));
-
-      await axios.post(`${API}/resolve`, {
-        session_id: session_id,
-        answers: formattedAnswers
-      });
-
-      // Progress through stages
-      for (const stage of ['architecture', 'construction', 'validation']) {
-        await new Promise(r => setTimeout(r, 500));
-        setCurrentStage(stage);
-        setNodes(nds => nds.map(n => {
-          const prevStage = stage === 'architecture' ? 'specification' : stage === 'construction' ? 'architecture' : 'construction';
-          if (n.id === `stage_${prevStage}`) return { ...n, data: { ...n.data, status: 'completed' } };
-          if (n.id === `stage_${stage}`) return { ...n, data: { ...n.data, status: 'active' } };
-          return n;
-        }));
-      }
-
-      // Generate build
-      await axios.post(`${API}/build/enhanced`, {
-        prompt: demoPrompt,
-        options: { include_auth: true, include_tests: true, include_crud: true }
-      });
-
-      // Complete
-      setCurrentStage('deployment');
-      setNodes(nds => nds.map(n => {
-        if (n.id === 'stage_validation') return { ...n, data: { ...n.data, status: 'completed' } };
-        if (n.id === 'stage_deployment') return { ...n, data: { ...n.data, status: 'active' } };
-        return n;
-      }));
-
-      alert(`✅ Quick Demo Complete!\n\nPrompt: "${demoPrompt}"\n\nClick "Build Project" to customize and download your code.`);
-
-    } catch (err) {
-      setError(getErrorMessage(err, 'Quick demo failed'));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const currentAmbiguities = session?.analysis?.ambiguities || [];
-  const hasUnresolvedAmbiguities = currentAmbiguities.length > 0;
-
-  // Show landing page first
   if (showLanding) {
-    return <LandingPage onEnterApp={() => setShowLanding(false)} />;
+    return (
+      <React.Suspense fallback={<div className="min-h-screen bg-black" />}>
+        <LandingPage onEnterApp={() => setShowLanding(false)} />
+      </React.Suspense>
+    );
   }
 
   return (
-    <div className="sgp-app" data-testid="sgp-app">
-      {/* Ghost FRANKLIN OS Background Text */}
-      <div className="franklin-os-ghost" data-testid="franklin-os-ghost">
-        FRANKLIN OS
+    <div className="h-screen w-screen overflow-hidden bg-black text-white relative">
+      {/* Stars Background */}
+      <StarsBackground />
+      
+      {/* Ghost FRANKLIN Text - 50% opacity of landing */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[1]">
+        <h1
+          className="text-[clamp(2rem,10vw,8rem)] font-semibold tracking-[0.55em] select-none franklin-chrome-dim"
+          style={{ fontFamily: "'Orbitron', sans-serif" }}
+        >
+          FRANKLIN
+        </h1>
       </div>
 
-      {/* Global Loading Indicator - Always visible when processing */}
-      {isLoading && (
-        <div className="global-loading-overlay glass-panel px-6 py-3 rounded-full border border-cyan-500/50" data-testid="global-loading">
-          <div className="flex items-center gap-3">
-            <div className="w-3 h-3 bg-cyan-500 rounded-full animate-pulse" />
-            <span className="text-sm font-mono text-cyan-300">
-              Processing {currentStage}...
-            </span>
-            <div className="flex gap-1">
-              <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}} />
-              <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}} />
-              <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}} />
+      {/* Header */}
+      <header className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2 border-b border-white/10">
+        <div className="flex items-center gap-4">
+          <span className="text-xs text-cyan-400 font-mono">GROK</span>
+          <span className="text-sm font-mono tracking-wider">SOVEREIGN XAI</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-mono text-white/50">CORE_STATUS</span>
+          <span className={`w-2 h-2 rounded-full ${coreStatus === 'online' ? 'bg-red-500' : 'bg-green-500'}`} />
+        </div>
+      </header>
+
+      {/* Left Panel - File Tree (static) + Chat (slides over) */}
+      <div className={`absolute left-0 top-10 bottom-0 z-40 transition-all duration-300 ${leftPanelOpen ? 'w-64' : 'w-48'}`}>
+        {/* File Tree (always visible when chat closed) */}
+        <div className={`absolute inset-0 bg-black/80 border-r border-white/10 backdrop-blur-sm transition-opacity duration-300 ${leftPanelOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+          <div className={`p-4 ${fileTreeGlow ? 'file-tree-glow' : ''}`}>
+            <div className="text-xs font-mono text-cyan-400 mb-4">◆ PROJECT_FILES</div>
+            <div className="space-y-1 text-xs font-mono text-white/60">
+              <div className="flex items-center gap-2 hover:text-white/90 cursor-pointer">
+                <span>▼</span> <span>src/</span>
+              </div>
+              <div className="ml-4 space-y-1">
+                <div className="hover:text-white/90 cursor-pointer">▶ components/</div>
+                <div className="hover:text-white/90 cursor-pointer">▶ pages/</div>
+                <div className="hover:text-white/90 cursor-pointer">App.js</div>
+              </div>
+              <div className="flex items-center gap-2 hover:text-white/90 cursor-pointer">
+                <span>▶</span> <span>backend/</span>
+              </div>
+              <div className="hover:text-white/90 cursor-pointer">README.md</div>
             </div>
           </div>
         </div>
-      )}
 
-      {/* React Flow Canvas */}
-      <div className="canvas-container grid-pattern">
+        {/* Chat Panel (slides over file tree) */}
+        <div className={`absolute inset-0 bg-black/90 border-r border-cyan-500/30 backdrop-blur-sm transition-transform duration-300 ${leftPanelOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <div className="p-4 h-full flex flex-col">
+            {/* Interface Mode */}
+            <div className="mb-4">
+              <div className="text-xs font-mono text-cyan-400 mb-2">◆ INTERFACE_MODE</div>
+              <div className="space-y-1">
+                {INTERFACE_MODES.map(mode => (
+                  <button
+                    key={mode.id}
+                    onClick={() => setSelectedMode(mode.id)}
+                    className={`w-full text-left px-3 py-2 text-xs font-mono rounded transition-all ${
+                      selectedMode === mode.id 
+                        ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50' 
+                        : 'text-white/60 hover:text-white/90 hover:bg-white/5'
+                    }`}
+                  >
+                    <span className="mr-2">{mode.icon}</span>
+                    {mode.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Workflow Industries */}
+            <div className="mb-4">
+              <div className="text-xs font-mono text-white/50 mb-2 cursor-pointer hover:text-white/70">
+                {'>'} WORKFLOW_INDUSTRIES
+              </div>
+            </div>
+
+            {/* Close button */}
+            <button
+              onClick={handleCloseChatPanel}
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-8 flex items-center justify-center text-white/30 hover:text-white/70"
+            >
+              ◀
+            </button>
+          </div>
+        </div>
+
+        {/* Toggle button when closed */}
+        {!leftPanelOpen && (
+          <button
+            onClick={() => setLeftPanelOpen(true)}
+            className="absolute -right-4 top-1/2 -translate-y-1/2 w-4 h-8 flex items-center justify-center text-white/30 hover:text-white/70 z-50"
+          >
+            ▶
+          </button>
+        )}
+      </div>
+
+      {/* Main Canvas */}
+      <div className={`absolute top-10 bottom-0 z-10 transition-all duration-300 ${leftPanelOpen ? 'left-64' : 'left-48'} ${rightPanelOpen ? 'right-64' : 'right-12'}`}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
-          onNodeClick={onNodeClick}
           nodeTypes={nodeTypes}
           fitView
           minZoom={0.1}
-          maxZoom={2}
-          defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
-          attributionPosition="bottom-left"
+          maxZoom={4}
+          className="bg-transparent"
         >
-          <Background color="#1a3a5c" gap={24} size={1} />
-          <Controls showZoom={true} showFitView={true} showInteractive={false} />
+          <Background color="transparent" />
+          <Controls className="!bg-black/50 !border-white/10" />
           <MiniMap 
-            nodeColor={(n) => {
-              if (n.type === 'ambiguity') return '#F59E0B';
-              if (n.type === 'resolution') return '#00C8FF';
-              if (n.type === 'spec') return '#00C8FF';
-              if (n.type === 'stage') {
-                if (n.data?.status === 'passed' || n.data?.status === 'completed') return '#00FF88';
-                if (n.data?.status === 'active') return '#00C8FF';
-                if (n.data?.status === 'drift') return '#EF4444';
-                return '#1a3a5c';
-              }
-              return '#1a3a5c';
-            }}
-            maskColor="rgba(10, 22, 40, 0.9)"
-            pannable
-            zoomable
+            className="!bg-black/50 !border-white/10"
+            nodeColor={() => '#00C8FF'}
+            maskColor="rgba(0, 0, 0, 0.8)"
           />
         </ReactFlow>
       </div>
 
-      {/* Header */}
-      <Header 
-        session={session}
-        genesisProject={genesisProject}
-        currentStage={currentStage}
-        onClear={clearCanvas}
-        onTogglePipeline={() => setShowPipeline(!showPipeline)}
-        onLLMStatusChange={setLLMStatus}
-      />
+      {/* Right Panel - Media & Status */}
+      <div className={`absolute right-0 top-10 bottom-0 z-40 transition-all duration-300 ${rightPanelOpen ? 'w-64' : 'w-12'}`}>
+        <div className="h-full bg-black/80 border-l border-white/10 backdrop-blur-sm">
+          {rightPanelOpen ? (
+            <div className="p-4">
+              {/* Tabs */}
+              <div className="flex border-b border-white/10 mb-4">
+                <button className="flex-1 py-2 text-xs font-mono text-cyan-400 border-b-2 border-cyan-400">
+                  ◆ MEDIA (0)
+                </button>
+                <button className="flex-1 py-2 text-xs font-mono text-white/50 hover:text-white/70">
+                  ◆ STATUS
+                </button>
+              </div>
 
-      {/* Input Panel */}
-      <InputPanel
-        onSubmit={analyzePrompt}
-        onQuickSimulate={quickSimulate}
-        isLoading={isLoading}
-        disabled={isLoading}
-      />
-
-      {/* Clarification Panel - with close button */}
-      {session && hasUnresolvedAmbiguities && (
-        <ClarificationPanel
-          ambiguities={currentAmbiguities}
-          answers={answers}
-          onAnswerChange={handleAnswerChange}
-          onSubmit={submitAnswers}
-          onSimulate={simulateFullBuild}
-          isLoading={isLoading}
-          confidenceScore={session.confidence_score}
-        />
-      )}
-
-      {/* Quality Gate Panel */}
-      {showQualityGate && qualityAssessment && (
-        <QualityGatePanel
-          assessment={qualityAssessment}
-          stage={currentStage}
-          onClose={() => setShowQualityGate(false)}
-          onRunOuroboros={() => executeOuroboros(
-            { ...session?.analysis, prompt: session?.original_prompt },
-            currentStage
+              {/* Media Content */}
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="text-cyan-400 text-2xl mb-4">◇</div>
+                <div className="text-xs font-mono text-white/50">NO_MEDIA_GENERATED</div>
+                <div className="text-[10px] font-mono text-white/30 mt-2">Images and videos will appear here</div>
+              </div>
+            </div>
+          ) : (
+            <div className="h-full flex items-center justify-center">
+              <span className="text-white/30 text-xs writing-mode-vertical">MEDIA</span>
+            </div>
           )}
-          isLoading={isLoading}
-        />
-      )}
 
-      {/* Pipeline Panel */}
-      {showPipeline && genesisProject && (
-        <PipelinePanel
-          project={genesisProject}
-          currentStage={currentStage}
-          stages={PIPELINE_STAGES}
-          onClose={() => setShowPipeline(false)}
-        />
-      )}
+          {/* Toggle */}
+          <button
+            onClick={() => setRightPanelOpen(!rightPanelOpen)}
+            className="absolute -left-4 top-1/2 -translate-y-1/2 w-4 h-8 flex items-center justify-center text-white/30 hover:text-white/70"
+          >
+            {rightPanelOpen ? '▶' : '◀'}
+          </button>
+        </div>
+      </div>
 
-      {/* Node Inspector */}
-      {selectedNode && (
-        <NodeInspector
-          node={selectedNode}
-          onClose={() => setSelectedNode(null)}
-        />
-      )}
-
-      {/* Error Toast */}
-      {error && (
-        <div 
-          className="fixed bottom-24 left-1/2 -translate-x-1/2 glass-panel px-4 py-3 rounded-lg border-l-4 border-red-500 animate-slide-in z-50"
-          data-testid="error-toast"
-        >
-          <div className="flex items-center gap-3">
-            <span className="text-red-400 font-mono text-sm">ERROR:</span>
-            <span className="text-sm text-zinc-300">{error}</span>
-            <button 
-              onClick={() => setError(null)}
-              className="ml-2 text-zinc-500 hover:text-zinc-300"
+      {/* Bottom Panel - AI Model Selection & Prompt */}
+      <div className={`absolute bottom-0 z-40 transition-all duration-300 ${leftPanelOpen ? 'left-64' : 'left-48'} ${rightPanelOpen ? 'right-64' : 'right-12'}`}>
+        <div className="bg-black/90 border-t border-white/10 backdrop-blur-sm p-4">
+          {/* AI Model Selection */}
+          <div className="mb-4">
+            <div className="text-xs font-mono text-cyan-400 mb-2">◆ AI_MODEL_SELECTION</div>
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              {AI_MODELS.slice(0, 4).map(model => (
+                <button
+                  key={model.id}
+                  onClick={() => setSelectedModel(model.id)}
+                  className={`px-4 py-2 text-xs font-mono rounded border transition-all ${
+                    selectedModel === model.id
+                      ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400'
+                      : 'bg-white/5 border-white/10 text-white/60 hover:border-white/30'
+                  }`}
+                >
+                  {model.label}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setSelectedModel('voice')}
+              className={`w-full px-4 py-2 text-xs font-mono rounded border transition-all ${
+                selectedModel === 'voice'
+                  ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400'
+                  : 'bg-white/5 border-white/10 text-white/60 hover:border-white/30'
+              }`}
             >
-              ×
+              Voice 3 (V0)
             </button>
           </div>
+
+          {/* Prompt Input */}
+          <div className="text-center text-xs font-mono text-white/30 mb-2">
+            {'>> SELECT INDUSTRY TO START...'}
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSendPrompt()}
+              placeholder="Enter your prompt..."
+              className="flex-1 bg-white/5 border border-white/10 rounded px-4 py-3 text-sm font-mono text-white placeholder-white/30 focus:outline-none focus:border-cyan-500/50"
+            />
+            <button
+              onClick={handleSendPrompt}
+              disabled={isLoading || !prompt.trim()}
+              className="px-6 py-3 bg-cyan-500/20 border border-cyan-500/50 rounded text-cyan-400 text-xs font-mono hover:bg-cyan-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              ▶ SEND
+            </button>
+          </div>
+          <div className="text-xs font-mono text-cyan-400 mt-2">
+            ◆ NO WORKFLOW SELECTED • SELECT INDUSTRY TO BEGIN
+          </div>
         </div>
-      )}
+      </div>
 
-      {/* Build Panel - Floating button and modal */}
-      <BuildPanel 
-        session={session}
-        specification={session?.analysis}
-        onBuildComplete={(result) => {
-          console.log('Build complete:', result);
-        }}
-      />
+      {/* Styles */}
+      <style>{`
+        .franklin-chrome-dim {
+          background: linear-gradient(
+            135deg,
+            rgba(60, 60, 60, 1) 0%,
+            rgba(100, 100, 100, 1) 15%,
+            rgba(160, 160, 160, 1) 30%,
+            rgba(200, 200, 200, 1) 45%,
+            rgba(160, 160, 160, 1) 55%,
+            rgba(100, 100, 100, 1) 70%,
+            rgba(60, 60, 60, 1) 85%,
+            rgba(120, 120, 120, 1) 100%
+          );
+          background-size: 200% 200%;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: chromeShimmer 25s ease-in-out infinite;
+          filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.08));
+          opacity: 0.35;
+        }
+        
+        @keyframes chromeShimmer {
+          0% { background-position: 200% 200%; }
+          50% { background-position: 0% 0%; }
+          100% { background-position: 200% 200%; }
+        }
+
+        .file-tree-glow {
+          animation: glowPulse 2s ease-out;
+        }
+
+        @keyframes glowPulse {
+          0% { box-shadow: 0 0 0 rgba(0, 200, 255, 0); }
+          50% { box-shadow: 0 0 30px rgba(0, 200, 255, 0.5); }
+          100% { box-shadow: 0 0 0 rgba(0, 200, 255, 0); }
+        }
+
+        .writing-mode-vertical {
+          writing-mode: vertical-rl;
+          text-orientation: mixed;
+        }
+      `}</style>
     </div>
-  );
-}
-
-// Wrap with ReactFlowProvider for useReactFlow hook
-function App() {
-  return (
-    <ReactFlowProvider>
-      <AppContent />
-    </ReactFlowProvider>
   );
 }
 
