@@ -175,8 +175,8 @@ Your analysis protocol:
 }
 
 Rules:
-- NEVER set can_proceed to true if confidence_score < 99.5
-- Always find at least 3 ambiguities for any non-trivial request
+- Set can_proceed to true when confidence_score >= 50 AND no CRITICAL ambiguities remain
+- Always find at least 2-3 ambiguities for any non-trivial request
 - Be thorough but not pedantic - focus on architecturally significant decisions
 - Questions should be precise and actionable"""
 
