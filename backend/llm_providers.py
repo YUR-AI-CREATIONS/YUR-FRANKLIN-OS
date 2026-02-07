@@ -132,39 +132,75 @@ class OllamaProvider(BaseLLMProvider):
 
 class CloudProvider(BaseLLMProvider):
     """
-    Cloud LLM via Emergent Universal Key
+    Cloud LLM Provider
     
-    Supports: Claude, GPT-4, Gemini
+    Supports:
+    - Direct OpenAI API (set LLM_PROVIDER=openai)
+    - Direct Anthropic API (set LLM_PROVIDER=anthropic_direct)
+    - Emergent Universal Key (set LLM_PROVIDER=emergent)
     """
     
     def __init__(self, api_key: str, provider: str = "anthropic",
-                 model: str = "claude-sonnet-4-5-20250929"):
+                 model: str = "claude-sonnet-4-5-20250929",
+                 provider_type: str = "emergent"):
         self.api_key = api_key
         self.provider = provider
         self.model = model
-        # Import here to avoid dependency if only using local
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
-        self.LlmChat = LlmChat
-        self.UserMessage = UserMessage
+        self.provider_type = provider_type
+        
+        if provider_type == "emergent":
+            # Use Emergent integrations library
+            from emergentintegrations.llm.chat import LlmChat, UserMessage
+            self.LlmChat = LlmChat
+            self.UserMessage = UserMessage
+        elif provider_type == "openai":
+            # Direct OpenAI
+            import openai
+            self.openai_client = openai.AsyncOpenAI(api_key=api_key)
+        elif provider_type == "anthropic_direct":
+            # Direct Anthropic
+            import anthropic
+            self.anthropic_client = anthropic.AsyncAnthropic(api_key=api_key)
     
     async def generate(self, system_prompt: str, user_message: str,
                       temperature: float = 0.7) -> str:
         """Generate response using cloud LLM"""
-        chat = self.LlmChat(
-            api_key=self.api_key,
-            session_id=f"cloud_{id(self)}",
-            system_message=system_prompt
-        )
-        chat.with_model(self.provider, self.model)
         
-        message = self.UserMessage(text=user_message)
-        response = await chat.send_message(message)
-        return response
+        if self.provider_type == "emergent":
+            chat = self.LlmChat(
+                api_key=self.api_key,
+                session_id=f"cloud_{id(self)}",
+                system_message=system_prompt
+            )
+            chat.with_model(self.provider, self.model)
+            message = self.UserMessage(text=user_message)
+            response = await chat.send_message(message)
+            return response
+            
+        elif self.provider_type == "openai":
+            response = await self.openai_client.chat.completions.create(
+                model=self.model or "gpt-4o",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_message}
+                ],
+                temperature=temperature
+            )
+            return response.choices[0].message.content
+            
+        elif self.provider_type == "anthropic_direct":
+            response = await self.anthropic_client.messages.create(
+                model=self.model or "claude-sonnet-4-5-20250929",
+                max_tokens=4096,
+                system=system_prompt,
+                messages=[{"role": "user", "content": user_message}],
+                temperature=temperature
+            )
+            return response.content[0].text
     
     async def health_check(self) -> bool:
         """Check if cloud API is accessible"""
         try:
-            # Simple validation - actual check would cost tokens
             return bool(self.api_key)
         except:
             return False
