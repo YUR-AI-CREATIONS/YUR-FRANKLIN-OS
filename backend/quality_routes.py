@@ -354,5 +354,112 @@ async def get_quality_system_status():
             "Sovereign Grade",
             "Evidence-Based",
             "Fully Auditable"
+        ],
+        "kernels": quality_gate_system.get_kernel_status()
+    }
+
+
+# ============================================================================
+#                         KERNEL INTEGRATION ROUTES
+# ============================================================================
+
+class OuroborosCycleRequest(BaseModel):
+    build_id: str
+    artifact: Dict[str, Any]
+    stage: str
+
+
+class GovernanceCheckRequest(BaseModel):
+    build_id: str
+    categories: Optional[List[str]] = None
+
+
+class ConfigureLicenseRequest(BaseModel):
+    build_id: str
+    license_type: str
+    custom_terms: Optional[Dict[str, Any]] = None
+
+
+@quality_router.post("/ouroboros/cycle")
+async def run_ouroboros_cycle(request: OuroborosCycleRequest):
+    """Execute an Ouroboros self-healing cycle"""
+    try:
+        result = await quality_gate_system.run_ouroboros_cycle(
+            build_id=request.build_id,
+            artifact=request.artifact,
+            stage=request.stage
+        )
+        return {
+            "success": result["success"],
+            "result": result,
+            "message": f"Ouroboros cycle {'converged' if result['success'] else 'did not converge'} after {result['iterations']} iterations"
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@quality_router.get("/drift/{build_id}")
+async def check_drift(build_id: str):
+    """Check for drift from expected trajectory"""
+    try:
+        result = quality_gate_system.check_drift(build_id)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@quality_router.post("/governance/check")
+async def run_governance_check(request: GovernanceCheckRequest):
+    """Run governance compliance check"""
+    try:
+        result = quality_gate_system.run_governance_check(
+            build_id=request.build_id,
+            categories=request.categories
+        )
+        return {
+            "success": result.get("overall_compliant", False),
+            "result": result
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@quality_router.post("/governance/license")
+async def configure_license(request: ConfigureLicenseRequest):
+    """Configure licensing for a build"""
+    try:
+        result = quality_gate_system.configure_license(
+            build_id=request.build_id,
+            license_type=request.license_type,
+            custom_terms=request.custom_terms
+        )
+        return {
+            "success": True,
+            "license": result
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@quality_router.get("/kernels/status")
+async def get_kernel_status():
+    """Get status of all integrated kernels"""
+    return {
+        "kernels": quality_gate_system.get_kernel_status(),
+        "integrations": [
+            "Genesis Kernel (Ouroboros-Lattice Core)",
+            "Multi-Kernel Orchestrator",
+            "Governance Engine",
+            "Frozen Spine (Drift Detection)"
+        ],
+        "capabilities": [
+            "Self-healing code generation",
+            "99% convergence threshold",
+            "Zero drift guarantee",
+            "Compliance verification",
+            "License management",
+            "Full audit trail"
         ]
     }
