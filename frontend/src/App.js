@@ -404,7 +404,7 @@ function App() {
       </div>
 
       {/* MAIN CANVAS */}
-      <div className="absolute top-0 left-56 right-64 bottom-48 z-10">
+      <div className="absolute top-0 left-56 right-64 bottom-64 z-10">
         <ReactFlow
           nodes={nodes}
           edges={edges}
