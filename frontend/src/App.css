@@ -116,7 +116,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(to bottom, rgba(5, 5, 5, 0.95) 0%, transparent 100%);
+  background: linear-gradient(to bottom, rgba(10, 22, 40, 0.98) 0%, transparent 100%);
 }
 
 /* Input Panel */
@@ -126,6 +126,7 @@
   left: 24px;
   width: 480px;
   max-width: calc(100vw - 48px);
+  z-index: 50;
 }
 
 /* Clarification Panel - collapsible and less intrusive */
