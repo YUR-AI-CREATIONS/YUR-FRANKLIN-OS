@@ -1165,6 +1165,48 @@ async def configure_llm(request: LLMConfigRequest):
     }
 
 
+class SetAPIKeyRequest(BaseModel):
+    provider: Literal["openai", "anthropic", "emergent"]
+    api_key: str
+
+
+@llm_router.post("/set-key")
+async def set_api_key(request: SetAPIKeyRequest):
+    """
+    Set API key at runtime without restarting.
+    
+    Provider options:
+    - "openai": Direct OpenAI (GPT-4o, etc.)
+    - "anthropic": Direct Anthropic (Claude)
+    - "emergent": Emergent Universal Key
+    """
+    global llm_provider
+    
+    # Set environment variable
+    if request.provider == "openai":
+        os.environ["OPENAI_API_KEY"] = request.api_key
+        os.environ["LLM_PROVIDER"] = "openai"
+    elif request.provider == "anthropic":
+        os.environ["ANTHROPIC_API_KEY"] = request.api_key
+        os.environ["LLM_PROVIDER"] = "anthropic_direct"
+    else:
+        os.environ["EMERGENT_LLM_KEY"] = request.api_key
+        os.environ["LLM_PROVIDER"] = "emergent"
+    
+    # Reinitialize provider
+    config = get_default_llm_config()
+    llm_provider = HybridLLMProvider(config)
+    await llm_provider.initialize()
+    
+    status = llm_provider.get_status()
+    
+    return {
+        "message": f"API key set for {request.provider}",
+        "active_provider": status.get("cloud_provider_type"),
+        "configuration": status
+    }
+
+
 @llm_router.get("/models")
 async def list_local_models():
     """List available local models (if Ollama is running)"""
