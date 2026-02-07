@@ -1,0 +1,75 @@
+{
+  "id": "96cbaaef-e88f-44ac-8587-c2b381e49b82",
+  "project_name": "TestApp",
+  "tech_stack": {
+    "frontend_framework": "nextjs",
+    "backend_framework": "fastapi",
+    "database": "postgresql"
+  },
+  "deployment_config": {},
+  "environment_variables": {
+    "NODE_ENV": "production",
+    "API_URL": "https://api.example.com",
+    "DATABASE_URL": "postgresql://user:password@host:5432/dbname"
+  },
+  "created_at": "2026-02-07T10:43:16.141807+00:00",
+  "total_files": 14,
+  "files": [
+    {
+      "path": "TestApp/frontend/package.json",
+      "language": "json"
+    },
+    {
+      "path": "TestApp/frontend/app/layout.tsx",
+      "language": "typescript"
+    },
+    {
+      "path": "TestApp/frontend/app/page.tsx",
+      "language": "typescript"
+    },
+    {
+      "path": "TestApp/frontend/tailwind.config.ts",
+      "language": "typescript"
+    },
+    {
+      "path": "TestApp/backend/requirements.txt",
+      "language": "text"
+    },
+    {
+      "path": "TestApp/backend/app/main.py",
+      "language": "python"
+    },
+    {
+      "path": "TestApp/backend/app/models.py",
+      "language": "python"
+    },
+    {
+      "path": "TestApp/backend/app/routes.py",
+      "language": "python"
+    },
+    {
+      "path": "TestApp/database/schema.sql",
+      "language": "sql"
+    },
+    {
+      "path": "TestApp/backend/Dockerfile",
+      "language": "dockerfile"
+    },
+    {
+      "path": "TestApp/frontend/Dockerfile",
+      "language": "dockerfile"
+    },
+    {
+      "path": "TestApp/docker-compose.yml",
+      "language": "yaml"
+    },
+    {
+      "path": "TestApp/.github/workflows/ci.yml",
+      "language": "yaml"
+    },
+    {
+      "path": "TestApp/.github/workflows/deploy.yml",
+      "language": "yaml"
+    }
+  ]
+}
