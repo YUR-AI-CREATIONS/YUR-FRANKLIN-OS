@@ -129,7 +129,8 @@ function App() {
           label: stage.charAt(0).toUpperCase() + stage.slice(1),
           stage: stage,
           status: index === 0 ? 'active' : 'pending',
-          score: 0
+          score: 0,
+          onRunStage: runStage
         }
       }));
       
