@@ -176,8 +176,7 @@ function App() {
   const [fileTree, setFileTree] = useState([]);
   const [fileTreeGlow, setFileTreeGlow] = useState(false);
 
-  // Import LandingPage
-  const LandingPage = React.lazy(() => import('./components/LandingPage'));
+  // Import LandingPage is done at top
 
   const onConnect = useCallback((params) => {
     setEdges((eds) => addEdge({ ...params, animated: true }, eds));
