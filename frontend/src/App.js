@@ -940,18 +940,23 @@ function AppContent() {
 
   return (
     <div className="sgp-app" data-testid="sgp-app">
+      {/* Ghost FRANKLIN OS Background Text */}
+      <div className="franklin-os-ghost" data-testid="franklin-os-ghost">
+        FRANKLIN OS
+      </div>
+
       {/* Global Loading Indicator - Always visible when processing */}
       {isLoading && (
-        <div className="global-loading-overlay glass-panel px-6 py-3 rounded-full border border-indigo-500/50" data-testid="global-loading">
+        <div className="global-loading-overlay glass-panel px-6 py-3 rounded-full border border-cyan-500/50" data-testid="global-loading">
           <div className="flex items-center gap-3">
-            <div className="w-3 h-3 bg-indigo-500 rounded-full animate-pulse" />
-            <span className="text-sm font-mono text-indigo-300">
+            <div className="w-3 h-3 bg-cyan-500 rounded-full animate-pulse" />
+            <span className="text-sm font-mono text-cyan-300">
               Processing {currentStage}...
             </span>
             <div className="flex gap-1">
-              <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}} />
-              <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}} />
-              <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}} />
+              <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}} />
+              <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}} />
+              <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}} />
             </div>
           </div>
         </div>
@@ -973,11 +978,13 @@ function AppContent() {
           defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
           attributionPosition="bottom-left"
         >
-          <Background color="#27272A" gap={24} size={1} />
+          <Background color="#1a3a5c" gap={24} size={1} />
           <Controls showZoom={true} showFitView={true} showInteractive={false} />
           <MiniMap 
             nodeColor={(n) => {
               if (n.type === 'ambiguity') return '#F59E0B';
+              if (n.type === 'resolution') return '#00C8FF';
+              if (n.type === 'spec') return '#00C8FF';
               if (n.type === 'resolution') return '#10B981';
               if (n.type === 'spec') return '#6366F1';
               if (n.type === 'stage') {
