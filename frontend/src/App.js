@@ -473,6 +473,15 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* Build Panel - Floating button and modal */}
+      <BuildPanel 
+        session={session}
+        specification={session?.analysis}
+        onBuildComplete={(result) => {
+          console.log('Build complete:', result);
+        }}
+      />
     </div>
   );
 }
