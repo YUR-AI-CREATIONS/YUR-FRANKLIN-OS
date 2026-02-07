@@ -210,14 +210,12 @@ class HybridLLMProvider:
     """
     Intelligent routing between local and cloud LLMs
     
-    Strategy:
-    - Use local for: drafts, iterations, development, demos
-    - Use cloud for: final generation, complex reasoning, production
+    Supports multiple API key sources:
+    - OPENAI_API_KEY: Direct OpenAI (GPT-4o, GPT-4, etc.)
+    - ANTHROPIC_API_KEY: Direct Anthropic (Claude)
+    - EMERGENT_LLM_KEY: Emergent Universal Key
     
-    Features:
-    - Automatic fallback if local unavailable
-    - Cost tracking
-    - Quality comparison mode
+    Set LLM_PROVIDER env var to: "openai", "anthropic_direct", or "emergent"
     """
     
     def __init__(self, config: LLMConfig):
@@ -226,24 +224,57 @@ class HybridLLMProvider:
         self.cloud_provider: Optional[CloudProvider] = None
         self.local_available = False
         self.request_count = {"local": 0, "cloud": 0}
+        self.active_provider_type = None
         
         self._initialize_providers()
     
     def _initialize_providers(self):
-        """Initialize available providers"""
+        """Initialize available providers based on env vars"""
         # Always try to set up local
         self.local_provider = OllamaProvider(
             base_url=self.config.local_url,
             model=self.config.local_model
         )
         
-        # Set up cloud if key available
-        if self.config.emergent_key:
+        # Check for API keys in priority order
+        openai_key = os.getenv("OPENAI_API_KEY")
+        anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+        emergent_key = self.config.emergent_key or os.getenv("EMERGENT_LLM_KEY")
+        provider_pref = os.getenv("LLM_PROVIDER", "emergent").lower()
+        
+        # Set up cloud provider based on available keys
+        if provider_pref == "openai" and openai_key:
             self.cloud_provider = CloudProvider(
-                api_key=self.config.emergent_key,
-                provider=self.config.cloud_provider,
-                model=self.config.cloud_model
+                api_key=openai_key,
+                provider="openai",
+                model="gpt-4o",
+                provider_type="openai"
             )
+            self.active_provider_type = "openai"
+            logging.info("Using OpenAI API directly")
+            
+        elif provider_pref == "anthropic_direct" and anthropic_key:
+            self.cloud_provider = CloudProvider(
+                api_key=anthropic_key,
+                provider="anthropic",
+                model="claude-sonnet-4-5-20250929",
+                provider_type="anthropic_direct"
+            )
+            self.active_provider_type = "anthropic_direct"
+            logging.info("Using Anthropic API directly")
+            
+        elif emergent_key:
+            self.cloud_provider = CloudProvider(
+                api_key=emergent_key,
+                provider=self.config.cloud_provider,
+                model=self.config.cloud_model,
+                provider_type="emergent"
+            )
+            self.active_provider_type = "emergent"
+            logging.info("Using Emergent Universal Key")
+            
+        else:
+            logging.warning("No cloud LLM API key found. Set OPENAI_API_KEY, ANTHROPIC_API_KEY, or EMERGENT_LLM_KEY")
     
     async def initialize(self):
         """Async initialization - check provider availability"""
