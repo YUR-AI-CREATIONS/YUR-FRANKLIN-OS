@@ -114,6 +114,50 @@ function App() {
     nodeIdCounter.current = 0;
   };
 
+  // Add a workflow node visually
+  const addWorkflowNode = useCallback((label, type, parentStageId, data = {}) => {
+    const nodeId = `workflow_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const stageIndex = PIPELINE_STAGES.indexOf(parentStageId);
+    
+    // Calculate position - spread out from the stage node
+    const baseX = 100 + (stageIndex * 180);
+    const baseY = 100;
+    const offsetX = (Math.random() - 0.5) * 100;
+    const offsetY = 180 + (Math.random() * 100);
+    
+    const newNode = {
+      id: nodeId,
+      type: type || 'processing',
+      position: { x: baseX + offsetX, y: baseY + offsetY },
+      data: { label, ...data }
+    };
+    
+    const newEdge = {
+      id: `edge_${nodeId}`,
+      source: `stage_${parentStageId}`,
+      target: nodeId,
+      animated: true,
+      style: { stroke: '#6366F1' }
+    };
+    
+    setNodes(nds => [...nds, newNode]);
+    setEdges(eds => [...eds, newEdge]);
+    
+    return nodeId;
+  }, [setNodes, setEdges]);
+
+  // Connect two workflow nodes
+  const connectNodes = useCallback((sourceId, targetId, color = '#10B981') => {
+    const newEdge = {
+      id: `edge_${sourceId}_${targetId}`,
+      source: sourceId,
+      target: targetId,
+      animated: true,
+      style: { stroke: color }
+    };
+    setEdges(eds => [...eds, newEdge]);
+  }, [setEdges]);
+
   // Handle running a stage from stage node
   const handleRunStage = useCallback(async (stageId) => {
     setIsLoading(true);
@@ -134,17 +178,31 @@ function App() {
       switch (stageId) {
         case 'inception':
           if (!genesisProject) {
+            addWorkflowNode('Project Init', 'processing', 'inception', { status: 'active' });
+            await new Promise(r => setTimeout(r, 300));
             await initializeGenesisProject('New Project');
           }
           break;
           
         case 'specification':
           if (session?.analysis?.ambiguities?.length > 0) {
+            // Add nodes for each ambiguity being resolved
+            const specNode = addWorkflowNode('Resolving Specs', 'processing', 'specification');
+            await new Promise(r => setTimeout(r, 300));
+            
             const autoAnswers = session.analysis.ambiguities.map(amb => ({
               ambiguity_id: amb.id,
               answer: amb.options?.[0] || 'Default',
               selected_option: amb.options?.[0] || null
             }));
+            
+            // Show some decision nodes
+            for (let i = 0; i < Math.min(3, autoAnswers.length); i++) {
+              const decisionNode = addWorkflowNode(`Decision ${i + 1}`, 'resolution', 'specification');
+              connectNodes(specNode, decisionNode);
+              await new Promise(r => setTimeout(r, 200));
+            }
+            
             await axios.post(`${API}/resolve`, {
               session_id: session.session_id,
               answers: autoAnswers
@@ -153,6 +211,26 @@ function App() {
           break;
           
         case 'architecture':
+          // Show architecture components being designed
+          const archNode = addWorkflowNode('System Design', 'processing', 'architecture');
+          await new Promise(r => setTimeout(r, 300));
+          
+          const frontendNode = addWorkflowNode('Frontend', 'spec', 'architecture');
+          connectNodes(archNode, frontendNode);
+          await new Promise(r => setTimeout(r, 200));
+          
+          const backendNode = addWorkflowNode('Backend', 'spec', 'architecture');
+          connectNodes(archNode, backendNode);
+          await new Promise(r => setTimeout(r, 200));
+          
+          const dbNode = addWorkflowNode('Database', 'spec', 'architecture');
+          connectNodes(archNode, dbNode);
+          await new Promise(r => setTimeout(r, 200));
+          
+          // Connect components to each other (spider web effect)
+          connectNodes(frontendNode, backendNode, '#8B5CF6');
+          connectNodes(backendNode, dbNode, '#8B5CF6');
+          
           if (session?.analysis) {
             const qualityResponse = await axios.post(`${API}/genesis/quality/assess`, {
               artifact: session.analysis,
@@ -163,7 +241,19 @@ function App() {
           break;
           
         case 'construction':
-          // Use the correct build endpoint with required fields
+          // Show files being generated
+          const buildNode = addWorkflowNode('Build Engine', 'processing', 'construction');
+          await new Promise(r => setTimeout(r, 300));
+          
+          const filesNodes = ['main.py', 'routes.py', 'schema.sql', 'page.tsx', 'Dockerfile'];
+          let prevNode = buildNode;
+          for (const file of filesNodes) {
+            const fileNode = addWorkflowNode(file, 'spec', 'construction');
+            connectNodes(prevNode, fileNode, '#F59E0B');
+            prevNode = fileNode;
+            await new Promise(r => setTimeout(r, 150));
+          }
+          
           const projectId = `build-${Date.now()}`;
           const projectName = session?.original_prompt?.substring(0, 20).replace(/[^a-zA-Z0-9]/g, '') + 'App' || 'GeneratedApp';
           await axios.post(`${API}/build/generate`, {
