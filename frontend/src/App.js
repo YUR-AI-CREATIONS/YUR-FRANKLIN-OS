@@ -30,6 +30,7 @@ import SpecificationPanel from './components/panels/SpecificationPanel';
 import PipelinePanel from './components/panels/PipelinePanel';
 import QualityGatePanel from './components/panels/QualityGatePanel';
 import BuildPanel from './components/panels/BuildPanel';
+import AutoBuildPanel from './components/panels/AutoBuildPanel';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
