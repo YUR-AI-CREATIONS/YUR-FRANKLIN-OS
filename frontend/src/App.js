@@ -118,11 +118,44 @@ function AppContent() {
   const [llmStatus, setLLMStatus] = useState(null);
   
   const nodeIdCounter = useRef(0);
+  const layoutTimeout = useRef(null);
 
   const generateNodeId = () => {
     nodeIdCounter.current += 1;
     return `node_${nodeIdCounter.current}`;
   };
+
+  // Auto-layout and fit view when nodes/edges change
+  const applyAutoLayout = useCallback(() => {
+    if (nodes.length < 2) return;
+    
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(nodes, edges, 'LR');
+    setNodes(layoutedNodes);
+    setEdges(layoutedEdges);
+    
+    // Fit view after layout
+    setTimeout(() => {
+      fitView({ padding: 0.2, duration: 300 });
+    }, 50);
+  }, [nodes, edges, setNodes, setEdges, fitView]);
+
+  // Debounced auto-layout trigger
+  useEffect(() => {
+    if (layoutTimeout.current) {
+      clearTimeout(layoutTimeout.current);
+    }
+    layoutTimeout.current = setTimeout(() => {
+      if (nodes.length > 1) {
+        applyAutoLayout();
+      }
+    }, 500);
+    
+    return () => {
+      if (layoutTimeout.current) {
+        clearTimeout(layoutTimeout.current);
+      }
+    };
+  }, [nodes.length]); // Only trigger on node count change
 
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge({
