@@ -68,10 +68,10 @@ const StageNode = memo(({ data, selected }) => {
       
       <div className="flex flex-col items-center gap-2">
         <Icon 
-          size={20} 
+          size={24} 
           className={config.animate ? 'animate-spin' : ''} 
         />
-        <span className="font-mono text-xs uppercase tracking-wider">
+        <span className="font-mono text-xs uppercase tracking-wider font-semibold">
           {data.label}
         </span>
         {data.score > 0 && (
@@ -88,18 +88,26 @@ const StageNode = memo(({ data, selected }) => {
           </div>
         )}
         
-        {/* Simple Run button - only show if stage is pending or active */}
-        {(status === 'pending' || status === 'active') && data.onRunStage && (
+        {/* Processing indicator */}
+        {isProcessing && (
+          <div className="text-[10px] text-indigo-300 font-mono animate-pulse">
+            Processing...
+          </div>
+        )}
+        
+        {/* Run button - only show if stage is pending or active and not processing */}
+        {(status === 'pending' || status === 'active') && data.onRunStage && !isProcessing && (
           <button
             onClick={handleRunStage}
-            className="mt-1 flex items-center gap-1 px-2 py-1 text-[10px] font-mono uppercase bg-emerald-500/20 hover:bg-emerald-500/40 border border-emerald-500/50 rounded text-emerald-300 transition-colors"
+            className="mt-1 flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-mono uppercase bg-emerald-500/20 hover:bg-emerald-500/40 border border-emerald-500/50 rounded-lg text-emerald-300 transition-all hover:scale-105"
             data-testid={`run-stage-${data.stage}`}
           >
-            <Play size={10} />
+            <Play size={12} />
             Run
           </button>
         )}
       </div>
+    </div>
     </div>
   );
 });
