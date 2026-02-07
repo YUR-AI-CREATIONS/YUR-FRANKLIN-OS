@@ -922,6 +922,23 @@ function AppContent() {
 
   return (
     <div className="sgp-app" data-testid="sgp-app">
+      {/* Global Loading Indicator - Always visible when processing */}
+      {isLoading && (
+        <div className="global-loading-overlay glass-panel px-6 py-3 rounded-full border border-indigo-500/50" data-testid="global-loading">
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 bg-indigo-500 rounded-full animate-pulse" />
+            <span className="text-sm font-mono text-indigo-300">
+              Processing {currentStage}...
+            </span>
+            <div className="flex gap-1">
+              <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}} />
+              <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}} />
+              <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}} />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* React Flow Canvas */}
       <div className="canvas-container grid-pattern">
         <ReactFlow
@@ -933,17 +950,20 @@ function AppContent() {
           onNodeClick={onNodeClick}
           nodeTypes={nodeTypes}
           fitView
+          minZoom={0.1}
+          maxZoom={2}
+          defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
           attributionPosition="bottom-left"
         >
           <Background color="#27272A" gap={24} size={1} />
-          <Controls />
+          <Controls showZoom={true} showFitView={true} showInteractive={false} />
           <MiniMap 
             nodeColor={(n) => {
               if (n.type === 'ambiguity') return '#F59E0B';
               if (n.type === 'resolution') return '#10B981';
               if (n.type === 'spec') return '#6366F1';
               if (n.type === 'stage') {
-                if (n.data?.status === 'passed') return '#10B981';
+                if (n.data?.status === 'passed' || n.data?.status === 'completed') return '#10B981';
                 if (n.data?.status === 'active') return '#6366F1';
                 if (n.data?.status === 'drift') return '#EF4444';
                 return '#3F3F46';
@@ -951,6 +971,8 @@ function AppContent() {
               return '#3F3F46';
             }}
             maskColor="rgba(5, 5, 5, 0.8)"
+            pannable
+            zoomable
           />
         </ReactFlow>
       </div>
@@ -973,7 +995,7 @@ function AppContent() {
         disabled={isLoading}
       />
 
-      {/* Clarification Panel */}
+      {/* Clarification Panel - with close button */}
       {session && hasUnresolvedAmbiguities && (
         <ClarificationPanel
           ambiguities={currentAmbiguities}
