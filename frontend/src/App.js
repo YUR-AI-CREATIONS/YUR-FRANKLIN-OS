@@ -406,10 +406,10 @@ function AppContent() {
           break;
       }
       
-      // Mark stage as completed, activate next stage
+      // Mark stage as completed (clear isProcessing), activate next stage
       setNodes(nds => nds.map(n => {
         if (n.id === `stage_${stageId}`) {
-          return { ...n, data: { ...n.data, status: 'completed' } };
+          return { ...n, data: { ...n.data, status: 'completed', isProcessing: false } };
         }
         if (stageIndex < PIPELINE_STAGES.length - 1 && n.id === `stage_${PIPELINE_STAGES[stageIndex + 1]}`) {
           return { ...n, data: { ...n.data, status: 'active' } };
@@ -419,7 +419,7 @@ function AppContent() {
       
       setEdges(eds => eds.map(e => {
         if (e.source === `stage_${stageId}`) {
-          return { ...e, animated: true, style: { ...e.style, stroke: '#10B981' } };
+          return { ...e, animated: true, style: { ...e.style, stroke: '#10B981', strokeWidth: 2 } };
         }
         return e;
       }));
@@ -427,6 +427,11 @@ function AppContent() {
       if (stageIndex < PIPELINE_STAGES.length - 1) {
         setCurrentStage(PIPELINE_STAGES[stageIndex + 1]);
       }
+      
+      // Fit view after stage completion
+      setTimeout(() => {
+        fitView({ padding: 0.2, duration: 300 });
+      }, 100);
       
     } catch (err) {
       let errorMsg = `Failed to run ${stageId}`;
@@ -441,7 +446,7 @@ function AppContent() {
       setError(errorMsg);
       setNodes(nds => nds.map(n => {
         if (n.id === `stage_${stageId}`) {
-          return { ...n, data: { ...n.data, status: 'failed' } };
+          return { ...n, data: { ...n.data, status: 'failed', isProcessing: false } };
         }
         return n;
       }));
