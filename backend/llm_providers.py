@@ -437,6 +437,7 @@ class HybridLLMProvider:
                 "openai": bool(os.getenv("OPENAI_API_KEY")),
                 "anthropic": bool(os.getenv("ANTHROPIC_API_KEY")),
                 "xai": bool(os.getenv("XAI_API_KEY")),
+                "google": bool(os.getenv("GOOGLE_API_KEY")),
                 "emergent": bool(os.getenv("EMERGENT_LLM_KEY"))
             }
         }
