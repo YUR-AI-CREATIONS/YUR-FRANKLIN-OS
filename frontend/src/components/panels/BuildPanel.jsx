@@ -126,7 +126,7 @@ export const BuildPanel = ({ session, specification, onBuildComplete }) => {
       <button
         data-testid="build-panel-toggle"
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 flex items-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-mono text-sm shadow-lg hover:shadow-xl transition-all hover:scale-105 z-50"
+        className="fixed bottom-24 right-6 flex items-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-mono text-sm shadow-lg hover:shadow-xl transition-all hover:scale-105 z-40"
       >
         <Code size={18} />
         <span>Build Project</span>
