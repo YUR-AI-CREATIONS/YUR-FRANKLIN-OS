@@ -4,6 +4,11 @@ FRANKLIN OS Quality Gate System
 Stage-gated build certification with 5-dimension scoring.
 Zero hallucination, no drift, sovereign-grade enterprise delivery.
 
+Integrates with:
+- Genesis Kernel (Ouroboros-Lattice Core)
+- Multi-Kernel Orchestrator
+- Governance Engine
+
 Certificate Authority: Franklin (AI) + Franklin OS Enterprise (Human)
 """
 
@@ -14,6 +19,11 @@ from datetime import datetime
 from typing import List, Dict, Any, Optional
 from enum import Enum
 import logging
+
+# Import existing kernel infrastructure
+from genesis_kernel import GenesisKernel, PipelineStage, QualityGate as KernelQualityGate, FrozenSpine
+from multi_kernel_orchestrator import MultiKernelOrchestrator, AgentTier, TaskPriority
+from governance_engine import GovernanceEngine, ComplianceCategory, LicenseType
 
 logger = logging.getLogger(__name__)
 
