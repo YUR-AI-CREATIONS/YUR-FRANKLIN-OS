@@ -210,7 +210,15 @@ function App() {
       }
       
     } catch (err) {
-      const errorMsg = typeof err === 'string' ? err : err?.response?.data?.detail || err?.message || `Failed to run ${stageId}`;
+      let errorMsg = `Failed to run ${stageId}`;
+      if (typeof err === 'string') {
+        errorMsg = err;
+      } else if (err?.response?.data?.detail) {
+        const detail = err.response.data.detail;
+        errorMsg = typeof detail === 'string' ? detail : JSON.stringify(detail);
+      } else if (err?.message) {
+        errorMsg = err.message;
+      }
       setError(errorMsg);
       setNodes(nds => nds.map(n => {
         if (n.id === `stage_${stageId}`) {
