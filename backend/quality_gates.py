@@ -193,6 +193,12 @@ class QualityGateSystem:
     ================================
     Enforces stage-gated builds with 5-dimension scoring.
     Zero hallucination guarantee through evidence-based evaluation.
+    
+    Integrates with:
+    - Genesis Kernel (Ouroboros Loop for self-healing)
+    - Multi-Kernel Orchestrator (parallel kernel coordination)
+    - Governance Engine (compliance & licensing)
+    - Frozen Spine (drift detection)
     """
     
     PASS_THRESHOLD = 99.0  # Must score 99%+ to pass
@@ -202,6 +208,17 @@ class QualityGateSystem:
         self.builds: Dict[str, Dict[str, Any]] = {}
         self.audit_trail: List[AuditEntry] = []
         self.certificates: Dict[str, BuildCertificate] = {}
+        
+        # Initialize kernel infrastructure
+        self.orchestrator = MultiKernelOrchestrator()
+        self.governance = GovernanceEngine()
+        self.frozen_spine = FrozenSpine()
+        
+        # Primary Genesis Kernel with Ouroboros
+        self.primary_kernel = GenesisKernel()
+        self.primary_kernel.initialize()
+        
+        logger.info("[QUALITY] Integrated with Genesis Kernel, Orchestrator, and Governance Engine")
         
     def start_build(self, project_name: str, project_description: str) -> str:
         """Initialize a new certified build"""
