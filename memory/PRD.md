@@ -1,7 +1,17 @@
-# Sovereign Genesis Platform (SGP) - Product Requirements Document
+# Franklin OS / Sovereign Genesis Platform - Product Requirements Document
 
 ## Original Problem Statement
-Build a "Sovereign Genesis Platform" (SGP), a 100% enterprise-grade, end-to-end software factory. The core of the application is a "Genesis Pipeline" that visually builds a workflow, generates code for multi-page applications, and handles specifications. The system should provide a real-time, visual build experience with automatic layout and per-stage execution controls.
+Build a "Sovereign Genesis Platform" (SGP), now branded as "Franklin OS" - a 100% enterprise-grade, end-to-end software factory. The core of the application is a "Genesis Pipeline" that visually builds a workflow, generates code for multi-page applications, and handles specifications. The system should provide a real-time, visual build experience with automatic layout and per-stage execution controls.
+
+## Design Theme: FRANKLIN OS
+- **Aesthetic**: Cyberpunk/Neural network with dark navy background
+- **Primary Colors**: Cyan (#00C8FF), Teal (#00FFD4)
+- **Background**: Dark navy gradient (#0a1628 → #0d1f3c)
+- **Visual Effects**: 
+  - Animated plexus network background
+  - Animated wave patterns
+  - Ghost text watermarks
+  - Tracer animations on active elements
 
 ## User Personas
 1. **Enterprise Developers** - Need to rapidly generate production-ready codebases
