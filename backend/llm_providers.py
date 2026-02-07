@@ -138,6 +138,7 @@ class CloudProvider(BaseLLMProvider):
     - Direct OpenAI API (set LLM_PROVIDER=openai)
     - Direct Anthropic API (set LLM_PROVIDER=anthropic_direct)
     - xAI/Grok API (set LLM_PROVIDER=xai)
+    - Google/Gemini API (set LLM_PROVIDER=google)
     - Emergent Universal Key (set LLM_PROVIDER=emergent)
     """
     
@@ -150,23 +151,23 @@ class CloudProvider(BaseLLMProvider):
         self.provider_type = provider_type
         
         if provider_type == "emergent":
-            # Use Emergent integrations library
             from emergentintegrations.llm.chat import LlmChat, UserMessage
             self.LlmChat = LlmChat
             self.UserMessage = UserMessage
         elif provider_type == "openai":
-            # Direct OpenAI
             import openai
             self.openai_client = openai.AsyncOpenAI(api_key=api_key)
         elif provider_type == "xai":
-            # xAI/Grok - uses OpenAI-compatible API
             import openai
             self.openai_client = openai.AsyncOpenAI(
                 api_key=api_key,
                 base_url="https://api.x.ai/v1"
             )
+        elif provider_type == "google":
+            import google.generativeai as genai
+            genai.configure(api_key=api_key)
+            self.genai = genai
         elif provider_type == "anthropic_direct":
-            # Direct Anthropic
             import anthropic
             self.anthropic_client = anthropic.AsyncAnthropic(api_key=api_key)
     
@@ -195,6 +196,17 @@ class CloudProvider(BaseLLMProvider):
                 temperature=temperature
             )
             return response.choices[0].message.content
+        
+        elif self.provider_type == "google":
+            model = self.genai.GenerativeModel(
+                model_name=self.model or "gemini-1.5-pro",
+                system_instruction=system_prompt
+            )
+            response = await model.generate_content_async(
+                user_message,
+                generation_config={"temperature": temperature}
+            )
+            return response.text
             
         elif self.provider_type == "anthropic_direct":
             response = await self.anthropic_client.messages.create(
