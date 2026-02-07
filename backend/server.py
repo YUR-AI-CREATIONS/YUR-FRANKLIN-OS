@@ -39,6 +39,7 @@ from build_engine import BuildEngine
 from prompt_optimizer import prompt_optimizer, OPTIMIZATION_SYSTEM_PROMPT
 from marketing_generator import marketing_generator, MARKETING_SYSTEM_PROMPT
 from kling_generator import kling_generator
+from supabase import create_client, Client as SupabaseClient
 
 
 ROOT_DIR = Path(__file__).parent
