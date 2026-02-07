@@ -15,6 +15,68 @@
   z-index: 0;
 }
 
+/* Stage Node Tracer Animation - the key visual loading indicator */
+.stage-node-container {
+  position: relative;
+}
+
+.stage-active-tracer {
+  animation: pulse-scale 2s ease-in-out infinite;
+}
+
+.stage-tracer-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 16px;
+  border: 2px solid transparent;
+  background: linear-gradient(90deg, #6366F1, #8B5CF6, #A855F7, #6366F1) border-box;
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) padding-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: tracer-spin 2s linear infinite, tracer-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes tracer-spin {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes tracer-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.5), 0 0 40px rgba(139, 92, 246, 0.3);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.8), 0 0 60px rgba(139, 92, 246, 0.5);
+    opacity: 0.8;
+  }
+}
+
+@keyframes pulse-scale {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+/* Global Loading Overlay */
+.global-loading-overlay {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  animation: slideIn 0.3s ease-out;
+}
+
 /* Floating Panels */
 .floating-panel {
   position: absolute;
