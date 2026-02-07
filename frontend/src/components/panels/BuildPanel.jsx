@@ -88,7 +88,11 @@ export const BuildPanel = ({ session, specification, onBuildComplete }) => {
       }
 
     } catch (err) {
-      setError(err.response?.data?.detail || 'Build failed');
+      const detail = err.response?.data?.detail;
+      const errorMsg = typeof detail === 'string' ? detail : 
+                       Array.isArray(detail) ? detail.map(d => d.msg || d).join(', ') :
+                       detail?.msg || 'Build failed';
+      setError(errorMsg);
       setStep('config');
     } finally {
       setIsLoading(false);
@@ -106,7 +110,9 @@ export const BuildPanel = ({ session, specification, onBuildComplete }) => {
       });
       setBuildResult(prev => ({ ...prev, written: true }));
     } catch (err) {
-      setError('Failed to write files');
+      const detail = err.response?.data?.detail;
+      const errorMsg = typeof detail === 'string' ? detail : 'Failed to write files';
+      setError(errorMsg);
     } finally {
       setIsLoading(false);
     }
