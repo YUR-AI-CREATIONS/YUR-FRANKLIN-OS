@@ -361,6 +361,11 @@ function App() {
   const currentAmbiguities = session?.analysis?.ambiguities || [];
   const hasUnresolvedAmbiguities = currentAmbiguities.length > 0;
 
+  // Show landing page first
+  if (showLanding) {
+    return <LandingPage onEnterApp={() => setShowLanding(false)} />;
+  }
+
   return (
     <div className="sgp-app" data-testid="sgp-app">
       {/* React Flow Canvas */}
