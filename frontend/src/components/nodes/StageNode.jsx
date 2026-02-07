@@ -3,10 +3,10 @@ import { Handle, Position } from 'reactflow';
 import { Layers, CheckCircle2, AlertTriangle, Loader2, Play } from 'lucide-react';
 
 const statusConfig = {
-  pending: { color: 'zinc', icon: Layers, glow: false },
-  active: { color: 'indigo', icon: Loader2, glow: true, animate: true },
-  passed: { color: 'emerald', icon: CheckCircle2, glow: true },
-  completed: { color: 'emerald', icon: CheckCircle2, glow: true },
+  pending: { color: 'slate', icon: Layers, glow: false },
+  active: { color: 'cyan', icon: Loader2, glow: true, animate: true },
+  passed: { color: 'teal', icon: CheckCircle2, glow: true },
+  completed: { color: 'teal', icon: CheckCircle2, glow: true },
   failed: { color: 'red', icon: AlertTriangle, glow: true },
   drift: { color: 'amber', icon: AlertTriangle, glow: true },
 };
@@ -18,16 +18,16 @@ const StageNode = memo(({ data, selected }) => {
   const isProcessing = data.isProcessing || false;
   
   const colorClasses = {
-    zinc: 'border-zinc-600 bg-zinc-900/80 text-zinc-400',
-    indigo: 'border-indigo-500 bg-indigo-500/10 text-indigo-300',
-    emerald: 'border-emerald-500 bg-emerald-500/10 text-emerald-300',
+    slate: 'border-slate-600 bg-slate-900/80 text-slate-400',
+    cyan: 'border-cyan-500 bg-cyan-500/10 text-cyan-300',
+    teal: 'border-teal-400 bg-teal-500/10 text-teal-300',
     red: 'border-red-500 bg-red-500/10 text-red-300',
     amber: 'border-amber-500 bg-amber-500/10 text-amber-300',
   };
   
   const glowClasses = {
-    indigo: 'shadow-[0_0_30px_rgba(99,102,241,0.6)]',
-    emerald: 'shadow-[0_0_30px_rgba(16,185,129,0.6)]',
+    cyan: 'shadow-[0_0_30px_rgba(0,200,255,0.6)]',
+    teal: 'shadow-[0_0_30px_rgba(0,255,200,0.6)]',
     red: 'shadow-[0_0_30px_rgba(239,68,68,0.6)]',
     amber: 'shadow-[0_0_30px_rgba(245,158,11,0.6)]',
   };
