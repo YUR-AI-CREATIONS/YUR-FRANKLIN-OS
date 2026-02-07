@@ -1706,6 +1706,7 @@ app.include_router(build_router)
 app.include_router(llm_router)
 app.include_router(prompt_router)
 app.include_router(marketing_router)
+app.include_router(video_router)
 
 app.add_middleware(
     CORSMiddleware,
