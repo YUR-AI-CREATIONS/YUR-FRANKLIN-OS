@@ -247,6 +247,7 @@ class HybridLLMProvider:
         # Check for API keys in priority order
         openai_key = os.getenv("OPENAI_API_KEY")
         anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+        xai_key = os.getenv("XAI_API_KEY")
         emergent_key = self.config.emergent_key or os.getenv("EMERGENT_LLM_KEY")
         provider_pref = os.getenv("LLM_PROVIDER", "emergent").lower()
         
@@ -260,6 +261,16 @@ class HybridLLMProvider:
             )
             self.active_provider_type = "openai"
             logging.info("Using OpenAI API directly")
+        
+        elif provider_pref == "xai" and xai_key:
+            self.cloud_provider = CloudProvider(
+                api_key=xai_key,
+                provider="xai",
+                model="grok-beta",
+                provider_type="xai"
+            )
+            self.active_provider_type = "xai"
+            logging.info("Using xAI/Grok API")
             
         elif provider_pref == "anthropic_direct" and anthropic_key:
             self.cloud_provider = CloudProvider(
@@ -282,7 +293,7 @@ class HybridLLMProvider:
             logging.info("Using Emergent Universal Key")
             
         else:
-            logging.warning("No cloud LLM API key found. Set OPENAI_API_KEY, ANTHROPIC_API_KEY, or EMERGENT_LLM_KEY")
+            logging.warning("No cloud LLM API key found. Set OPENAI_API_KEY, ANTHROPIC_API_KEY, XAI_API_KEY, or EMERGENT_LLM_KEY")
     
     async def initialize(self):
         """Async initialization - check provider availability"""
