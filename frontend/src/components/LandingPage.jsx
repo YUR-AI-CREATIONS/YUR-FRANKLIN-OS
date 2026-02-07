@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 
-// Laser Beams Component - Subtle beams, enhanced stars
+// Laser Beams Component - Subtle beams, randomized stars
 const LaserBeams = () => {
   const canvasRef = useRef(null);
+  const starsRef = useRef(null);
   
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -16,6 +17,35 @@ const LaserBeams = () => {
     const resize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
+      // Regenerate stars on resize with true randomness
+      starsRef.current = generateStars(canvas.width, canvas.height);
+    };
+    
+    const generateStars = (w, h) => {
+      const stars = [];
+      // Regular stars - truly random positions
+      for (let i = 0; i < 120; i++) {
+        stars.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          size: Math.random() * 1.5 + 0.5,
+          speed: Math.random() * 0.5 + 0.2,
+          phase: Math.random() * Math.PI * 2,
+          type: 'regular'
+        });
+      }
+      // Bright stars
+      for (let i = 0; i < 15; i++) {
+        stars.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          size: Math.random() * 1.5 + 1.5,
+          speed: Math.random() * 0.3 + 0.1,
+          phase: Math.random() * Math.PI * 2,
+          type: 'bright'
+        });
+      }
+      return stars;
     };
     
     const drawLasers = () => {
@@ -27,7 +57,7 @@ const LaserBeams = () => {
         { x1: canvas.width, y1: canvas.height * 0.2, angle: 165, alpha: 0.1, width: 1 },
         { x1: 0, y1: canvas.height * 0.7, angle: 10, alpha: 0.12, width: 1 },
         { x1: canvas.width, y1: canvas.height * 0.8, angle: 170, alpha: 0.15, width: 1 },
-        { x1: canvas.width * 0.5, y1: 0, angle: 90 + Math.sin(time * 0.01) * 5, alpha: 0.08, width: 1.5 },
+        { x1: canvas.width * 0.5, y1: 0, angle: 90 + Math.sin(time * 0.005) * 3, alpha: 0.08, width: 1.5 },
       ];
       
       lasers.forEach(laser => {
@@ -49,44 +79,26 @@ const LaserBeams = () => {
         ctx.shadowBlur = 0;
       });
       
-      // Enhanced floating stars
-      for (let i = 0; i < 150; i++) {
-        const baseX = (i * 17) % canvas.width;
-        const baseY = (i * 23) % canvas.height;
-        const x = baseX + Math.sin(time * 0.001 + i) * 20;
-        const y = baseY + Math.cos(time * 0.0015 + i) * 15;
-        const twinkle = Math.sin(time * 0.005 + i * 0.5) * 0.5 + 0.5;
-        const size = (Math.sin(i) * 0.5 + 1) * twinkle + 0.5;
-        const alpha = twinkle * 0.8 + 0.2;
-        
-        // Star glow
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = `rgba(255, 255, 255, ${alpha * 0.5})`;
-        
-        ctx.beginPath();
-        ctx.arc(x, y, size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-        ctx.fill();
-        
-        ctx.shadowBlur = 0;
-      }
-      
-      // Extra bright stars
-      for (let i = 0; i < 20; i++) {
-        const x = (i * 97) % canvas.width;
-        const y = (i * 73) % canvas.height;
-        const twinkle = Math.sin(time * 0.003 + i * 2) * 0.5 + 0.5;
-        const size = twinkle * 2 + 1;
-        
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = `rgba(255, 255, 255, 0.8)`;
-        
-        ctx.beginPath();
-        ctx.arc(x, y, size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${twinkle * 0.9 + 0.1})`;
-        ctx.fill();
-        
-        ctx.shadowBlur = 0;
+      // Draw stars with twinkle
+      if (starsRef.current) {
+        starsRef.current.forEach(star => {
+          const twinkle = Math.sin(time * star.speed * 0.05 + star.phase) * 0.5 + 0.5;
+          
+          if (star.type === 'bright') {
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = `rgba(255, 255, 255, ${twinkle * 0.6})`;
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.size * twinkle + 0.5, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 255, ${twinkle * 0.9 + 0.1})`;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+          } else {
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.size * (twinkle * 0.3 + 0.7), 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 255, ${twinkle * 0.6 + 0.2})`;
+            ctx.fill();
+          }
+        });
       }
       
       time += 1;
