@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, Send, Loader2 } from 'lucide-react';
+import { AlertTriangle, Send, Loader2, Sparkles, Zap, Star } from 'lucide-react';
 
 const priorityOrder = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
 
@@ -8,6 +8,7 @@ export const ClarificationPanel = ({
   answers, 
   onAnswerChange, 
   onSubmit, 
+  onSimulate,
   isLoading,
   confidenceScore 
 }) => {
@@ -18,6 +19,16 @@ export const ClarificationPanel = ({
   const answeredCount = Object.keys(answers).length;
   const totalCount = ambiguities.length;
   const canSubmit = answeredCount > 0;
+
+  // Auto-select all AI recommended answers
+  const handleSelectAllRecommended = () => {
+    sortedAmbiguities.forEach(amb => {
+      if (amb.options && amb.options.length > 0) {
+        const recommended = amb.options[0]; // First option is AI recommended
+        onAnswerChange(amb.id, recommended, recommended);
+      }
+    });
+  };
 
   return (
     <div className="clarification-panel glass-panel rounded-lg animate-slide-in" data-testid="clarification-panel">
@@ -56,13 +67,31 @@ export const ClarificationPanel = ({
               }}
             />
           </div>
-          <div className="text-[10px] text-zinc-600 mt-1 font-mono">
-            Target: 99.5% required for specification generation
-          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="flex gap-2 mb-4">
+          <button
+            data-testid="select-recommended-btn"
+            onClick={handleSelectAllRecommended}
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/50 text-indigo-300 text-xs font-mono transition-all"
+          >
+            <Star size={14} className="text-yellow-400" />
+            <span>Use AI Recommendations</span>
+          </button>
+          <button
+            data-testid="simulate-build-btn"
+            onClick={onSimulate}
+            disabled={isLoading}
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 hover:from-emerald-500/30 hover:to-cyan-500/30 border border-emerald-500/50 text-emerald-300 text-xs font-mono transition-all disabled:opacity-50"
+          >
+            <Zap size={14} className="text-yellow-400" />
+            <span>Simulate Full Build</span>
+          </button>
         </div>
 
         {/* Questions */}
-        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+        <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
           {sortedAmbiguities.map((amb) => (
             <QuestionCard
               key={amb.id}
@@ -128,7 +157,7 @@ const QuestionCard = ({ ambiguity, answer, onChange }) => {
         {ambiguity.question}
       </p>
       
-      {/* Options */}
+      {/* Options with AI Recommendation */}
       {ambiguity.options && ambiguity.options.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-3">
           {ambiguity.options.map((opt, i) => (
@@ -136,8 +165,21 @@ const QuestionCard = ({ ambiguity, answer, onChange }) => {
               key={i}
               type="button"
               onClick={() => onChange(opt, opt)}
-              className={`option-btn ${selectedOption === opt ? 'selected' : ''}`}
+              className={`relative option-btn ${selectedOption === opt ? 'selected' : ''} ${i === 0 ? 'ai-recommended' : ''}`}
+              style={i === 0 ? {
+                background: selectedOption === opt 
+                  ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' 
+                  : 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.15) 100%)',
+                borderColor: '#10B981',
+                boxShadow: selectedOption !== opt ? '0 0 10px rgba(16, 185, 129, 0.3)' : 'none'
+              } : {}}
             >
+              {i === 0 && (
+                <span className="absolute -top-2 -right-2 flex items-center gap-0.5 px-1.5 py-0.5 bg-emerald-500 text-[8px] text-white font-bold rounded-full shadow-lg">
+                  <Sparkles size={8} />
+                  AI
+                </span>
+              )}
               {opt}
             </button>
           ))}
