@@ -103,10 +103,12 @@ export const LandingPage = ({ onEnterApp }) => {
       {/* Laser Beams */}
       <LaserBeams />
       
-      {/* FRANKLIN Title - Centered horizontally, raised up */}
-      <div className="absolute inset-x-0 top-[25%] flex justify-center pointer-events-none z-20">
+      {/* Main Content - All centered together */}
+      <div className="relative z-20 min-h-screen flex flex-col items-center justify-center px-6">
+        
+        {/* FRANKLIN Title */}
         <h1
-          className="text-[clamp(3rem,12vw,9rem)] font-semibold tracking-[0.55em] text-transparent bg-clip-text bg-gradient-to-r from-white/30 via-white/70 to-white/20 opacity-70 select-none"
+          className="text-[clamp(3rem,12vw,9rem)] font-semibold tracking-[0.55em] text-transparent bg-clip-text bg-gradient-to-r from-white/30 via-white/70 to-white/20 opacity-70 select-none mb-12"
           style={{ 
             fontFamily: "'Orbitron', sans-serif",
             textShadow: '0 0 70px rgba(255, 255, 255, 0.2)',
@@ -115,12 +117,9 @@ export const LandingPage = ({ onEnterApp }) => {
         >
           FRANKLIN
         </h1>
-      </div>
-      
-      {/* Bottom Content */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-30 w-full max-w-3xl px-6">
+        
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="mb-4">
+        <form onSubmit={handleSubmit} className="w-full max-w-2xl mb-4">
           <div className="flex items-center gap-3 rounded-full border border-white/15 bg-white/5 px-4 py-2 backdrop-blur-sm">
             <input
               type="text"
@@ -150,7 +149,7 @@ export const LandingPage = ({ onEnterApp }) => {
         </form>
         
         {/* Labels and CTA */}
-        <div className="flex flex-col items-center gap-2 text-center">
+        <div className="flex flex-col items-center gap-2 text-center mb-8">
           <span className="text-[11px] uppercase tracking-[0.4em] text-white/35">
             Input neural command
           </span>
@@ -164,19 +163,19 @@ export const LandingPage = ({ onEnterApp }) => {
         </div>
         
         {/* Status Badges */}
-        <div className="flex flex-wrap justify-center gap-3 mt-6">
+        <div className="flex flex-wrap justify-center gap-3 mb-4">
           <StatusBadge label="Garage Online" />
           <StatusBadge label="Oracle Online" />
           <StatusBadge label="Franklin Online" />
           <StatusBadge label="Agents Online" />
         </div>
         
-        <div className="flex justify-center mt-3">
+        <div className="flex justify-center mb-6">
           <StatusBadge label="Bots Online" />
         </div>
         
         {/* Footer Text */}
-        <div className="text-center mt-6">
+        <div className="text-center max-w-2xl">
           <p className="text-white/25 font-mono text-xs uppercase tracking-wider leading-relaxed">
             You've reached the world-class Agent + Bot Academy, governed under Franklin OS.
           </p>
