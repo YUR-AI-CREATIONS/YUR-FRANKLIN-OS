@@ -34,6 +34,16 @@ import BuildPanel from './components/panels/BuildPanel';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Helper to safely extract error message from API responses
+const getErrorMessage = (err, fallback = 'An error occurred') => {
+  const detail = err?.response?.data?.detail;
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail)) return detail.map(d => d.msg || String(d)).join(', ');
+  if (detail?.msg) return detail.msg;
+  if (err?.message) return err.message;
+  return fallback;
+};
+
 const nodeTypes = {
   input: InputNode,
   ambiguity: AmbiguityNode,
