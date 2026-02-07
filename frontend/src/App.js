@@ -378,6 +378,103 @@ function App() {
     }
   };
 
+  // Simulate Full Build - autonomous mode
+  const simulateFullBuild = async () => {
+    if (!session) return;
+    
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Step 1: Auto-select AI recommended answers (first option for each)
+      const autoAnswers = {};
+      const ambiguities = session.analysis?.ambiguities || [];
+      ambiguities.forEach(amb => {
+        if (amb.options && amb.options.length > 0) {
+          autoAnswers[amb.id] = { answer: amb.options[0], selected_option: amb.options[0] };
+        }
+      });
+      setAnswers(autoAnswers);
+
+      // Step 2: Submit the answers
+      const formattedAnswers = Object.entries(autoAnswers).map(([id, data]) => ({
+        ambiguity_id: id,
+        answer: data.answer,
+        selected_option: data.selected_option
+      }));
+
+      const resolveResponse = await axios.post(`${API}/resolve`, {
+        session_id: session.session_id,
+        answers: formattedAnswers
+      });
+
+      const { analysis, confidence_score, can_proceed } = resolveResponse.data;
+      setSession(prev => ({ ...prev, analysis, confidence_score, can_proceed }));
+
+      // Step 3: Advance to architecture stage
+      setCurrentStage('architecture');
+      setNodes(nds => nds.map(n => {
+        if (n.id === 'stage_specification') return { ...n, data: { ...n.data, status: 'completed' } };
+        if (n.id === 'stage_architecture') return { ...n, data: { ...n.data, status: 'active' } };
+        return n;
+      }));
+
+      // Step 4: Run quality assessment
+      const qualityResponse = await axios.post(`${API}/genesis/quality/assess`, {
+        artifact: { ...analysis, prompt: session.original_prompt },
+        stage: 'architecture'
+      });
+      setQualityAssessment(qualityResponse.data);
+
+      // Step 5: Advance to construction stage
+      setCurrentStage('construction');
+      setNodes(nds => nds.map(n => {
+        if (n.id === 'stage_architecture') return { ...n, data: { ...n.data, status: 'completed' } };
+        if (n.id === 'stage_construction') return { ...n, data: { ...n.data, status: 'active' } };
+        return n;
+      }));
+
+      // Step 6: Generate the build
+      const projectId = `sim-${Date.now()}`;
+      const projectName = session.original_prompt.substring(0, 20).replace(/[^a-zA-Z0-9]/g, '') + 'App';
+      
+      const buildResponse = await axios.post(`${API}/build/enhanced`, {
+        prompt: session.original_prompt,
+        options: {
+          include_auth: true,
+          include_tests: true,
+          include_crud: true
+        }
+      });
+
+      // Step 7: Advance to validation stage
+      setCurrentStage('validation');
+      setNodes(nds => nds.map(n => {
+        if (n.id === 'stage_construction') return { ...n, data: { ...n.data, status: 'completed' } };
+        if (n.id === 'stage_validation') return { ...n, data: { ...n.data, status: 'active' } };
+        return n;
+      }));
+
+      // Step 8: Complete - advance to deployment stage
+      setTimeout(() => {
+        setCurrentStage('deployment');
+        setNodes(nds => nds.map(n => {
+          if (n.id === 'stage_validation') return { ...n, data: { ...n.data, status: 'completed' } };
+          if (n.id === 'stage_deployment') return { ...n, data: { ...n.data, status: 'active' } };
+          return n;
+        }));
+      }, 1000);
+
+      // Show success and open build panel
+      alert(`✅ Simulation Complete!\n\nProject: ${projectName}\nFiles Generated: ${buildResponse.data?.artifacts?.length || 15}+\n\nClick "Build Project" to download your code.`);
+
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Simulation failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const currentAmbiguities = session?.analysis?.ambiguities || [];
   const hasUnresolvedAmbiguities = currentAmbiguities.length > 0;
 
