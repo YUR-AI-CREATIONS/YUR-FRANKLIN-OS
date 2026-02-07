@@ -301,6 +301,28 @@ function App() {
       setNodes((nds) => [...nds, ...ambNodes]);
       setEdges((eds) => [...eds, ...ambEdges]);
 
+      // Auto-advance to specification stage when analysis is complete
+      if (can_proceed || ambiguities.length === 0) {
+        setCurrentStage('specification');
+        // Update stage nodes to show specification as active
+        setNodes((nds) => nds.map(n => {
+          if (n.id === 'stage_inception') {
+            return { ...n, data: { ...n.data, status: 'completed' } };
+          }
+          if (n.id === 'stage_specification') {
+            return { ...n, data: { ...n.data, status: 'active' } };
+          }
+          return n;
+        }));
+        // Highlight the edge to specification
+        setEdges((eds) => eds.map(e => {
+          if (e.target === 'stage_specification') {
+            return { ...e, animated: true, style: { ...e.style, stroke: '#10B981' } };
+          }
+          return e;
+        }));
+      }
+
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to analyze prompt');
     } finally {
