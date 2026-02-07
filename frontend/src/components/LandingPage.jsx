@@ -1,301 +1,140 @@
-import React, { useEffect, useRef, useState } from 'react';
-
-// Plexus/Network Background Canvas
-const PlexusBackground = () => {
-  const canvasRef = useRef(null);
-  
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    let animationId;
-    let particles = [];
-    
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    
-    const createParticles = () => {
-      particles = [];
-      const numParticles = Math.floor((canvas.width * canvas.height) / 15000);
-      for (let i = 0; i < numParticles; i++) {
-        particles.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          vx: (Math.random() - 0.5) * 0.5,
-          vy: (Math.random() - 0.5) * 0.5,
-          radius: Math.random() * 2 + 1
-        });
-      }
-    };
-    
-    const drawParticles = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Draw connections
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x;
-          const dy = particles[i].y - particles[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          
-          if (dist < 150) {
-            ctx.beginPath();
-            ctx.strokeStyle = `rgba(0, 200, 255, ${(1 - dist / 150) * 0.3})`;
-            ctx.lineWidth = 1;
-            ctx.moveTo(particles[i].x, particles[i].y);
-            ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.stroke();
-          }
-        }
-      }
-      
-      // Draw particles
-      for (const p of particles) {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0, 200, 255, 0.8)';
-        ctx.fill();
-        
-        // Update position
-        p.x += p.vx;
-        p.y += p.vy;
-        
-        // Bounce off edges
-        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-      }
-      
-      animationId = requestAnimationFrame(drawParticles);
-    };
-    
-    resize();
-    createParticles();
-    drawParticles();
-    
-    window.addEventListener('resize', () => {
-      resize();
-      createParticles();
-    });
-    
-    return () => {
-      cancelAnimationFrame(animationId);
-      window.removeEventListener('resize', resize);
-    };
-  }, []);
-  
-  return (
-    <canvas 
-      ref={canvasRef} 
-      className="fixed inset-0 z-0 pointer-events-none"
-      style={{ background: 'linear-gradient(180deg, #0a1628 0%, #0d1f3c 50%, #0a1628 100%)' }}
-    />
-  );
-};
-
-// Animated Wave Component
-const AnimatedWaves = () => {
-  const canvasRef = useRef(null);
-  
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    let animationId;
-    let time = 0;
-    
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = 300;
-    };
-    
-    const drawWaves = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      const waves = [
-        { amplitude: 40, frequency: 0.01, speed: 0.02, offset: 0, color: 'rgba(0, 200, 255, 0.6)' },
-        { amplitude: 30, frequency: 0.015, speed: 0.025, offset: 50, color: 'rgba(0, 150, 255, 0.4)' },
-        { amplitude: 35, frequency: 0.012, speed: 0.018, offset: -30, color: 'rgba(0, 255, 200, 0.3)' },
-      ];
-      
-      for (const wave of waves) {
-        ctx.beginPath();
-        ctx.strokeStyle = wave.color;
-        ctx.lineWidth = 2;
-        
-        for (let x = 0; x <= canvas.width; x += 5) {
-          const y = canvas.height / 2 + 
-            Math.sin(x * wave.frequency + time * wave.speed) * wave.amplitude +
-            Math.sin(x * wave.frequency * 2 + time * wave.speed * 1.5) * (wave.amplitude * 0.5) +
-            wave.offset;
-          
-          if (x === 0) {
-            ctx.moveTo(x, y);
-          } else {
-            ctx.lineTo(x, y);
-          }
-        }
-        ctx.stroke();
-      }
-      
-      time += 1;
-      animationId = requestAnimationFrame(drawWaves);
-    };
-    
-    resize();
-    drawWaves();
-    
-    window.addEventListener('resize', resize);
-    
-    return () => {
-      cancelAnimationFrame(animationId);
-      window.removeEventListener('resize', resize);
-    };
-  }, []);
-  
-  return (
-    <canvas 
-      ref={canvasRef} 
-      className="absolute top-0 left-0 w-full z-10 pointer-events-none"
-      style={{ height: '300px' }}
-    />
-  );
-};
-
-// Status Badge Component
-const StatusBadge = ({ label, online = true }) => (
-  <div className={`px-4 py-2 rounded border font-mono text-xs uppercase tracking-wider transition-all
-    ${online 
-      ? 'border-cyan-500/50 text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20' 
-      : 'border-zinc-600 text-zinc-500 bg-zinc-800/50'
-    }`}
-  >
-    {label}
-  </div>
-);
+import React, { useState } from 'react';
+import { ArrowUpRight } from 'lucide-react';
+import ParticleBackground from './ParticleBackground';
 
 export const LandingPage = ({ onEnterApp }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onEnterApp();
+  const [disabled, setDisabled] = useState(false);
+
+  const isReady = username.trim().length > 0 && password.trim().length > 0 && !disabled;
+
+  const handleSubmit = () => {
+    if (isReady || true) { // Allow entry even without credentials for demo
+      onEnterApp();
+    }
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden" style={{ background: '#0a1628' }}>
-      {/* Plexus Network Background */}
-      <PlexusBackground />
+    <div className="relative min-h-screen overflow-hidden bg-[#04060b] text-white">
+      {/* Grid Background */}
+      <div className="absolute inset-0 garage-grid" />
       
-      {/* Animated Waves at Top */}
-      <AnimatedWaves />
+      {/* Snow/Particle Effect */}
+      <div className="absolute inset-0 oracle-snow opacity-40" />
       
-      {/* Main Content */}
-      <div className="relative z-20 min-h-screen flex flex-col items-center justify-center px-6">
-        
-        {/* FRANKLIN Ghost Title */}
-        <h1 
-          className="text-[12vw] md:text-[10vw] font-bold tracking-[0.3em] text-transparent mb-8 select-none"
-          style={{
-            fontFamily: "'Orbitron', 'Rajdhani', 'Share Tech Mono', sans-serif",
-            WebkitTextStroke: '1px rgba(0, 200, 255, 0.3)',
-            textShadow: '0 0 60px rgba(0, 200, 255, 0.2), 0 0 120px rgba(0, 200, 255, 0.1)',
-            letterSpacing: '0.3em'
+      {/* Particle Network */}
+      <ParticleBackground />
+
+      {/* Left Side Navigation */}
+      <div className="absolute left-6 top-10 z-10 hidden flex-col gap-4 text-xs uppercase tracking-[0.35em] text-white/50 md:flex">
+        <span className="text-white">Vault</span>
+        <span>Branches</span>
+        <span>System</span>
+      </div>
+
+      {/* Status Badges - Top Right */}
+      <div className="absolute right-6 top-10 z-10 hidden flex-col gap-2 md:flex">
+        <StatusBadge label="Garage Online" />
+        <StatusBadge label="Oracle Online" />
+        <StatusBadge label="Franklin Online" />
+        <StatusBadge label="Agents Online" />
+      </div>
+
+      {/* Ghost FRANKLIN Title */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <h1
+          className="text-[clamp(3rem,12vw,9rem)] font-semibold tracking-[0.55em] text-transparent bg-clip-text bg-gradient-to-r from-white/30 via-cyan-200/70 to-white/20 opacity-70 select-none"
+          style={{ 
+            textShadow: '0 0 70px rgba(98, 200, 255, 0.35)',
+            fontFamily: "'Orbitron', 'Rajdhani', sans-serif"
           }}
           data-testid="franklin-title"
         >
           FRANKLIN
         </h1>
-        
+      </div>
+
+      {/* Bottom Input Section */}
+      <div className="absolute bottom-10 left-1/2 z-10 w-full max-w-3xl -translate-x-1/2 px-6">
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="w-full max-w-2xl mb-8">
-          <div 
-            className="flex items-center rounded-lg overflow-hidden"
-            style={{
-              background: 'linear-gradient(90deg, rgba(30, 40, 60, 0.8) 0%, rgba(40, 50, 70, 0.9) 100%)',
-              border: '1px solid rgba(0, 200, 255, 0.2)',
-              boxShadow: '0 0 30px rgba(0, 200, 255, 0.1)'
+        <div className="flex items-center gap-3 rounded-full border border-white/15 bg-white/5 px-4 py-2 backdrop-blur-xl shadow-[0_0_40px_rgba(15,23,42,0.45)]">
+          <input
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            disabled={disabled}
+            placeholder="Username"
+            className="h-10 w-full bg-transparent text-sm text-white placeholder:text-white/35 focus:outline-none"
+            data-testid="username-input"
+          />
+          <div className="h-8 w-px bg-white/20" />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleSubmit();
+              }
             }}
+            disabled={disabled}
+            placeholder="Password"
+            className="h-10 w-full bg-transparent text-sm text-white placeholder:text-white/35 focus:outline-none"
+            data-testid="password-input"
+          />
+          <button
+            type="button"
+            aria-label="Enter Franklin Garage"
+            onClick={handleSubmit}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 transition bg-white/10 hover:bg-white/20"
+            data-testid="login-submit"
           >
-            <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="flex-1 px-6 py-4 bg-transparent text-cyan-100 placeholder-cyan-700 font-mono text-sm focus:outline-none"
-              data-testid="username-input"
-            />
-            <div className="w-px h-8 bg-cyan-500/30" />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="flex-1 px-6 py-4 bg-transparent text-cyan-100 placeholder-cyan-700 font-mono text-sm focus:outline-none"
-              data-testid="password-input"
-            />
-            <button
-              type="submit"
-              className="px-6 py-4 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all"
-              data-testid="login-submit"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M7 17L17 7M17 7H7M17 7V17" />
-              </svg>
-            </button>
-          </div>
-        </form>
-        
-        {/* Neural Command Label */}
-        <p className="text-cyan-600 font-mono text-xs uppercase tracking-[0.4em] mb-6">
-          Input Neural Command
-        </p>
-        
-        {/* Main CTA Button */}
-        <button
-          onClick={onEnterApp}
-          className="px-8 py-3 rounded border border-cyan-500/50 text-cyan-400 font-mono text-sm uppercase tracking-widest hover:bg-cyan-500/10 hover:border-cyan-400 transition-all mb-10"
-          data-testid="enter-app-btn"
-        >
-          Open Franklin Garage Preview
-        </button>
-        
-        {/* Status Badges */}
-        <div className="flex flex-wrap justify-center gap-3 mb-10">
-          <StatusBadge label="Garage Online" online={true} />
-          <StatusBadge label="Oracle Online" online={true} />
-          <StatusBadge label="Franklin Online" online={true} />
-          <StatusBadge label="Agents Online" online={true} />
+            <ArrowUpRight className="h-4 w-4" />
+          </button>
         </div>
-        
-        <div className="mb-10">
-          <StatusBadge label="Bots Online" online={true} />
+
+        {/* Labels and CTA */}
+        <div className="mt-4 flex flex-col items-center gap-3 text-center">
+          <span className="text-[11px] uppercase tracking-[0.4em] text-white/35">
+            Input neural command
+          </span>
+          <button
+            onClick={onEnterApp}
+            className="rounded-full border border-white/20 px-6 py-2.5 text-[10px] uppercase tracking-[0.35em] text-white/60 hover:border-cyan-500/50 hover:text-cyan-400 hover:shadow-[0_0_20px_rgba(0,200,255,0.2)] transition-all"
+            data-testid="enter-app-btn"
+          >
+            Open Franklin Garage Preview
+          </button>
         </div>
-        
+
         {/* Footer Text */}
-        <div className="text-center max-w-2xl">
-          <p className="text-cyan-700 font-mono text-xs uppercase tracking-wider leading-relaxed">
+        <div className="mt-8 text-center">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-white/25 leading-relaxed">
             You've reached the world-class Agent + Bot Academy, governed under Franklin OS.
           </p>
-          <p className="text-cyan-600 font-mono text-xs uppercase tracking-wider mt-2">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-white/35 mt-1">
             Enter Franklin's Garage to explore the Academy and get a free Oracle consultation.
           </p>
         </div>
       </div>
-      
+
       {/* Bottom Accent Line */}
       <div 
-        className="absolute bottom-0 left-0 right-0 h-1"
+        className="absolute bottom-0 left-0 right-0 h-[2px]"
         style={{
-          background: 'linear-gradient(90deg, transparent 0%, rgba(200, 150, 50, 0.8) 50%, transparent 100%)'
+          background: 'linear-gradient(90deg, transparent 0%, rgba(200, 150, 50, 0.6) 50%, transparent 100%)'
         }}
       />
     </div>
   );
 };
+
+// Status Badge Component
+const StatusBadge = ({ label }) => (
+  <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/40">
+    <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+    <span>{label}</span>
+  </div>
+);
 
 export default LandingPage;
