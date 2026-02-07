@@ -68,6 +68,7 @@ llm_router = APIRouter(prefix="/api/llm")
 prompt_router = APIRouter(prefix="/api/prompt")
 marketing_router = APIRouter(prefix="/api/marketing")
 video_router = APIRouter(prefix="/api/video")
+supabase_router = APIRouter(prefix="/api/supabase")
 
 # LLM Configuration
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
