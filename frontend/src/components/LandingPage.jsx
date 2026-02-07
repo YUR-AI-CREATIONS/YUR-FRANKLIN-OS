@@ -103,12 +103,10 @@ export const LandingPage = ({ onEnterApp }) => {
       {/* Laser Beams */}
       <LaserBeams />
       
-      {/* Main Content */}
-      <div className="relative z-20 min-h-screen flex flex-col items-center justify-center px-6">
-        
-        {/* FRANKLIN Title - Gradient Fill */}
+      {/* FRANKLIN Title - Perfectly Centered */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
         <h1
-          className="text-[clamp(3rem,12vw,9rem)] font-semibold tracking-[0.55em] text-transparent bg-clip-text bg-gradient-to-r from-white/30 via-white/70 to-white/20 opacity-70 mb-12 select-none"
+          className="text-[clamp(3rem,12vw,9rem)] font-semibold tracking-[0.55em] text-transparent bg-clip-text bg-gradient-to-r from-white/30 via-white/70 to-white/20 opacity-70 select-none"
           style={{ 
             fontFamily: "'Orbitron', sans-serif",
             textShadow: '0 0 70px rgba(255, 255, 255, 0.2)',
@@ -117,73 +115,72 @@ export const LandingPage = ({ onEnterApp }) => {
         >
           FRANKLIN
         </h1>
-        
+      </div>
+      
+      {/* Bottom Content */}
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-30 w-full max-w-3xl px-6">
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="w-full max-w-2xl mb-8">
-          <div 
-            className="flex items-center rounded-full overflow-hidden border border-white/15 bg-white/5 backdrop-blur-sm"
-          >
+        <form onSubmit={handleSubmit} className="mb-4">
+          <div className="flex items-center gap-3 rounded-full border border-white/15 bg-white/5 px-4 py-2 backdrop-blur-sm">
             <input
               type="text"
               placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="flex-1 px-6 py-4 bg-transparent text-white/80 placeholder-white/30 font-mono text-sm focus:outline-none"
+              className="h-10 w-full bg-transparent text-sm text-white placeholder:text-white/35 focus:outline-none"
               data-testid="username-input"
             />
-            <div className="w-px h-8 bg-white/20" />
+            <div className="h-8 w-px bg-white/20" />
             <input
               type="password"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="flex-1 px-6 py-4 bg-transparent text-white/80 placeholder-white/30 font-mono text-sm focus:outline-none"
+              className="h-10 w-full bg-transparent text-sm text-white placeholder:text-white/35 focus:outline-none"
               data-testid="password-input"
             />
             <button
               type="submit"
-              className="px-6 py-4 text-white/50 hover:text-white transition-all duration-300"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 hover:bg-white/20 transition-all"
               data-testid="login-submit"
             >
-              <ArrowUpRight className="w-5 h-5" />
+              <ArrowUpRight className="h-4 w-4" />
             </button>
           </div>
         </form>
         
-        {/* Neural Command Label */}
-        <p className="text-white/30 font-mono text-xs uppercase tracking-[0.4em] mb-6">
-          Input Neural Command
-        </p>
-        
-        {/* Main CTA Button */}
-        <button
-          onClick={onEnterApp}
-          className="px-8 py-3 rounded-full font-mono text-sm uppercase tracking-widest mb-10
-            bg-transparent border border-white/20 text-white/60
-            hover:border-white/40 hover:text-white/90 transition-all duration-300"
-          data-testid="enter-app-btn"
-        >
-          Open Franklin Garage Preview
-        </button>
+        {/* Labels and CTA */}
+        <div className="flex flex-col items-center gap-2 text-center">
+          <span className="text-[11px] uppercase tracking-[0.4em] text-white/35">
+            Input neural command
+          </span>
+          <button
+            onClick={onEnterApp}
+            className="rounded-full border border-white/20 px-4 py-2 text-[10px] uppercase tracking-[0.35em] text-white/60 hover:border-white/40 hover:text-white transition-all"
+            data-testid="enter-app-btn"
+          >
+            Open Franklin Garage Preview
+          </button>
+        </div>
         
         {/* Status Badges */}
-        <div className="flex flex-wrap justify-center gap-3 mb-10">
+        <div className="flex flex-wrap justify-center gap-3 mt-6">
           <StatusBadge label="Garage Online" />
           <StatusBadge label="Oracle Online" />
           <StatusBadge label="Franklin Online" />
           <StatusBadge label="Agents Online" />
         </div>
         
-        <div className="mb-10">
+        <div className="flex justify-center mt-3">
           <StatusBadge label="Bots Online" />
         </div>
         
         {/* Footer Text */}
-        <div className="text-center max-w-2xl">
+        <div className="text-center mt-6">
           <p className="text-white/25 font-mono text-xs uppercase tracking-wider leading-relaxed">
             You've reached the world-class Agent + Bot Academy, governed under Franklin OS.
           </p>
-          <p className="text-white/35 font-mono text-xs uppercase tracking-wider mt-2">
+          <p className="text-white/35 font-mono text-xs uppercase tracking-wider mt-1">
             Enter Franklin's Garage to explore the Academy and get a free Oracle consultation.
           </p>
         </div>
