@@ -103,8 +103,8 @@ export const LandingPage = ({ onEnterApp }) => {
       {/* Laser Beams */}
       <LaserBeams />
       
-      {/* FRANKLIN Title - Perfectly Centered */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+      {/* FRANKLIN Title - Centered horizontally, raised up */}
+      <div className="absolute inset-x-0 top-[25%] flex justify-center pointer-events-none z-20">
         <h1
           className="text-[clamp(3rem,12vw,9rem)] font-semibold tracking-[0.55em] text-transparent bg-clip-text bg-gradient-to-r from-white/30 via-white/70 to-white/20 opacity-70 select-none"
           style={{ 
