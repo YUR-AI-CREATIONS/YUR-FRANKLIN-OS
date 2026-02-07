@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useMemo } from 'react';
 import './App.css';
+import LandingPage from './components/LandingPage';
 import ReactFlow, {
   Background,
   Controls,
