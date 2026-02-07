@@ -15,9 +15,10 @@ const StageNode = memo(({ data, selected }) => {
   const status = data.status || 'pending';
   const config = statusConfig[status] || statusConfig.pending;
   const Icon = config.icon;
+  const isProcessing = data.isProcessing || false;
   
   const colorClasses = {
-    zinc: 'border-zinc-600 bg-zinc-900 text-zinc-400',
+    zinc: 'border-zinc-600 bg-zinc-900/80 text-zinc-400',
     indigo: 'border-indigo-500 bg-indigo-500/10 text-indigo-300',
     emerald: 'border-emerald-500 bg-emerald-500/10 text-emerald-300',
     red: 'border-red-500 bg-red-500/10 text-red-300',
@@ -25,10 +26,10 @@ const StageNode = memo(({ data, selected }) => {
   };
   
   const glowClasses = {
-    indigo: 'shadow-[0_0_20px_rgba(99,102,241,0.4)]',
-    emerald: 'shadow-[0_0_20px_rgba(16,185,129,0.4)]',
-    red: 'shadow-[0_0_20px_rgba(239,68,68,0.4)]',
-    amber: 'shadow-[0_0_20px_rgba(245,158,11,0.4)]',
+    indigo: 'shadow-[0_0_30px_rgba(99,102,241,0.6)]',
+    emerald: 'shadow-[0_0_30px_rgba(16,185,129,0.6)]',
+    red: 'shadow-[0_0_30px_rgba(239,68,68,0.6)]',
+    amber: 'shadow-[0_0_30px_rgba(245,158,11,0.6)]',
   };
 
   const handleRunStage = (e) => {
@@ -40,13 +41,20 @@ const StageNode = memo(({ data, selected }) => {
 
   return (
     <div 
-      className={`sgp-node px-4 py-3 rounded-lg border-2 min-w-[140px] text-center ${
-        colorClasses[config.color]
-      } ${config.glow ? glowClasses[config.color] || '' : ''} ${
-        selected ? 'ring-2 ring-white/20' : ''
-      }`}
+      className={`stage-node-container relative ${status === 'active' || isProcessing ? 'stage-active-tracer' : ''}`}
       data-testid={`stage-node-${data.stage}`}
     >
+      {/* Tracer animation ring for active/processing stages */}
+      {(status === 'active' || isProcessing) && (
+        <div className="absolute inset-0 rounded-xl stage-tracer-ring" />
+      )}
+      <div 
+        className={`sgp-node px-5 py-4 rounded-xl border-2 min-w-[160px] text-center backdrop-blur-sm ${
+          colorClasses[config.color]
+        } ${config.glow ? glowClasses[config.color] || '' : ''} ${
+          selected ? 'ring-2 ring-white/30' : ''
+        } transition-all duration-300`}
+      >
       <Handle 
         type="target" 
         position={Position.Left} 
