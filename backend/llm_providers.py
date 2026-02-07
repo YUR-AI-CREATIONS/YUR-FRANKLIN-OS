@@ -137,6 +137,7 @@ class CloudProvider(BaseLLMProvider):
     Supports:
     - Direct OpenAI API (set LLM_PROVIDER=openai)
     - Direct Anthropic API (set LLM_PROVIDER=anthropic_direct)
+    - xAI/Grok API (set LLM_PROVIDER=xai)
     - Emergent Universal Key (set LLM_PROVIDER=emergent)
     """
     
@@ -157,6 +158,13 @@ class CloudProvider(BaseLLMProvider):
             # Direct OpenAI
             import openai
             self.openai_client = openai.AsyncOpenAI(api_key=api_key)
+        elif provider_type == "xai":
+            # xAI/Grok - uses OpenAI-compatible API
+            import openai
+            self.openai_client = openai.AsyncOpenAI(
+                api_key=api_key,
+                base_url="https://api.x.ai/v1"
+            )
         elif provider_type == "anthropic_direct":
             # Direct Anthropic
             import anthropic
@@ -177,9 +185,9 @@ class CloudProvider(BaseLLMProvider):
             response = await chat.send_message(message)
             return response
             
-        elif self.provider_type == "openai":
+        elif self.provider_type in ["openai", "xai"]:
             response = await self.openai_client.chat.completions.create(
-                model=self.model or "gpt-4o",
+                model=self.model or ("grok-beta" if self.provider_type == "xai" else "gpt-4o"),
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_message}
