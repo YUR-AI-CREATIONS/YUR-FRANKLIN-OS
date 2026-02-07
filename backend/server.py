@@ -48,6 +48,7 @@ from franklin_routes import (
 )
 from quality_routes import quality_router
 from marketing_routes import marketing_router as marketing_content_router
+from deployment_routes import deploy_router
 
 
 ROOT_DIR = Path(__file__).parent
@@ -1813,6 +1814,7 @@ app.include_router(marketplace_router)
 app.include_router(grok_router)
 app.include_router(quality_router)
 app.include_router(marketing_content_router)
+app.include_router(deploy_router)
 
 app.add_middleware(
     CORSMiddleware,
