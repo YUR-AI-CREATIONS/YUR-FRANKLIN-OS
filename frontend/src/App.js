@@ -214,11 +214,7 @@ function App() {
   };
 
   if (showLanding) {
-    return (
-      <React.Suspense fallback={<div className="min-h-screen bg-black" />}>
-        <LandingPage onEnterApp={() => setShowLanding(false)} />
-      </React.Suspense>
-    );
+    return <LandingPage onEnterApp={() => setShowLanding(false)} />;
   }
 
   return (
