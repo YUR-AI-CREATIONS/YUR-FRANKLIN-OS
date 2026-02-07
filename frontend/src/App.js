@@ -104,6 +104,120 @@ function App() {
     nodeIdCounter.current = 0;
   };
 
+  // Handle running a stage from stage node
+  const handleRunStage = useCallback(async (stageId) => {
+    setIsLoading(true);
+    setError(null);
+    
+    const stageIndex = PIPELINE_STAGES.indexOf(stageId);
+    
+    // Mark stage as active
+    setCurrentStage(stageId);
+    setNodes(nds => nds.map(n => {
+      if (n.id === `stage_${stageId}`) {
+        return { ...n, data: { ...n.data, status: 'active' } };
+      }
+      return n;
+    }));
+
+    try {
+      switch (stageId) {
+        case 'inception':
+          if (!genesisProject) {
+            await initializeGenesisProject('New Project');
+          }
+          break;
+          
+        case 'specification':
+          if (session?.analysis?.ambiguities?.length > 0) {
+            const autoAnswers = session.analysis.ambiguities.map(amb => ({
+              ambiguity_id: amb.id,
+              answer: amb.options?.[0] || 'Default',
+              selected_option: amb.options?.[0] || null
+            }));
+            await axios.post(`${API}/resolve`, {
+              session_id: session.session_id,
+              answers: autoAnswers
+            });
+          }
+          break;
+          
+        case 'architecture':
+          if (session?.analysis) {
+            const qualityResponse = await axios.post(`${API}/genesis/quality/assess`, {
+              artifact: session.analysis,
+              stage: 'architecture'
+            });
+            setQualityAssessment(qualityResponse.data);
+          }
+          break;
+          
+        case 'construction':
+          await axios.post(`${API}/build/enhanced`, {
+            prompt: session?.original_prompt || 'Build a web application',
+            options: { include_auth: true, include_tests: true, include_crud: true }
+          });
+          break;
+          
+        case 'validation':
+          if (session?.analysis) {
+            await axios.post(`${API}/genesis/quality/assess`, {
+              artifact: session.analysis,
+              stage: 'validation'
+            });
+          }
+          break;
+          
+        default:
+          break;
+      }
+      
+      // Mark stage as completed, activate next stage
+      setNodes(nds => nds.map(n => {
+        if (n.id === `stage_${stageId}`) {
+          return { ...n, data: { ...n.data, status: 'completed' } };
+        }
+        if (stageIndex < PIPELINE_STAGES.length - 1 && n.id === `stage_${PIPELINE_STAGES[stageIndex + 1]}`) {
+          return { ...n, data: { ...n.data, status: 'active' } };
+        }
+        return n;
+      }));
+      
+      setEdges(eds => eds.map(e => {
+        if (e.source === `stage_${stageId}`) {
+          return { ...e, animated: true, style: { ...e.style, stroke: '#10B981' } };
+        }
+        return e;
+      }));
+      
+      if (stageIndex < PIPELINE_STAGES.length - 1) {
+        setCurrentStage(PIPELINE_STAGES[stageIndex + 1]);
+      }
+      
+    } catch (err) {
+      const errorMsg = typeof err === 'string' ? err : err?.response?.data?.detail || err?.message || `Failed to run ${stageId}`;
+      setError(errorMsg);
+      setNodes(nds => nds.map(n => {
+        if (n.id === `stage_${stageId}`) {
+          return { ...n, data: { ...n.data, status: 'failed' } };
+        }
+        return n;
+      }));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [genesisProject, session, setNodes, setEdges]);
+
+  // Update stage nodes with the run handler when they change
+  useEffect(() => {
+    setNodes(nds => nds.map(n => {
+      if (n.type === 'stage') {
+        return { ...n, data: { ...n.data, onRunStage: handleRunStage } };
+      }
+      return n;
+    }));
+  }, [handleRunStage, setNodes]);
+
   // Initialize Genesis Project
   const initializeGenesisProject = async (name) => {
     setIsLoading(true);
