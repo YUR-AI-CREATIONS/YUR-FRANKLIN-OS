@@ -72,6 +72,15 @@ video_router = APIRouter(prefix="/api/video")
 # LLM Configuration
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
 
+# Supabase setup
+SUPABASE_URL = os.getenv('SUPABASE_URL')
+SUPABASE_KEY = os.getenv('SUPABASE_ANON_KEY')
+supabase: SupabaseClient = None
+
+if SUPABASE_URL and SUPABASE_KEY:
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    logging.info(f"Supabase connected: {SUPABASE_URL}")
+
 # Global instances
 orchestrators: Dict[str, MultiKernelOrchestrator] = {}
 page_generators: Dict[str, PageGenerator] = {}
