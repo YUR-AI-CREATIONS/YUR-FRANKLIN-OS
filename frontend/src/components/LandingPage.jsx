@@ -156,7 +156,7 @@ export const LandingPage = ({ onEnterApp }) => {
           FRANKLIN
         </h1>
         
-        {/* Chrome shimmer styles */}
+        {/* Chrome shimmer styles - slowed down for GPU */}
         <style>{`
           .franklin-chrome {
             background: linear-gradient(
@@ -174,7 +174,7 @@ export const LandingPage = ({ onEnterApp }) => {
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: chromeShimmer 8s ease-in-out infinite;
+            animation: chromeShimmer 20s ease-in-out infinite;
             filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.15));
           }
           
