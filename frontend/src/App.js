@@ -619,6 +619,7 @@ function App() {
       {/* Input Panel */}
       <InputPanel
         onSubmit={analyzePrompt}
+        onQuickSimulate={quickSimulate}
         isLoading={isLoading}
         disabled={isLoading}
       />
