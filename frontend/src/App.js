@@ -15,6 +15,7 @@ import StageNode from './components/nodes/StageNode';
 import AmbiguityNode from './components/nodes/AmbiguityNode';
 import ResolutionNode from './components/nodes/ResolutionNode';
 import SpecNode from './components/nodes/SpecNode';
+import { LandingPage } from './components/LandingPage';
 
 import './App.css';
 
