@@ -133,17 +133,51 @@ export const LandingPage = ({ onEnterApp }) => {
       {/* Main Content - All centered together */}
       <div className="relative z-20 min-h-screen flex flex-col items-center justify-center px-6">
         
-        {/* FRANKLIN Title */}
+        {/* FRANKLIN Title - Matte Chrome Shimmer */}
         <h1
-          className="text-[clamp(3rem,12vw,9rem)] font-semibold tracking-[0.55em] text-transparent bg-clip-text bg-gradient-to-r from-white/30 via-white/70 to-white/20 opacity-70 select-none mb-12"
+          className="text-[clamp(3rem,12vw,9rem)] font-semibold tracking-[0.55em] select-none mb-12 franklin-chrome"
           style={{ 
             fontFamily: "'Orbitron', sans-serif",
-            textShadow: '0 0 70px rgba(255, 255, 255, 0.2)',
           }}
           data-testid="franklin-title"
         >
           FRANKLIN
         </h1>
+        
+        {/* Chrome shimmer styles */}
+        <style>{`
+          .franklin-chrome {
+            background: linear-gradient(
+              135deg,
+              rgba(60, 60, 60, 1) 0%,
+              rgba(120, 120, 120, 1) 15%,
+              rgba(200, 200, 200, 1) 30%,
+              rgba(255, 255, 255, 1) 45%,
+              rgba(200, 200, 200, 1) 55%,
+              rgba(120, 120, 120, 1) 70%,
+              rgba(80, 80, 80, 1) 85%,
+              rgba(150, 150, 150, 1) 100%
+            );
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: chromeShimmer 8s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.15));
+          }
+          
+          @keyframes chromeShimmer {
+            0% {
+              background-position: 200% 200%;
+            }
+            50% {
+              background-position: 0% 0%;
+            }
+            100% {
+              background-position: 200% 200%;
+            }
+          }
+        `}</style>
         
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="w-full max-w-2xl mb-4">
