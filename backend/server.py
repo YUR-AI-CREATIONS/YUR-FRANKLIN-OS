@@ -587,11 +587,12 @@ async def assess_quality(request: QualityAssessRequest):
 
 @genesis_router.post("/ouroboros/execute")
 async def execute_ouroboros(request: OuroborosRequest):
-    """Execute Ouroboros improvement loop until 99% convergence"""
+    """Execute Ouroboros improvement loop until target score convergence"""
+    # Get or create orchestrator
     orchestrator = orchestrators.get(request.project_id)
     
     if not orchestrator:
-        # Create new orchestrator if not exists
+        # Create new orchestrator and kernel automatically
         orchestrator = MultiKernelOrchestrator()
         orchestrator.initialize_orchestrator(f"Project-{request.project_id}")
         orchestrators[request.project_id] = orchestrator
@@ -599,13 +600,17 @@ async def execute_ouroboros(request: OuroborosRequest):
     try:
         stage = PipelineStage(request.stage)
     except ValueError:
-        raise HTTPException(status_code=400, detail=f"Invalid stage: {request.stage}")
+        stage = PipelineStage.SPECIFICATION  # Default to specification stage
+    
+    # Ensure at least one kernel exists
+    if not orchestrator.kernels:
+        kernel = GenesisKernel()
+        kernel.initialize()
+        kernel_id = str(uuid.uuid4())
+        orchestrator.kernels[kernel_id] = kernel
     
     # Get primary kernel
-    kernel_id = list(orchestrator.kernels.keys())[0] if orchestrator.kernels else None
-    if not kernel_id:
-        raise HTTPException(status_code=400, detail="No kernel initialized")
-    
+    kernel_id = list(orchestrator.kernels.keys())[0]
     kernel = orchestrator.kernels[kernel_id]
     
     # Execute Ouroboros loop
