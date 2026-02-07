@@ -334,7 +334,7 @@ Key highlights:
         for benefit in content.get('benefits', [])[:3]:
             linkedin += f"✅ {benefit}\n"
         
-        linkedin += f"\nCheck it out: [LINK]\n\n#productlaunch #technology #innovation"
+        linkedin += "\nCheck it out: [LINK]\n\n#productlaunch #technology #innovation"
         
         product_hunt = f"{content.get('tagline', project_name)} - {content.get('subheadline', '')[:80]}"
         

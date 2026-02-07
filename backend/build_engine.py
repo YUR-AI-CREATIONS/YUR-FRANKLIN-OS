@@ -1201,7 +1201,7 @@ def decode_token(token: str) -> Optional[dict]:
         return None
 '''
         
-        auth_routes = f'''from fastapi import APIRouter, HTTPException, Depends, Header
+        auth_routes = '''from fastapi import APIRouter, HTTPException, Depends, Header
 from typing import Optional
 import uuid
 from datetime import datetime
@@ -1212,7 +1212,7 @@ from .auth_utils import hash_password, verify_password, create_access_token, dec
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 # In-memory user storage (replace with database)
-users_db: dict = {{}}
+users_db: dict = {}
 
 async def get_current_user(authorization: Optional[str] = Header(None)) -> UserResponse:
     """Dependency to get current authenticated user"""
@@ -1247,14 +1247,14 @@ async def register(data: UserCreate):
     user_id = str(uuid.uuid4())
     now = datetime.utcnow()
     
-    user = {{
+    user = {
         "id": user_id,
         "email": data.email,
         "name": data.name,
         "password_hash": hash_password(data.password),
         "is_active": True,
         "created_at": now
-    }}
+    }
     
     users_db[user_id] = user
     return UserResponse(**user)
@@ -1278,10 +1278,10 @@ async def login(data: UserLogin):
     if not user["is_active"]:
         raise HTTPException(status_code=401, detail="Account disabled")
     
-    access_token = create_access_token({{
+    access_token = create_access_token({
         "user_id": user["id"],
         "email": user["email"]
-    }})
+    })
     
     return Token(access_token=access_token, expires_in=86400)
 
@@ -1293,7 +1293,7 @@ async def get_me(current_user: UserResponse = Depends(get_current_user)):
 @router.post("/logout")
 async def logout(current_user: UserResponse = Depends(get_current_user)):
     """Logout (client should discard token)"""
-    return {{"message": "Successfully logged out"}}
+    return {"message": "Successfully logged out"}
 '''
         
         return {
