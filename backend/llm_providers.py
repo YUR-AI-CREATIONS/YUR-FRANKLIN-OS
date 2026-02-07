@@ -388,8 +388,14 @@ class HybridLLMProvider:
             "local_model": self.config.local_model,
             "cloud_available": self.cloud_provider is not None,
             "cloud_model": self.config.cloud_model,
+            "cloud_provider_type": self.active_provider_type,
             "request_counts": self.request_count,
-            "fallback_enabled": self.config.fallback_to_cloud
+            "fallback_enabled": self.config.fallback_to_cloud,
+            "api_keys_configured": {
+                "openai": bool(os.getenv("OPENAI_API_KEY")),
+                "anthropic": bool(os.getenv("ANTHROPIC_API_KEY")),
+                "emergent": bool(os.getenv("EMERGENT_LLM_KEY"))
+            }
         }
 
 
