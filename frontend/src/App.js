@@ -27,8 +27,8 @@ const nodeTypes = {
   spec: SpecNode,
 };
 
-// Stars Background Component
-const StarsBackground = () => {
+// Stars & Galactic Background Component
+const GalacticBackground = () => {
   const canvasRef = useRef(null);
   const starsRef = useRef(null);
   
@@ -48,7 +48,7 @@ const StarsBackground = () => {
     
     const generateStars = (w, h) => {
       const stars = [];
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 120; i++) {
         stars.push({
           x: Math.random() * w,
           y: Math.random() * h,
@@ -58,7 +58,7 @@ const StarsBackground = () => {
           type: 'regular'
         });
       }
-      for (let i = 0; i < 12; i++) {
+      for (let i = 0; i < 15; i++) {
         stars.push({
           x: Math.random() * w,
           y: Math.random() * h,
@@ -76,10 +76,10 @@ const StarsBackground = () => {
       
       // Subtle laser beams
       const lasers = [
-        { x1: 0, y1: canvas.height * 0.3, angle: 15, alpha: 0.1, width: 1 },
+        { x1: 0, y1: canvas.height * 0.3, angle: 15, alpha: 0.12, width: 1 },
         { x1: canvas.width, y1: canvas.height * 0.2, angle: 165, alpha: 0.08, width: 1 },
         { x1: 0, y1: canvas.height * 0.7, angle: 10, alpha: 0.08, width: 1 },
-        { x1: canvas.width, y1: canvas.height * 0.8, angle: 170, alpha: 0.1, width: 1 },
+        { x1: canvas.width, y1: canvas.height * 0.8, angle: 170, alpha: 0.12, width: 1 },
       ];
       
       lasers.forEach(laser => {
@@ -99,6 +99,7 @@ const StarsBackground = () => {
         ctx.shadowBlur = 0;
       });
       
+      // Draw stars with twinkle
       if (starsRef.current) {
         starsRef.current.forEach(star => {
           const twinkle = Math.sin(time * star.speed * 0.05 + star.phase) * 0.5 + 0.5;
@@ -148,19 +149,28 @@ const INTERFACE_MODES = [
   { id: 'lattice', label: 'LATTICE', icon: '▦' },
 ];
 
-// Build Options
-const BUILD_OPTIONS_ROW1 = [
-  { id: 'frontend', label: 'Frontend' },
-  { id: 'backend', label: 'Backend' },
-  { id: 'database', label: 'Database' },
-  { id: 'governance', label: 'Governance' },
-];
-
-const BUILD_OPTIONS_ROW2 = [
-  { id: 'api', label: 'API' },
-  { id: 'uiux', label: 'UI/UX' },
-  { id: 'testing', label: 'Testing' },
-  { id: 'deploy', label: 'Deploy' },
+// Build Categories with nested subcategories
+const BUILD_CATEGORIES = [
+  { 
+    id: 'frontend', 
+    label: 'Frontend',
+    subcategories: ['React', 'Vue', 'Angular', 'Svelte', 'Next.js', 'Components', 'Styling']
+  },
+  { 
+    id: 'backend', 
+    label: 'Backend',
+    subcategories: ['Node.js', 'Python', 'FastAPI', 'Express', 'GraphQL', 'REST API', 'Auth']
+  },
+  { 
+    id: 'database', 
+    label: 'Database',
+    subcategories: ['PostgreSQL', 'MongoDB', 'MySQL', 'Redis', 'Supabase', 'Firebase', 'Schema']
+  },
+  { 
+    id: 'deploy', 
+    label: 'Deploy',
+    subcategories: ['Vercel', 'Render', 'AWS', 'Docker', 'CI/CD', 'Governance', 'Testing']
+  },
 ];
 
 function App() {
@@ -170,15 +180,22 @@ function App() {
   const [showLanding, setShowLanding] = useState(true);
   
   // Panel states
-  const [leftPanelView, setLeftPanelView] = useState('interface'); // 'interface' or 'project'
-  const [rightTab, setRightTab] = useState('media'); // 'media', 'agents', 'workflows'
+  const [leftPanelView, setLeftPanelView] = useState('interface');
+  const [rightTab, setRightTab] = useState('media');
   
   // Selection states
   const [selectedMode, setSelectedMode] = useState('neural_chat');
-  const [selectedBuildOptions, setSelectedBuildOptions] = useState([]);
+  const [expandedCategory, setExpandedCategory] = useState(null);
+  const [selectedSubcategories, setSelectedSubcategories] = useState([]);
   
-  // Input/Loading states
-  const [prompt, setPrompt] = useState('');
+  // Input states
+  const [terminalInput, setTerminalInput] = useState('');
+  const [terminalHistory, setTerminalHistory] = useState([
+    { type: 'system', text: 'FRANKLIN_OS v2.0 initialized...' },
+    { type: 'system', text: 'Ready for commands.' },
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatHistory, setChatHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [session, setSession] = useState(null);
   
@@ -191,56 +208,75 @@ function App() {
     ]},
     { name: 'backend', type: 'folder', expanded: false, children: [
       { name: 'routes', type: 'folder', expanded: false, children: [] },
-      { name: 'models', type: 'folder', expanded: false, children: [] },
       { name: 'server.py', type: 'file' },
     ]},
     { name: 'README.md', type: 'file' },
   ]);
   const [fileTreeGlow, setFileTreeGlow] = useState(false);
   
-  // Media/Agents/Workflows data
+  // Media/Agents data
   const [mediaItems, setMediaItems] = useState([]);
-  const [agents, setAgents] = useState([]);
-  const [workflowNodes, setWorkflowNodes] = useState([]);
 
   const onConnect = useCallback((params) => {
     setEdges((eds) => addEdge({ ...params, animated: true }, eds));
   }, [setEdges]);
 
-  // Toggle build option
-  const toggleBuildOption = (id) => {
-    setSelectedBuildOptions(prev => 
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+  // Toggle category expansion
+  const toggleCategory = (id) => {
+    setExpandedCategory(expandedCategory === id ? null : id);
+  };
+
+  // Toggle subcategory selection
+  const toggleSubcategory = (sub) => {
+    setSelectedSubcategories(prev => 
+      prev.includes(sub) ? prev.filter(x => x !== sub) : [...prev, sub]
     );
   };
 
-  // Handle send prompt
-  const handleSendPrompt = async () => {
-    if (!prompt.trim() || isLoading) return;
+  // Handle terminal command
+  const handleTerminalSubmit = () => {
+    if (!terminalInput.trim()) return;
+    setTerminalHistory(prev => [...prev, 
+      { type: 'input', text: `> ${terminalInput}` },
+      { type: 'system', text: `Processing: ${terminalInput}...` }
+    ]);
+    setTerminalInput('');
+  };
+
+  // Handle chat send
+  const handleChatSend = async () => {
+    if (!chatInput.trim() || isLoading) return;
     
+    const userMessage = chatInput.trim();
+    setChatHistory(prev => [...prev, { role: 'user', text: userMessage }]);
+    setChatInput('');
     setIsLoading(true);
+    
     try {
       const response = await axios.post(`${API}/api/analyze`, {
-        prompt: prompt.trim()
+        prompt: userMessage
       });
       setSession(response.data);
-      // Switch to workflows tab to show results
+      setChatHistory(prev => [...prev, { 
+        role: 'assistant', 
+        text: `Analysis complete. Found ${response.data?.analysis?.ambiguities?.length || 0} items requiring clarification.`
+      }]);
       setRightTab('workflows');
     } catch (error) {
-      console.error('Error:', error);
+      setChatHistory(prev => [...prev, { role: 'assistant', text: 'Error processing request.' }]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Auto-save and glow effect when switching to project view
+  // Switch to project view with glow
   const switchToProjectView = () => {
     setLeftPanelView('project');
     setFileTreeGlow(true);
     setTimeout(() => setFileTreeGlow(false), 2000);
   };
 
-  // Render file tree recursively
+  // Render file tree
   const renderFileTree = (items, depth = 0) => {
     return items.map((item, idx) => (
       <div key={idx} style={{ marginLeft: depth * 12 }}>
@@ -271,13 +307,27 @@ function App() {
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-black text-white relative">
-      {/* Stars Background */}
-      <StarsBackground />
+      {/* Galactic Background with Stars */}
+      <GalacticBackground />
       
-      {/* Ghost FRANKLIN Text - 50% of landing opacity */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[1]">
+      {/* Galactic Liquid Glassmorphism Overlay */}
+      <div className="absolute inset-0 z-[1] pointer-events-none">
+        <div 
+          className="absolute inset-0 opacity-30"
+          style={{
+            background: `
+              radial-gradient(ellipse at 20% 30%, rgba(100, 100, 120, 0.15) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 20%, rgba(80, 80, 100, 0.1) 0%, transparent 40%),
+              radial-gradient(ellipse at 50% 80%, rgba(60, 60, 80, 0.12) 0%, transparent 45%)
+            `
+          }}
+        />
+      </div>
+      
+      {/* Ghost FRANKLIN Text - 50% opacity of landing */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[2]">
         <h1
-          className="text-[clamp(2rem,10vw,8rem)] font-semibold tracking-[0.55em] select-none franklin-chrome-dim"
+          className="text-[clamp(3rem,12vw,10rem)] font-semibold tracking-[0.55em] select-none franklin-chrome-dim"
           style={{ fontFamily: "'Orbitron', sans-serif" }}
         >
           FRANKLIN
@@ -285,11 +335,10 @@ function App() {
       </div>
 
       {/* LEFT PANEL */}
-      <div className="absolute left-0 top-0 bottom-0 w-56 z-40 border-r border-white/10 bg-black/90 backdrop-blur-sm overflow-hidden">
+      <div className="absolute left-0 top-0 bottom-0 w-56 z-40 border-r border-white/10 bg-black/80 backdrop-blur-md overflow-hidden">
         {/* Interface Mode View */}
         <div className={`absolute inset-0 transition-transform duration-300 ease-in-out ${leftPanelView === 'interface' ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="p-4 h-full flex flex-col">
-            {/* Interface Mode */}
             <div className="mb-6">
               <div className="text-[10px] font-mono text-white/40 mb-3 tracking-wider">◆ INTERFACE_MODE</div>
               <div className="space-y-1">
@@ -310,7 +359,6 @@ function App() {
               </div>
             </div>
 
-            {/* Workflow Industries */}
             <div className="mb-6">
               <div className="text-[10px] font-mono text-white/40 mb-2 tracking-wider cursor-pointer hover:text-white/60 flex items-center gap-2">
                 <span>▶</span>
@@ -318,10 +366,8 @@ function App() {
               </div>
             </div>
 
-            {/* Spacer */}
             <div className="flex-1" />
 
-            {/* Project Button */}
             <button
               onClick={switchToProjectView}
               className="w-full text-left px-3 py-3 text-xs font-mono text-white/50 hover:text-white/80 hover:bg-white/5 rounded border border-white/10 transition-all flex items-center gap-2"
@@ -335,7 +381,6 @@ function App() {
         {/* Project Files View */}
         <div className={`absolute inset-0 transition-transform duration-300 ease-in-out ${leftPanelView === 'project' ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className={`p-4 h-full flex flex-col ${fileTreeGlow ? 'file-tree-glow' : ''}`}>
-            {/* Back to Interface */}
             <button
               onClick={() => setLeftPanelView('interface')}
               className="w-full text-left px-3 py-2 text-xs font-mono text-white/50 hover:text-white/80 hover:bg-white/5 rounded mb-4 flex items-center gap-2"
@@ -344,15 +389,12 @@ function App() {
               <span>INTERFACE</span>
             </button>
 
-            {/* Project Files Header */}
             <div className="text-[10px] font-mono text-white/40 mb-3 tracking-wider">◆ PROJECT_FILES</div>
             
-            {/* File Tree */}
             <div className="flex-1 overflow-y-auto">
               {renderFileTree(fileTree)}
             </div>
 
-            {/* Save Status */}
             <div className="text-[10px] font-mono text-green-400/70 mt-4 flex items-center gap-2">
               <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
               AUTO_SAVED
@@ -362,7 +404,7 @@ function App() {
       </div>
 
       {/* MAIN CANVAS */}
-      <div className="absolute top-0 bottom-24 left-56 right-64 z-10">
+      <div className="absolute top-0 left-56 right-64 bottom-48 z-10">
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -386,8 +428,7 @@ function App() {
       </div>
 
       {/* RIGHT PANEL - 3 Tabs */}
-      <div className="absolute right-0 top-0 bottom-24 w-64 z-40 border-l border-white/10 bg-black/90 backdrop-blur-sm">
-        {/* Tabs */}
+      <div className="absolute right-0 top-0 bottom-48 w-64 z-40 border-l border-white/10 bg-black/80 backdrop-blur-md">
         <div className="flex border-b border-white/10">
           {['media', 'agents', 'workflows'].map(tab => (
             <button
@@ -406,18 +447,14 @@ function App() {
           ))}
         </div>
 
-        {/* Tab Content */}
         <div className="p-4 h-full overflow-y-auto">
-          {/* Media Tab */}
           {rightTab === 'media' && (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <div className="text-white/20 text-4xl mb-4">◇</div>
               <div className="text-[10px] font-mono text-white/40">NO_MEDIA_GENERATED</div>
-              <div className="text-[9px] font-mono text-white/25 mt-2">Images and videos will appear here</div>
             </div>
           )}
 
-          {/* Agents Tab */}
           {rightTab === 'agents' && (
             <div className="space-y-4">
               <div className="text-[10px] font-mono text-white/40 tracking-wider">◆ AGENTS</div>
@@ -427,103 +464,118 @@ function App() {
                 <div className="hover:text-white/60 cursor-pointer">○ Google Workspace</div>
                 <div className="hover:text-white/60 cursor-pointer">○ Microsoft 365</div>
                 <div className="hover:text-white/60 cursor-pointer">○ Notion</div>
-                <div className="hover:text-white/60 cursor-pointer">○ Apple Music</div>
                 <div className="hover:text-white/60 cursor-pointer">○ + Add Connector</div>
               </div>
             </div>
           )}
 
-          {/* Workflows Tab */}
           {rightTab === 'workflows' && (
             <div className="space-y-4">
               <div className="text-[10px] font-mono text-white/40 tracking-wider">◆ ACTIVE_WORKFLOWS</div>
-              {workflowNodes.length === 0 ? (
-                <div className="text-[10px] font-mono text-white/30 text-center py-8">
-                  No workflows yet.<br />
-                  Select build options and send a prompt to begin.
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {workflowNodes.map((node, idx) => (
-                    <div key={idx} className="p-2 bg-white/5 rounded text-xs font-mono text-white/70">
-                      {node.label}
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div className="text-[10px] font-mono text-white/30 text-center py-8">
+                No workflows yet.
+              </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* BOTTOM PANEL - Build Options & Prompt */}
-      <div className="absolute bottom-0 left-56 right-64 z-40 bg-black/90 border-t border-white/10 backdrop-blur-sm">
-        <div className="p-4">
-          {/* Build Options */}
-          <div className="mb-3">
-            <div className="text-[10px] font-mono text-white/40 mb-2 tracking-wider">◆ BUILD_OPTIONS</div>
-            <div className="grid grid-cols-4 gap-2 mb-2">
-              {BUILD_OPTIONS_ROW1.map(opt => (
-                <button
-                  key={opt.id}
-                  onClick={() => toggleBuildOption(opt.id)}
-                  className={`px-3 py-2 text-[10px] font-mono rounded border transition-all ${
-                    selectedBuildOptions.includes(opt.id)
-                      ? 'bg-white/15 border-white/30 text-white'
-                      : 'bg-white/5 border-white/10 text-white/50 hover:border-white/20 hover:text-white/70'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-            <div className="grid grid-cols-4 gap-2">
-              {BUILD_OPTIONS_ROW2.map(opt => (
-                <button
-                  key={opt.id}
-                  onClick={() => toggleBuildOption(opt.id)}
-                  className={`px-3 py-2 text-[10px] font-mono rounded border transition-all ${
-                    selectedBuildOptions.includes(opt.id)
-                      ? 'bg-white/15 border-white/30 text-white'
-                      : 'bg-white/5 border-white/10 text-white/50 hover:border-white/20 hover:text-white/70'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Prompt Input */}
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSendPrompt()}
-              placeholder="Enter your prompt..."
-              className="flex-1 bg-white/5 border border-white/10 rounded px-4 py-3 text-sm font-mono text-white placeholder-white/30 focus:outline-none focus:border-white/30"
-            />
+      {/* BOTTOM PANEL - Build Categories + Terminal/Chat Split */}
+      <div className="absolute bottom-0 left-56 right-64 h-48 z-40 bg-black/90 border-t border-white/10 backdrop-blur-md flex flex-col">
+        {/* Build Category Buttons - Top Row */}
+        <div className="flex border-b border-white/10">
+          {BUILD_CATEGORIES.map(cat => (
             <button
-              onClick={handleSendPrompt}
-              disabled={isLoading || !prompt.trim()}
-              className="px-6 py-3 bg-white/10 border border-white/20 rounded text-white text-xs font-mono hover:bg-white/15 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+              key={cat.id}
+              onClick={() => toggleCategory(cat.id)}
+              className={`flex-1 py-2 text-[10px] font-mono uppercase tracking-wider transition-all border-r border-white/10 last:border-r-0 ${
+                expandedCategory === cat.id 
+                  ? 'text-white bg-white/10' 
+                  : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+              }`}
             >
-              {isLoading ? (
-                <span className="animate-spin">◐</span>
-              ) : (
-                <span>▶</span>
-              )}
-              SEND
+              {cat.label}
+              <span className="ml-1 opacity-50">{expandedCategory === cat.id ? '▼' : '▶'}</span>
             </button>
+          ))}
+        </div>
+
+        {/* Expanded Subcategories */}
+        {expandedCategory && (
+          <div className="flex flex-wrap gap-2 p-2 border-b border-white/10 bg-white/5">
+            {BUILD_CATEGORIES.find(c => c.id === expandedCategory)?.subcategories.map(sub => (
+              <button
+                key={sub}
+                onClick={() => toggleSubcategory(sub)}
+                className={`px-3 py-1 text-[9px] font-mono rounded transition-all ${
+                  selectedSubcategories.includes(sub)
+                    ? 'bg-white/20 text-white border border-white/30'
+                    : 'bg-white/5 text-white/50 border border-white/10 hover:border-white/20'
+                }`}
+              >
+                {sub}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Terminal (Left) / Chat (Right) Split */}
+        <div className="flex-1 flex">
+          {/* Terminal - Left Half */}
+          <div className="flex-1 border-r border-white/10 flex flex-col">
+            <div className="text-[9px] font-mono text-white/40 px-3 py-1 border-b border-white/10">◆ TERMINAL</div>
+            <div className="flex-1 overflow-y-auto p-2 text-[10px] font-mono">
+              {terminalHistory.map((line, idx) => (
+                <div key={idx} className={line.type === 'input' ? 'text-white/90' : 'text-white/50'}>
+                  {line.text}
+                </div>
+              ))}
+            </div>
+            <div className="flex border-t border-white/10">
+              <span className="text-white/50 text-[10px] font-mono px-2 py-2">{'>'}</span>
+              <input
+                type="text"
+                value={terminalInput}
+                onChange={(e) => setTerminalInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleTerminalSubmit()}
+                placeholder="Enter command..."
+                className="flex-1 bg-transparent text-[10px] font-mono text-white placeholder-white/30 py-2 focus:outline-none"
+              />
+            </div>
           </div>
 
-          {/* Status */}
-          <div className="text-[10px] font-mono text-white/30 mt-2">
-            ◆ {selectedBuildOptions.length > 0 
-              ? `SELECTED: ${selectedBuildOptions.map(id => id.toUpperCase()).join(' • ')}`
-              : 'SELECT BUILD OPTIONS TO BEGIN'
-            }
+          {/* Chat - Right Half */}
+          <div className="flex-1 flex flex-col">
+            <div className="text-[9px] font-mono text-white/40 px-3 py-1 border-b border-white/10">◆ CHAT</div>
+            <div className="flex-1 overflow-y-auto p-2 text-[10px] font-mono space-y-2">
+              {chatHistory.length === 0 ? (
+                <div className="text-white/30 text-center py-4">Start a conversation...</div>
+              ) : (
+                chatHistory.map((msg, idx) => (
+                  <div key={idx} className={msg.role === 'user' ? 'text-white/90 text-right' : 'text-white/60'}>
+                    <span className="opacity-50">{msg.role === 'user' ? 'You: ' : 'AI: '}</span>
+                    {msg.text}
+                  </div>
+                ))
+              )}
+            </div>
+            <div className="flex border-t border-white/10">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleChatSend()}
+                placeholder="Type message..."
+                className="flex-1 bg-transparent text-[10px] font-mono text-white placeholder-white/30 px-3 py-2 focus:outline-none"
+              />
+              <button
+                onClick={handleChatSend}
+                disabled={isLoading}
+                className="px-4 py-2 text-[10px] font-mono text-white/50 hover:text-white hover:bg-white/5 transition-all disabled:opacity-50"
+              >
+                {isLoading ? '◐' : '▶'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -547,7 +599,7 @@ function App() {
           background-clip: text;
           -webkit-text-fill-color: transparent;
           animation: chromeShimmer 25s ease-in-out infinite;
-          filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.08));
+          filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.1));
           opacity: 0.35;
         }
         
