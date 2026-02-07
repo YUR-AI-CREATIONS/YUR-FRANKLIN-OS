@@ -301,28 +301,25 @@ function App() {
       setNodes((nds) => [...nds, ...ambNodes]);
       setEdges((eds) => [...eds, ...ambEdges]);
 
-      // Auto-advance to specification stage when analysis is complete
-      // Allow proceeding even with ambiguities - user can resolve them or skip
-      if (confidence_score >= 15 || can_proceed) {
-        setCurrentStage('specification');
-        // Update stage nodes to show specification as active
-        setNodes((nds) => nds.map(n => {
-          if (n.id === 'stage_inception') {
-            return { ...n, data: { ...n.data, status: 'completed' } };
-          }
-          if (n.id === 'stage_specification') {
-            return { ...n, data: { ...n.data, status: 'active' } };
-          }
-          return n;
-        }));
-        // Highlight the edge to specification
-        setEdges((eds) => eds.map(e => {
-          if (e.target === 'stage_specification') {
-            return { ...e, animated: true, style: { ...e.style, stroke: '#10B981' } };
-          }
-          return e;
-        }));
-      }
+      // Always advance to specification stage after analysis completes
+      setCurrentStage('specification');
+      // Update stage nodes
+      setNodes((nds) => nds.map(n => {
+        if (n.id === 'stage_inception') {
+          return { ...n, data: { ...n.data, status: 'completed' } };
+        }
+        if (n.id === 'stage_specification') {
+          return { ...n, data: { ...n.data, status: 'active' } };
+        }
+        return n;
+      }));
+      // Highlight the edge
+      setEdges((eds) => eds.map(e => {
+        if (e.target === 'stage_specification') {
+          return { ...e, animated: true, style: { ...e.style, stroke: '#10B981' } };
+        }
+        return e;
+      }));
 
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to analyze prompt');
