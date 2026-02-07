@@ -65,7 +65,9 @@ export const LLMSelector = ({ onStatusChange }) => {
       setStatus({ ...status, configuration: response.data.configuration });
       if (onStatusChange) onStatusChange({ ...status, configuration: response.data.configuration });
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to switch mode');
+      const detail = err.response?.data?.detail;
+      const errorMsg = typeof detail === 'string' ? detail : 'Failed to switch mode';
+      setError(errorMsg);
     } finally {
       setIsLoading(false);
     }
