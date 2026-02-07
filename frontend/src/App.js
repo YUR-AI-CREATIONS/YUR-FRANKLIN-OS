@@ -28,6 +28,7 @@ import NodeInspector from './components/panels/NodeInspector';
 import SpecificationPanel from './components/panels/SpecificationPanel';
 import PipelinePanel from './components/panels/PipelinePanel';
 import QualityGatePanel from './components/panels/QualityGatePanel';
+import BuildPanel from './components/panels/BuildPanel';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
