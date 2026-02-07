@@ -526,6 +526,201 @@ class QualityGateSystem:
         if idx + 1 < len(stages):
             return stages[idx + 1]
         return current  # Already at last stage
+    
+    # ========================================================================
+    #                    OUROBOROS / KERNEL INTEGRATION
+    # ========================================================================
+    
+    async def run_ouroboros_cycle(self, build_id: str, artifact: Dict[str, Any], 
+                                   stage: str) -> Dict[str, Any]:
+        """
+        Execute an Ouroboros self-healing cycle through the Genesis Kernel.
+        Output becomes input until convergence at 99%+ quality.
+        """
+        if build_id not in self.builds:
+            raise ValueError(f"Build {build_id} not found")
+        
+        build = self.builds[build_id]
+        
+        # Map to kernel pipeline stage
+        stage_map = {
+            "specification": PipelineStage.SPECIFICATION,
+            "architecture": PipelineStage.ARCHITECTURE,
+            "implementation": PipelineStage.CONSTRUCTION,
+            "integration": PipelineStage.VALIDATION,
+            "quality": PipelineStage.EVOLUTION,
+            "certification": PipelineStage.GOVERNANCE
+        }
+        
+        kernel_stage = stage_map.get(stage, PipelineStage.VALIDATION)
+        
+        # Create frozen spine checkpoint BEFORE
+        pre_checkpoint = self.frozen_spine.create_checkpoint(
+            kernel_stage,
+            {"artifact": artifact, "build_id": build_id},
+            {"stage": stage, "status": "pre_ouroboros"}
+        )
+        
+        self._audit(build_id, stage.upper(), "ouroboros_cycle_started", {
+            "checkpoint_id": pre_checkpoint.checkpoint_id,
+            "kernel_stage": kernel_stage.value
+        }, "IN_PROGRESS")
+        
+        # Execute Ouroboros loop through kernel
+        result = await self.primary_kernel.ouroboros.execute_loop(
+            artifact=artifact,
+            stage=kernel_stage
+        )
+        
+        # Create frozen spine checkpoint AFTER
+        post_checkpoint = self.frozen_spine.create_checkpoint(
+            kernel_stage,
+            {"result": result, "build_id": build_id},
+            {"stage": stage, "status": "post_ouroboros", "converged": result.get("converged", False)}
+        )
+        
+        # Check for drift
+        drift = self.frozen_spine.detect_drift(pre_checkpoint.checkpoint_id)
+        
+        self._audit(build_id, stage.upper(), "ouroboros_cycle_completed", {
+            "pre_checkpoint": pre_checkpoint.checkpoint_id,
+            "post_checkpoint": post_checkpoint.checkpoint_id,
+            "converged": result.get("converged", False),
+            "iterations": result.get("iterations", 0),
+            "final_score": result.get("final_score", 0),
+            "drift_detected": drift.get("drift_detected", False)
+        }, "CONVERGED" if result.get("converged") else "NOT_CONVERGED")
+        
+        return {
+            "success": result.get("converged", False),
+            "iterations": result.get("iterations", 0),
+            "final_score": result.get("final_score", 0),
+            "improvements": result.get("improvements", []),
+            "checkpoints": {
+                "pre": pre_checkpoint.checkpoint_id,
+                "post": post_checkpoint.checkpoint_id
+            },
+            "drift": drift
+        }
+    
+    def check_drift(self, build_id: str) -> Dict[str, Any]:
+        """Check for drift from expected trajectory using Frozen Spine"""
+        if build_id not in self.builds:
+            raise ValueError(f"Build {build_id} not found")
+        
+        # Get all checkpoints for this build
+        checkpoints = [
+            cp for cp in self.frozen_spine.checkpoints 
+            if build_id in str(cp.metrics)
+        ]
+        
+        if len(checkpoints) < 2:
+            return {
+                "drift_detected": False,
+                "message": "Insufficient checkpoints for drift analysis",
+                "checkpoints_count": len(checkpoints)
+            }
+        
+        # Check drift between first and last checkpoint
+        first_cp = checkpoints[0]
+        drift_result = self.frozen_spine.detect_drift(first_cp.checkpoint_id)
+        
+        self._audit(build_id, "DRIFT_CHECK", "drift_analysis", {
+            "checkpoints_analyzed": len(checkpoints),
+            "drift_detected": drift_result.get("drift_detected", False),
+            "drift_amount": drift_result.get("drift_amount", 0)
+        }, "DRIFT_DETECTED" if drift_result.get("drift_detected") else "NO_DRIFT")
+        
+        return drift_result
+    
+    def run_governance_check(self, build_id: str, categories: List[str] = None) -> Dict[str, Any]:
+        """Run governance compliance check through Governance Engine"""
+        if build_id not in self.builds:
+            raise ValueError(f"Build {build_id} not found")
+        
+        build = self.builds[build_id]
+        
+        # Map category strings to enums
+        category_map = {
+            "data_privacy": ComplianceCategory.DATA_PRIVACY,
+            "healthcare": ComplianceCategory.HEALTHCARE,
+            "financial": ComplianceCategory.FINANCIAL,
+            "security": ComplianceCategory.SECURITY,
+            "accessibility": ComplianceCategory.ACCESSIBILITY,
+            "industry": ComplianceCategory.INDUSTRY
+        }
+        
+        check_categories = []
+        if categories:
+            for cat in categories:
+                if cat in category_map:
+                    check_categories.append(category_map[cat])
+        else:
+            check_categories = list(ComplianceCategory)
+        
+        # Run compliance audit
+        artifact = {"build_id": build_id, "project_name": build["project_name"]}
+        audit_result = self.governance.audit_compliance(artifact, check_categories)
+        
+        self._audit(build_id, "GOVERNANCE", "compliance_audit", {
+            "categories_checked": [c.value for c in check_categories],
+            "overall_compliant": audit_result.get("overall_compliant", False),
+            "checks_passed": audit_result.get("passed_count", 0),
+            "checks_total": audit_result.get("total_checks", 0)
+        }, "COMPLIANT" if audit_result.get("overall_compliant") else "NON_COMPLIANT")
+        
+        return audit_result
+    
+    def configure_license(self, build_id: str, license_type: str, 
+                          custom_terms: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Configure licensing through Governance Engine"""
+        if build_id not in self.builds:
+            raise ValueError(f"Build {build_id} not found")
+        
+        build = self.builds[build_id]
+        
+        license_map = {
+            "proprietary": LicenseType.PROPRIETARY,
+            "open_source": LicenseType.OPEN_SOURCE,
+            "saas": LicenseType.SAAS,
+            "enterprise": LicenseType.ENTERPRISE,
+            "freemium": LicenseType.FREEMIUM,
+            "custom": LicenseType.CUSTOM
+        }
+        
+        lt = license_map.get(license_type, LicenseType.ENTERPRISE)
+        license_result = self.governance.configure_license(lt, custom_terms)
+        
+        build["license"] = license_result
+        
+        self._audit(build_id, "GOVERNANCE", "license_configured", {
+            "license_type": lt.value,
+            "custom_terms": bool(custom_terms)
+        }, "LICENSE_SET")
+        
+        return license_result
+    
+    def get_kernel_status(self) -> Dict[str, Any]:
+        """Get status of all integrated kernels"""
+        return {
+            "primary_kernel": {
+                "initialized": self.primary_kernel.initialized if hasattr(self.primary_kernel, 'initialized') else True,
+                "ouroboros_available": hasattr(self.primary_kernel, 'ouroboros'),
+                "quality_gate_available": hasattr(self.primary_kernel, 'quality_gate')
+            },
+            "orchestrator": {
+                "kernels_count": len(self.orchestrator.kernels) if hasattr(self.orchestrator, 'kernels') else 0,
+                "agents_count": len(self.orchestrator.agents) if hasattr(self.orchestrator, 'agents') else 0
+            },
+            "governance": {
+                "approval_gates": len(self.governance.approval_gates) if hasattr(self.governance, 'approval_gates') else 0,
+                "compliance_checks": len(self.governance.compliance_checks) if hasattr(self.governance, 'compliance_checks') else 0
+            },
+            "frozen_spine": {
+                "checkpoints": len(self.frozen_spine.checkpoints) if hasattr(self.frozen_spine, 'checkpoints') else 0,
+                "drift_threshold": self.frozen_spine.drift_threshold if hasattr(self.frozen_spine, 'drift_threshold') else 0.15
+            }
+        }
 
 
 # Global quality gate system
