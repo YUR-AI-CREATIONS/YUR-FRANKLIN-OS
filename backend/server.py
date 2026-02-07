@@ -1410,6 +1410,115 @@ async def get_marketing_content(marketing_id: str):
 
 
 # ============================================================================
+#                         VIDEO GENERATION ENDPOINTS (KLING AI)
+# ============================================================================
+
+class TextToVideoRequest(BaseModel):
+    prompt: str
+    negative_prompt: Optional[str] = None
+    model: Optional[str] = "kling-v1"
+    duration: Optional[str] = "5"
+    aspect_ratio: Optional[str] = "16:9"
+
+
+class ImageToVideoRequest(BaseModel):
+    image_url: str
+    prompt: Optional[str] = None
+    model: Optional[str] = "kling-v1"
+    duration: Optional[str] = "5"
+
+
+@video_router.get("/status")
+async def get_video_api_status():
+    """Check Kling AI video generation status"""
+    return {
+        "configured": kling_generator.is_configured(),
+        "provider": "kling",
+        "capabilities": ["text-to-video", "image-to-video", "video-extension"],
+        "models": ["kling-v1", "kling-v1-5", "kling-v1-6"],
+        "durations": ["5", "10"],
+        "aspect_ratios": ["16:9", "9:16", "1:1"]
+    }
+
+
+@video_router.post("/text-to-video")
+async def generate_text_to_video(request: TextToVideoRequest):
+    """
+    Generate video from text prompt using Kling AI.
+    
+    Returns task_id - poll /video/task/{task_id} for result.
+    """
+    if not kling_generator.is_configured():
+        raise HTTPException(status_code=400, detail="Kling AI not configured. Set KLING_ACCESS_KEY and KLING_SECRET_KEY")
+    
+    result = await kling_generator.text_to_video(
+        prompt=request.prompt,
+        negative_prompt=request.negative_prompt,
+        model=request.model,
+        duration=request.duration,
+        aspect_ratio=request.aspect_ratio
+    )
+    
+    if "error" in result:
+        raise HTTPException(status_code=500, detail=result["error"])
+    
+    # Store task in database
+    task_id = result.get("data", {}).get("task_id")
+    if task_id:
+        await db.video_tasks.insert_one({
+            "task_id": task_id,
+            "type": "text-to-video",
+            "prompt": request.prompt,
+            "status": "processing",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+    
+    return result
+
+
+@video_router.post("/image-to-video")
+async def generate_image_to_video(request: ImageToVideoRequest):
+    """
+    Generate video from image using Kling AI.
+    
+    Returns task_id - poll /video/task/{task_id} for result.
+    """
+    if not kling_generator.is_configured():
+        raise HTTPException(status_code=400, detail="Kling AI not configured")
+    
+    result = await kling_generator.image_to_video(
+        image_url=request.image_url,
+        prompt=request.prompt,
+        model=request.model,
+        duration=request.duration
+    )
+    
+    if "error" in result:
+        raise HTTPException(status_code=500, detail=result["error"])
+    
+    return result
+
+
+@video_router.get("/task/{task_id}")
+async def get_video_task_status(task_id: str):
+    """Poll video generation task status"""
+    if not kling_generator.is_configured():
+        raise HTTPException(status_code=400, detail="Kling AI not configured")
+    
+    result = await kling_generator.get_task_status(task_id)
+    
+    # Update database
+    if "data" in result:
+        status = result.get("data", {}).get("task_status")
+        await db.video_tasks.update_one(
+            {"task_id": task_id},
+            {"$set": {"status": status, "result": result}}
+        )
+    
+    return result
+
+
+# ============================================================================
 #                         ENHANCED BUILD ENDPOINTS
 # ============================================================================
 
