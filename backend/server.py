@@ -1196,6 +1196,324 @@ async def test_llm(request: LLMTestRequest):
 
 
 # ============================================================================
+#                         PROMPT OPTIMIZATION ENDPOINTS
+# ============================================================================
+
+@prompt_router.post("/optimize")
+async def optimize_prompt(request: PromptOptimizeRequest):
+    """
+    Optimize a user prompt for maximum clarity and completeness.
+    
+    - Quick mode (use_llm=False): Fast pattern matching
+    - Full mode (use_llm=True): LLM-powered deep analysis
+    """
+    # Quick optimization (pattern matching)
+    quick_result = prompt_optimizer.quick_optimize(request.prompt)
+    
+    if not request.use_llm:
+        return {
+            "mode": "quick",
+            "result": quick_result
+        }
+    
+    # Full LLM optimization
+    try:
+        llm_result = await generate_with_hybrid_llm(
+            system_prompt=OPTIMIZATION_SYSTEM_PROMPT,
+            user_message=f"Optimize this requirement:\n{request.prompt}",
+            prefer_local=True
+        )
+        
+        full_analysis = extract_json_from_response(llm_result["response"])
+        
+        return {
+            "mode": "full",
+            "quick_analysis": quick_result,
+            "llm_analysis": full_analysis,
+            "llm_info": {
+                "provider": llm_result.get("provider"),
+                "model": llm_result.get("model")
+            }
+        }
+        
+    except Exception as e:
+        logging.error(f"LLM optimization error: {e}")
+        return {
+            "mode": "quick_fallback",
+            "result": quick_result,
+            "llm_error": str(e)
+        }
+
+
+@prompt_router.get("/patterns")
+async def get_optimization_patterns():
+    """Get available optimization patterns"""
+    return {
+        "expansion_patterns": list(prompt_optimizer.EXPANSION_PATTERNS.keys()),
+        "tech_suggestions": list(prompt_optimizer.TECH_SUGGESTIONS.keys()),
+        "default_stack": prompt_optimizer.default_tech_stack
+    }
+
+
+# ============================================================================
+#                         MARKETING CONTENT ENDPOINTS
+# ============================================================================
+
+@marketing_router.post("/generate")
+async def generate_marketing_content(request: MarketingGenerateRequest):
+    """
+    Generate complete marketing content for a project.
+    
+    Includes: taglines, headlines, descriptions, landing page HTML,
+    email templates, and social media posts.
+    """
+    try:
+        # Build context for LLM
+        context = f"""
+Project Name: {request.project_name}
+
+Specification:
+{json.dumps(request.specification, indent=2)}
+
+Tech Stack: {json.dumps(request.tech_stack or {}, indent=2)}
+"""
+        
+        # Generate content via LLM
+        llm_result = await generate_with_hybrid_llm(
+            system_prompt=MARKETING_SYSTEM_PROMPT,
+            user_message=f"Generate marketing content for:\n{context}",
+            prefer_local=False  # Use cloud for better quality
+        )
+        
+        content = extract_json_from_response(llm_result["response"])
+        
+        # Generate landing page HTML
+        landing_html = marketing_generator.generate_landing_page_html(
+            content, 
+            request.project_name,
+            request.tech_stack
+        )
+        
+        # Generate email templates
+        emails = marketing_generator.generate_email_templates(content, request.project_name)
+        
+        # Generate social posts
+        social = marketing_generator.generate_social_posts(content, request.project_name)
+        
+        # Store in database
+        marketing_id = str(uuid.uuid4())
+        await db.marketing_content.insert_one({
+            "id": marketing_id,
+            "project_name": request.project_name,
+            "content": content,
+            "landing_html": landing_html,
+            "emails": emails,
+            "social_posts": social,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        
+        return {
+            "id": marketing_id,
+            "project_name": request.project_name,
+            "content": content,
+            "landing_page_html": landing_html,
+            "email_templates": emails,
+            "social_posts": social,
+            "llm_info": {
+                "provider": llm_result.get("provider"),
+                "model": llm_result.get("model")
+            }
+        }
+        
+    except Exception as e:
+        logging.error(f"Marketing generation error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@marketing_router.get("/content/{marketing_id}")
+async def get_marketing_content(marketing_id: str):
+    """Get previously generated marketing content"""
+    content = await db.marketing_content.find_one({"id": marketing_id}, {"_id": 0})
+    if not content:
+        raise HTTPException(status_code=404, detail="Marketing content not found")
+    return content
+
+
+# ============================================================================
+#                         ENHANCED BUILD ENDPOINTS
+# ============================================================================
+
+@build_router.post("/enhanced")
+async def enhanced_build(request: EnhancedBuildRequest):
+    """
+    Generate a complete project with CRUD, Auth, and Tests.
+    
+    Features:
+    - Full CRUD routes for each entity
+    - JWT authentication module
+    - Pytest test suite
+    - Database migrations
+    """
+    engine = BuildEngine()
+    build_engines[request.project_id] = engine
+    
+    # Get or create default tech stack
+    tech_stack = request.tech_stack or {
+        "frontend_framework": "nextjs",
+        "backend_framework": "fastapi",
+        "database": "postgresql",
+        "css_framework": "tailwindcss",
+        "ci_cd": "github_actions"
+    }
+    
+    # Generate base project
+    manifest = engine.generate_project(
+        specification=request.specification,
+        tech_stack=tech_stack,
+        project_name=request.project_name
+    )
+    
+    # Add enhanced features
+    entities = request.specification.get("data_model", {}).get("entities", [])
+    
+    # Generate CRUD routes for each entity
+    if request.include_crud and entities:
+        for entity in entities:
+            crud_code = engine.generate_crud_routes(
+                entity.get("name", "Entity"),
+                entity.get("attributes", [])
+            )
+            engine._add_artifact(
+                f"{request.project_name}/backend/app/routes/{entity['name'].lower()}_routes.py",
+                crud_code,
+                "file", "python"
+            )
+    
+    # Generate auth module
+    if request.include_auth:
+        auth_files = engine.generate_auth_module(request.project_name)
+        for filename, content in auth_files.items():
+            engine._add_artifact(
+                f"{request.project_name}/backend/app/auth/{filename}",
+                content,
+                "file", "python"
+            )
+    
+    # Generate test suite
+    if request.include_tests and entities:
+        for entity in entities:
+            test_code = engine.generate_test_suite(
+                entity.get("name", "Entity"),
+                entity.get("attributes", [])
+            )
+            engine._add_artifact(
+                f"{request.project_name}/backend/tests/test_{entity['name'].lower()}.py",
+                test_code,
+                "file", "python"
+            )
+        
+        # Add pytest config
+        engine._add_artifact(
+            f"{request.project_name}/backend/pytest.ini",
+            "[pytest]\npythonpath = .\ntestpaths = tests\naddopts = -v --tb=short\n",
+            "file", "ini"
+        )
+        
+        # Add test requirements
+        engine._add_artifact(
+            f"{request.project_name}/backend/requirements-test.txt",
+            "pytest>=7.4.0\npytest-asyncio>=0.21.0\nhttpx>=0.25.0\n",
+            "file", "text"
+        )
+    
+    return {
+        "project_id": request.project_id,
+        "build_id": manifest.id,
+        "project_name": request.project_name,
+        "total_artifacts": len(engine.artifacts),
+        "features": {
+            "crud": request.include_crud,
+            "auth": request.include_auth,
+            "tests": request.include_tests
+        },
+        "artifacts_by_type": engine.get_artifacts_summary().get("artifacts_by_language", {})
+    }
+
+
+@build_router.get("/download/{project_id}")
+async def download_project_zip(project_id: str):
+    """
+    Download the generated project as a ZIP file.
+    """
+    engine = build_engines.get(project_id)
+    
+    if not engine or not engine.manifest:
+        raise HTTPException(status_code=404, detail="Build not found. Generate a project first.")
+    
+    # Create ZIP in memory
+    zip_buffer = io.BytesIO()
+    
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        for artifact in engine.artifacts:
+            zip_file.writestr(artifact.path, artifact.content)
+        
+        # Add manifest
+        manifest_data = {
+            "id": engine.manifest.id,
+            "project_name": engine.manifest.project_name,
+            "tech_stack": engine.manifest.tech_stack,
+            "deployment_config": engine.manifest.deployment_config,
+            "environment_variables": engine.manifest.environment_variables,
+            "created_at": engine.manifest.created_at,
+            "files": [{"path": a.path, "language": a.language} for a in engine.artifacts]
+        }
+        zip_file.writestr(
+            f"{engine.manifest.project_name}/sgp-manifest.json",
+            json.dumps(manifest_data, indent=2)
+        )
+    
+    zip_buffer.seek(0)
+    
+    # Save to temp file for download
+    zip_path = Path(f"/tmp/{engine.manifest.project_name}_{project_id[:8]}.zip")
+    zip_path.write_bytes(zip_buffer.getvalue())
+    
+    return FileResponse(
+        path=str(zip_path),
+        filename=f"{engine.manifest.project_name}.zip",
+        media_type="application/zip"
+    )
+
+
+@build_router.get("/preview/{project_id}")
+async def get_build_preview(project_id: str):
+    """
+    Get a preview of all generated files with content snippets.
+    """
+    engine = build_engines.get(project_id)
+    
+    if not engine or not engine.manifest:
+        raise HTTPException(status_code=404, detail="Build not found")
+    
+    previews = []
+    for artifact in engine.artifacts:
+        content_preview = artifact.content[:500] + "..." if len(artifact.content) > 500 else artifact.content
+        previews.append({
+            "path": artifact.path,
+            "language": artifact.language,
+            "size": len(artifact.content),
+            "preview": content_preview
+        })
+    
+    return {
+        "project_id": project_id,
+        "project_name": engine.manifest.project_name,
+        "total_files": len(previews),
+        "files": previews
+    }
+
+
+# ============================================================================
 #                              APP SETUP
 # ============================================================================
 
@@ -1207,6 +1525,8 @@ app.include_router(orchestrator_router)
 app.include_router(stack_router)
 app.include_router(build_router)
 app.include_router(llm_router)
+app.include_router(prompt_router)
+app.include_router(marketing_router)
 
 app.add_middleware(
     CORSMiddleware,
