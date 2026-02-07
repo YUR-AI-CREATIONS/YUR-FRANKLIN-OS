@@ -667,11 +667,24 @@ async def run_compliance_audit(request: ComplianceAuditRequest):
     categories = None
     if request.categories:
         try:
-            categories = [ComplianceCategory(c) for c in request.categories]
+            categories = [ComplianceCategory(c.lower().replace("-", "_")) for c in request.categories]
         except ValueError as e:
             raise HTTPException(status_code=400, detail=f"Invalid category: {e}")
     
     result = governance.run_compliance_audit(request.artifact, categories)
+    
+    # Add audit_id to result
+    audit_id = str(uuid.uuid4())
+    result["audit_id"] = audit_id
+    
+    # Store in database
+    await db.compliance_audits.insert_one({
+        "audit_id": audit_id,
+        **result,
+        "artifact": request.artifact,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
     return result
 
 
