@@ -690,6 +690,39 @@ function App() {
         </div>
       )}
 
+      {/* Auto Build Button - Prominent floating button */}
+      <button
+        data-testid="auto-build-btn"
+        onClick={() => setShowAutoBuild(true)}
+        className="fixed bottom-24 left-6 flex items-center gap-2 px-5 py-3 rounded-lg bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white font-bold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all hover:scale-105 z-40 animate-pulse"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
+        <span>Auto Build</span>
+      </button>
+
+      {/* Auto Build Panel */}
+      <AutoBuildPanel
+        isOpen={showAutoBuild}
+        onClose={() => setShowAutoBuild(false)}
+        session={session}
+        genesisProject={genesisProject}
+        API={API}
+        onStepComplete={(stepId, index) => {
+          setCurrentStage(stepId);
+          setNodes(nds => nds.map(n => {
+            if (n.id === `stage_${stepId}`) {
+              return { ...n, data: { ...n.data, status: 'active' } };
+            }
+            return n;
+          }));
+        }}
+        onBuildComplete={(result) => {
+          console.log('Auto build complete:', result);
+        }}
+      />
+
       {/* Build Panel - Floating button and modal */}
       <BuildPanel 
         session={session}
