@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 
-// Laser Beams Component - Enhanced visibility
+// Laser Beams Component - Subtle beams, enhanced stars
 const LaserBeams = () => {
   const canvasRef = useRef(null);
   
@@ -21,27 +21,23 @@ const LaserBeams = () => {
     const drawLasers = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // Enhanced white laser beams - more visible
+      // Subtle laser beams
       const lasers = [
-        { x1: 0, y1: canvas.height * 0.25, angle: 12, alpha: 0.4, width: 1.5 },
-        { x1: canvas.width, y1: canvas.height * 0.15, angle: 168, alpha: 0.35, width: 1.5 },
-        { x1: 0, y1: canvas.height * 0.65, angle: 8, alpha: 0.35, width: 1.5 },
-        { x1: canvas.width, y1: canvas.height * 0.75, angle: 172, alpha: 0.4, width: 1.5 },
-        { x1: canvas.width * 0.3, y1: 0, angle: 95 + Math.sin(time * 0.008) * 3, alpha: 0.3, width: 2 },
-        { x1: canvas.width * 0.7, y1: canvas.height, angle: -85 + Math.sin(time * 0.01) * 3, alpha: 0.3, width: 2 },
-        { x1: 0, y1: canvas.height * 0.45, angle: 5, alpha: 0.25, width: 1 },
-        { x1: canvas.width, y1: canvas.height * 0.5, angle: 175, alpha: 0.25, width: 1 },
+        { x1: 0, y1: canvas.height * 0.3, angle: 15, alpha: 0.15, width: 1 },
+        { x1: canvas.width, y1: canvas.height * 0.2, angle: 165, alpha: 0.1, width: 1 },
+        { x1: 0, y1: canvas.height * 0.7, angle: 10, alpha: 0.12, width: 1 },
+        { x1: canvas.width, y1: canvas.height * 0.8, angle: 170, alpha: 0.15, width: 1 },
+        { x1: canvas.width * 0.5, y1: 0, angle: 90 + Math.sin(time * 0.01) * 5, alpha: 0.08, width: 1.5 },
       ];
       
       lasers.forEach(laser => {
-        const length = Math.max(canvas.width, canvas.height) * 2;
+        const length = Math.max(canvas.width, canvas.height) * 1.5;
         const rad = laser.angle * Math.PI / 180;
         const x2 = laser.x1 + Math.cos(rad) * length;
         const y2 = laser.y1 + Math.sin(rad) * length;
         
-        // Strong glow effect
-        ctx.shadowBlur = 30;
-        ctx.shadowColor = `rgba(255, 255, 255, ${laser.alpha * 0.8})`;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = `rgba(255, 255, 255, ${laser.alpha})`;
         
         ctx.beginPath();
         ctx.strokeStyle = `rgba(255, 255, 255, ${laser.alpha})`;
@@ -50,26 +46,47 @@ const LaserBeams = () => {
         ctx.lineTo(x2, y2);
         ctx.stroke();
         
-        // Double stroke for more glow
-        ctx.shadowBlur = 15;
-        ctx.strokeStyle = `rgba(255, 255, 255, ${laser.alpha * 0.5})`;
-        ctx.lineWidth = laser.width * 3;
-        ctx.stroke();
-        
         ctx.shadowBlur = 0;
       });
       
-      // Floating stars/particles - slightly brighter
-      for (let i = 0; i < 100; i++) {
-        const x = (Math.sin(time * 0.0005 + i * 0.5) * 0.5 + 0.5) * canvas.width;
-        const y = (Math.cos(time * 0.0008 + i * 0.7) * 0.5 + 0.5) * canvas.height;
-        const size = Math.sin(time * 0.003 + i) * 1 + 1.5;
-        const alpha = Math.sin(time * 0.002 + i) * 0.3 + 0.5;
+      // Enhanced floating stars
+      for (let i = 0; i < 150; i++) {
+        const baseX = (i * 17) % canvas.width;
+        const baseY = (i * 23) % canvas.height;
+        const x = baseX + Math.sin(time * 0.001 + i) * 20;
+        const y = baseY + Math.cos(time * 0.0015 + i) * 15;
+        const twinkle = Math.sin(time * 0.005 + i * 0.5) * 0.5 + 0.5;
+        const size = (Math.sin(i) * 0.5 + 1) * twinkle + 0.5;
+        const alpha = twinkle * 0.8 + 0.2;
+        
+        // Star glow
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = `rgba(255, 255, 255, ${alpha * 0.5})`;
         
         ctx.beginPath();
         ctx.arc(x, y, size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.6})`;
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
         ctx.fill();
+        
+        ctx.shadowBlur = 0;
+      }
+      
+      // Extra bright stars
+      for (let i = 0; i < 20; i++) {
+        const x = (i * 97) % canvas.width;
+        const y = (i * 73) % canvas.height;
+        const twinkle = Math.sin(time * 0.003 + i * 2) * 0.5 + 0.5;
+        const size = twinkle * 2 + 1;
+        
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = `rgba(255, 255, 255, 0.8)`;
+        
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${twinkle * 0.9 + 0.1})`;
+        ctx.fill();
+        
+        ctx.shadowBlur = 0;
       }
       
       time += 1;
