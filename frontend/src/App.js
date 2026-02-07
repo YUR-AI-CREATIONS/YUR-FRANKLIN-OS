@@ -62,15 +62,22 @@ const PIPELINE_STAGES = [
   'deployment', 'governance'
 ];
 
-// Auto-layout using dagre
-const getLayoutedElements = (nodes, edges, direction = 'TB') => {
+// Auto-layout using dagre - improved spacing and centering
+const getLayoutedElements = (nodes, edges, direction = 'LR') => {
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
   
-  const nodeWidth = 150;
-  const nodeHeight = 80;
+  const nodeWidth = 180;
+  const nodeHeight = 100;
   
-  dagreGraph.setGraph({ rankdir: direction, nodesep: 80, ranksep: 100 });
+  // Increased node separation and rank separation for cleaner layout
+  dagreGraph.setGraph({ 
+    rankdir: direction, 
+    nodesep: 100,  // Increased from 80
+    ranksep: 150,  // Increased from 100
+    marginx: 50,
+    marginy: 50
+  });
   
   nodes.forEach((node) => {
     dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
@@ -87,8 +94,8 @@ const getLayoutedElements = (nodes, edges, direction = 'TB') => {
     return {
       ...node,
       position: {
-        x: nodeWithPosition.x - nodeWidth / 2,
-        y: nodeWithPosition.y - nodeHeight / 2,
+        x: nodeWithPosition.x - nodeWidth / 2 + 100, // Offset to center better
+        y: nodeWithPosition.y - nodeHeight / 2 + 50,
       },
     };
   });
