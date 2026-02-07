@@ -108,12 +108,12 @@ export const LandingPage = ({ onEnterApp }) => {
         
         {/* FRANKLIN Title - Outline Only */}
         <h1
-          className="text-[clamp(3rem,12vw,9rem)] font-semibold tracking-[0.55em] mb-12 select-none"
+          className="text-[clamp(3rem,12vw,9rem)] font-semibold tracking-[0.55em] opacity-70 mb-12 select-none"
           style={{ 
-            fontFamily: "'Orbitron', 'Rajdhani', sans-serif",
+            fontFamily: "'Orbitron', sans-serif",
             color: 'transparent',
-            WebkitTextStroke: '1px rgba(255, 255, 255, 0.5)',
-            textShadow: '0 0 60px rgba(255, 255, 255, 0.1)',
+            WebkitTextStroke: '1.5px rgba(255, 255, 255, 0.6)',
+            textShadow: '0 0 70px rgba(255, 255, 255, 0.2)',
           }}
           data-testid="franklin-title"
         >
