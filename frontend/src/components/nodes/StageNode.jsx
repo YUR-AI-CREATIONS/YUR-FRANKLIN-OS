@@ -76,21 +76,21 @@ const StageNode = memo(({ data, selected }) => {
         </span>
         {data.score > 0 && (
           <div className={`text-lg font-bold ${
-            data.score >= 99 ? 'text-emerald-400' : 
+            data.score >= 99 ? 'text-teal-400' : 
             data.score >= 70 ? 'text-amber-400' : 'text-red-400'
           }`}>
             {data.score.toFixed(1)}%
           </div>
         )}
         {data.iterations && (
-          <div className="text-[10px] text-zinc-500">
+          <div className="text-[10px] text-slate-500">
             {data.iterations} iterations
           </div>
         )}
         
         {/* Processing indicator */}
         {isProcessing && (
-          <div className="text-[10px] text-indigo-300 font-mono animate-pulse">
+          <div className="text-[10px] text-cyan-300 font-mono animate-pulse">
             Processing...
           </div>
         )}
@@ -99,7 +99,7 @@ const StageNode = memo(({ data, selected }) => {
         {(status === 'pending' || status === 'active') && data.onRunStage && !isProcessing && (
           <button
             onClick={handleRunStage}
-            className="mt-1 flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-mono uppercase bg-emerald-500/20 hover:bg-emerald-500/40 border border-emerald-500/50 rounded-lg text-emerald-300 transition-all hover:scale-105"
+            className="mt-1 flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-mono uppercase bg-cyan-500/20 hover:bg-cyan-500/40 border border-cyan-500/50 rounded-lg text-cyan-300 transition-all hover:scale-105"
             data-testid={`run-stage-${data.stage}`}
           >
             <Play size={12} />
