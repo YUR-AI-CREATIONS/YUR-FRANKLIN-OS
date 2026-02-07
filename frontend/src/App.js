@@ -275,12 +275,52 @@ function App() {
           break;
           
         case 'validation':
+          // Show validation checks
+          const validNode = addWorkflowNode('Quality Gate', 'processing', 'validation');
+          await new Promise(r => setTimeout(r, 300));
+          
+          const checks = ['Code Quality', 'Security', 'Performance', 'API Tests'];
+          for (const check of checks) {
+            const checkNode = addWorkflowNode(check, 'resolution', 'validation');
+            connectNodes(validNode, checkNode, '#10B981');
+            await new Promise(r => setTimeout(r, 200));
+          }
+          
           if (session?.analysis) {
             await axios.post(`${API}/genesis/quality/assess`, {
               artifact: session.analysis,
               stage: 'validation'
             });
           }
+          break;
+        
+        case 'evolution':
+          // Show evolution/optimization nodes
+          const evolveNode = addWorkflowNode('Optimization', 'processing', 'evolution');
+          await new Promise(r => setTimeout(r, 300));
+          addWorkflowNode('Refactor', 'spec', 'evolution');
+          addWorkflowNode('Enhance', 'spec', 'evolution');
+          break;
+          
+        case 'deployment':
+          // Show deployment targets
+          const deployNode = addWorkflowNode('Deploy Engine', 'processing', 'deployment');
+          await new Promise(r => setTimeout(r, 300));
+          
+          const targets = ['Render', 'Vercel', 'Docker'];
+          for (const target of targets) {
+            const targetNode = addWorkflowNode(target, 'spec', 'deployment');
+            connectNodes(deployNode, targetNode, '#EF4444');
+            await new Promise(r => setTimeout(r, 200));
+          }
+          break;
+          
+        case 'governance':
+          // Show governance checks
+          const govNode = addWorkflowNode('Compliance', 'processing', 'governance');
+          await new Promise(r => setTimeout(r, 300));
+          addWorkflowNode('Audit Log', 'spec', 'governance');
+          addWorkflowNode('Approval', 'resolution', 'governance');
           break;
           
         default:
