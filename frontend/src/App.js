@@ -985,17 +985,15 @@ function AppContent() {
               if (n.type === 'ambiguity') return '#F59E0B';
               if (n.type === 'resolution') return '#00C8FF';
               if (n.type === 'spec') return '#00C8FF';
-              if (n.type === 'resolution') return '#10B981';
-              if (n.type === 'spec') return '#6366F1';
               if (n.type === 'stage') {
-                if (n.data?.status === 'passed' || n.data?.status === 'completed') return '#10B981';
-                if (n.data?.status === 'active') return '#6366F1';
+                if (n.data?.status === 'passed' || n.data?.status === 'completed') return '#00FF88';
+                if (n.data?.status === 'active') return '#00C8FF';
                 if (n.data?.status === 'drift') return '#EF4444';
-                return '#3F3F46';
+                return '#1a3a5c';
               }
-              return '#3F3F46';
+              return '#1a3a5c';
             }}
-            maskColor="rgba(5, 5, 5, 0.8)"
+            maskColor="rgba(10, 22, 40, 0.9)"
             pannable
             zoomable
           />
