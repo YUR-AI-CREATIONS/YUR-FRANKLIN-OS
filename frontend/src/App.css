@@ -275,18 +275,19 @@
 }
 
 .spec-output .value {
-  color: #10B981;
+  color: #00FFD4;
 }
 
 .spec-output .string {
   color: #F59E0B;
 }
 
-/* Glass Panel Effect */
+/* Glass Panel Effect - FRANKLIN OS Theme */
 .glass-panel {
-  background: rgba(24, 24, 27, 0.9);
+  background: rgba(10, 22, 40, 0.95);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(63, 63, 70, 0.5);
+  border: 1px solid rgba(0, 200, 255, 0.2);
+  box-shadow: 0 0 30px rgba(0, 200, 255, 0.1);
 }
 
 /* Slide In Animation */
