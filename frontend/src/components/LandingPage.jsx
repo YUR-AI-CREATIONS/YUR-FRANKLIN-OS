@@ -1,75 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { ArrowUpRight } from 'lucide-react';
-
-// Animated Wave Component
-const AnimatedWaves = () => {
-  const canvasRef = useRef(null);
-  
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    let animationId;
-    let time = 0;
-    
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = 300;
-    };
-    
-    const drawWaves = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      const waves = [
-        { amplitude: 40, frequency: 0.01, speed: 0.02, offset: 0, color: 'rgba(0, 200, 255, 0.6)' },
-        { amplitude: 30, frequency: 0.015, speed: 0.025, offset: 50, color: 'rgba(0, 150, 255, 0.4)' },
-        { amplitude: 35, frequency: 0.012, speed: 0.018, offset: -30, color: 'rgba(0, 255, 200, 0.3)' },
-      ];
-      
-      for (const wave of waves) {
-        ctx.beginPath();
-        ctx.strokeStyle = wave.color;
-        ctx.lineWidth = 2;
-        
-        for (let x = 0; x <= canvas.width; x += 5) {
-          const y = canvas.height / 2 + 
-            Math.sin(x * wave.frequency + time * wave.speed) * wave.amplitude +
-            Math.sin(x * wave.frequency * 2 + time * wave.speed * 1.5) * (wave.amplitude * 0.5) +
-            wave.offset;
-          
-          if (x === 0) {
-            ctx.moveTo(x, y);
-          } else {
-            ctx.lineTo(x, y);
-          }
-        }
-        ctx.stroke();
-      }
-      
-      time += 1;
-      animationId = requestAnimationFrame(drawWaves);
-    };
-    
-    resize();
-    drawWaves();
-    
-    window.addEventListener('resize', resize);
-    
-    return () => {
-      cancelAnimationFrame(animationId);
-      window.removeEventListener('resize', resize);
-    };
-  }, []);
-  
-  return (
-    <canvas 
-      ref={canvasRef} 
-      className="absolute top-0 left-0 w-full z-10 pointer-events-none"
-      style={{ height: '300px' }}
-    />
-  );
-};
 
 // Status Badge Component
 const StatusBadge = ({ label, online = true }) => (
@@ -93,21 +23,19 @@ export const LandingPage = ({ onEnterApp }) => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #0a1628 0%, #0d1f3c 50%, #0a1628 100%)' }}>
-      {/* Animated Waves at Top */}
-      <AnimatedWaves />
+    <div className="min-h-screen relative overflow-hidden bg-[#04060b] text-white">
+      {/* Oracle Snow / Lasers Effect */}
+      <div className="absolute inset-0 oracle-snow opacity-40" />
       
       {/* Main Content */}
       <div className="relative z-20 min-h-screen flex flex-col items-center justify-center px-6">
         
-        {/* FRANKLIN Ghost Title */}
-        <h1 
-          className="text-[12vw] md:text-[10vw] font-bold tracking-[0.3em] text-transparent mb-8 select-none"
-          style={{
-            fontFamily: "'Orbitron', 'Rajdhani', 'Share Tech Mono', sans-serif",
-            WebkitTextStroke: '1px rgba(0, 200, 255, 0.3)',
-            textShadow: '0 0 60px rgba(0, 200, 255, 0.2), 0 0 120px rgba(0, 200, 255, 0.1)',
-            letterSpacing: '0.3em'
+        {/* FRANKLIN Gradient Title - matching the pic */}
+        <h1
+          className="text-[clamp(3rem,12vw,9rem)] font-semibold tracking-[0.55em] text-transparent bg-clip-text bg-gradient-to-r from-white/30 via-cyan-200/70 to-white/20 opacity-70 mb-12 select-none"
+          style={{ 
+            textShadow: '0 0 70px rgba(98, 200, 255, 0.35)',
+            fontFamily: "'Orbitron', 'Rajdhani', sans-serif"
           }}
           data-testid="franklin-title"
         >
