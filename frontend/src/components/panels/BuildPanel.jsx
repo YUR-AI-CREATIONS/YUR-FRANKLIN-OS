@@ -44,11 +44,7 @@ export const BuildPanel = ({ session, specification, onBuildComplete }) => {
   });
 
   const handleBuild = async () => {
-    if (!specification && !session) {
-      setError('No specification available. Complete the Socratic analysis first.');
-      return;
-    }
-
+    // Build works with or without specification - uses defaults if needed
     setIsLoading(true);
     setError(null);
     setStep('building');
