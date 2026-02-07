@@ -256,14 +256,15 @@ class HybridLLMProvider:
             model=self.config.local_model
         )
         
-        # Check for API keys in priority order
+        # Check for API keys
         openai_key = os.getenv("OPENAI_API_KEY")
         anthropic_key = os.getenv("ANTHROPIC_API_KEY")
         xai_key = os.getenv("XAI_API_KEY")
+        google_key = os.getenv("GOOGLE_API_KEY")
         emergent_key = self.config.emergent_key or os.getenv("EMERGENT_LLM_KEY")
         provider_pref = os.getenv("LLM_PROVIDER", "emergent").lower()
         
-        # Set up cloud provider based on available keys
+        # Set up cloud provider based on preference and available keys
         if provider_pref == "openai" and openai_key:
             self.cloud_provider = CloudProvider(
                 api_key=openai_key,
@@ -283,6 +284,16 @@ class HybridLLMProvider:
             )
             self.active_provider_type = "xai"
             logging.info("Using xAI/Grok API")
+        
+        elif provider_pref == "google" and google_key:
+            self.cloud_provider = CloudProvider(
+                api_key=google_key,
+                provider="google",
+                model="gemini-1.5-pro",
+                provider_type="google"
+            )
+            self.active_provider_type = "google"
+            logging.info("Using Google/Gemini API")
             
         elif provider_pref == "anthropic_direct" and anthropic_key:
             self.cloud_provider = CloudProvider(
@@ -305,7 +316,7 @@ class HybridLLMProvider:
             logging.info("Using Emergent Universal Key")
             
         else:
-            logging.warning("No cloud LLM API key found. Set OPENAI_API_KEY, ANTHROPIC_API_KEY, XAI_API_KEY, or EMERGENT_LLM_KEY")
+            logging.warning("No cloud LLM API key found")
     
     async def initialize(self):
         """Async initialization - check provider availability"""
