@@ -213,22 +213,23 @@ function App() {
         case 'architecture':
           // Show architecture components being designed
           const archNode = addWorkflowNode('System Design', 'processing', 'architecture');
-          await new Promise(r => setTimeout(r, 300));
+          await new Promise(r => setTimeout(r, 500));
           
           const frontendNode = addWorkflowNode('Frontend', 'spec', 'architecture');
           connectNodes(archNode, frontendNode);
-          await new Promise(r => setTimeout(r, 200));
+          await new Promise(r => setTimeout(r, 400));
           
           const backendNode = addWorkflowNode('Backend', 'spec', 'architecture');
           connectNodes(archNode, backendNode);
-          await new Promise(r => setTimeout(r, 200));
+          await new Promise(r => setTimeout(r, 400));
           
           const dbNode = addWorkflowNode('Database', 'spec', 'architecture');
           connectNodes(archNode, dbNode);
-          await new Promise(r => setTimeout(r, 200));
+          await new Promise(r => setTimeout(r, 400));
           
           // Connect components to each other (spider web effect)
           connectNodes(frontendNode, backendNode, '#8B5CF6');
+          await new Promise(r => setTimeout(r, 200));
           connectNodes(backendNode, dbNode, '#8B5CF6');
           
           if (session?.analysis) {
@@ -243,15 +244,15 @@ function App() {
         case 'construction':
           // Show files being generated
           const buildNode = addWorkflowNode('Build Engine', 'processing', 'construction');
-          await new Promise(r => setTimeout(r, 300));
+          await new Promise(r => setTimeout(r, 500));
           
-          const filesNodes = ['main.py', 'routes.py', 'schema.sql', 'page.tsx', 'Dockerfile'];
+          const filesNodes = ['main.py', 'routes.py', 'schema.sql'];
           let prevNode = buildNode;
           for (const file of filesNodes) {
             const fileNode = addWorkflowNode(file, 'spec', 'construction');
             connectNodes(prevNode, fileNode, '#F59E0B');
             prevNode = fileNode;
-            await new Promise(r => setTimeout(r, 150));
+            await new Promise(r => setTimeout(r, 300));
           }
           
           const projectId = `build-${Date.now()}`;
