@@ -481,9 +481,9 @@ function App() {
       </div>
 
       {/* BOTTOM PANEL - Build Categories + Terminal/Chat Split */}
-      <div className="absolute bottom-0 left-56 right-64 h-48 z-40 bg-black/90 border-t border-white/10 backdrop-blur-md flex flex-col">
+      <div className="absolute bottom-0 left-56 right-64 h-64 z-40 bg-black/90 border-t border-white/10 backdrop-blur-md flex flex-col">
         {/* Build Category Buttons - Top Row */}
-        <div className="flex border-b border-white/10">
+        <div className="flex border-b border-white/10 shrink-0">
           {BUILD_CATEGORIES.map(cat => (
             <button
               key={cat.id}
@@ -502,7 +502,7 @@ function App() {
 
         {/* Expanded Subcategories */}
         {expandedCategory && (
-          <div className="flex flex-wrap gap-2 p-2 border-b border-white/10 bg-white/5">
+          <div className="flex flex-wrap gap-2 p-2 border-b border-white/10 bg-white/5 shrink-0">
             {BUILD_CATEGORIES.find(c => c.id === expandedCategory)?.subcategories.map(sub => (
               <button
                 key={sub}
@@ -519,61 +519,78 @@ function App() {
           </div>
         )}
 
-        {/* Terminal (Left) / Chat (Right) Split */}
-        <div className="flex-1 flex">
+        {/* Terminal (Left) / Chat (Right) Split - BIGGER AREAS */}
+        <div className="flex-1 flex min-h-0">
           {/* Terminal - Left Half */}
-          <div className="flex-1 border-r border-white/10 flex flex-col">
-            <div className="text-[9px] font-mono text-white/40 px-3 py-1 border-b border-white/10">◆ TERMINAL</div>
-            <div className="flex-1 overflow-y-auto p-2 text-[10px] font-mono">
+          <div className="flex-1 border-r border-white/10 flex flex-col min-h-0">
+            <div className="text-[9px] font-mono text-white/40 px-3 py-1 border-b border-white/10 shrink-0 flex items-center justify-between">
+              <span>◆ TERMINAL</span>
+              <span className="text-green-400/70">● CONNECTED</span>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 text-[11px] font-mono bg-black/50">
               {terminalHistory.map((line, idx) => (
-                <div key={idx} className={line.type === 'input' ? 'text-white/90' : 'text-white/50'}>
+                <div key={idx} className={`mb-1 ${line.type === 'input' ? 'text-green-400/90' : 'text-white/60'}`}>
                   {line.text}
                 </div>
               ))}
             </div>
-            <div className="flex border-t border-white/10">
-              <span className="text-white/50 text-[10px] font-mono px-2 py-2">{'>'}</span>
+            <div className="flex border-t border-white/10 bg-black/30 shrink-0">
+              <span className="text-green-400 text-sm font-mono px-3 py-3">{'>'}</span>
               <input
                 type="text"
                 value={terminalInput}
                 onChange={(e) => setTerminalInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleTerminalSubmit()}
                 placeholder="Enter command..."
-                className="flex-1 bg-transparent text-[10px] font-mono text-white placeholder-white/30 py-2 focus:outline-none"
+                className="flex-1 bg-transparent text-sm font-mono text-white placeholder-white/30 py-3 pr-3 focus:outline-none"
               />
             </div>
           </div>
 
           {/* Chat - Right Half */}
-          <div className="flex-1 flex flex-col">
-            <div className="text-[9px] font-mono text-white/40 px-3 py-1 border-b border-white/10">◆ CHAT</div>
-            <div className="flex-1 overflow-y-auto p-2 text-[10px] font-mono space-y-2">
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="text-[9px] font-mono text-white/40 px-3 py-1 border-b border-white/10 shrink-0 flex items-center justify-between">
+              <span>◆ CHAT</span>
+              <span className="text-white/30">AI Assistant</span>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 text-[11px] font-mono bg-black/50">
               {chatHistory.length === 0 ? (
-                <div className="text-white/30 text-center py-4">Start a conversation...</div>
+                <div className="text-white/30 text-center py-6">
+                  Ask me anything about your project...<br/>
+                  <span className="text-[9px]">I can help build, debug, and deploy.</span>
+                </div>
               ) : (
                 chatHistory.map((msg, idx) => (
-                  <div key={idx} className={msg.role === 'user' ? 'text-white/90 text-right' : 'text-white/60'}>
-                    <span className="opacity-50">{msg.role === 'user' ? 'You: ' : 'AI: '}</span>
-                    {msg.text}
+                  <div key={idx} className={`mb-2 ${msg.role === 'user' ? 'text-right' : ''}`}>
+                    <div className={`inline-block max-w-[80%] px-3 py-2 rounded-lg ${
+                      msg.role === 'user' 
+                        ? 'bg-white/10 text-white/90' 
+                        : 'bg-white/5 text-white/70'
+                    }`}>
+                      {msg.text}
+                    </div>
                   </div>
                 ))
               )}
+              {isLoading && (
+                <div className="text-white/50 animate-pulse">AI is thinking...</div>
+              )}
             </div>
-            <div className="flex border-t border-white/10">
+            <div className="flex border-t border-white/10 bg-black/30 shrink-0">
               <input
                 type="text"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleChatSend()}
-                placeholder="Type message..."
-                className="flex-1 bg-transparent text-[10px] font-mono text-white placeholder-white/30 px-3 py-2 focus:outline-none"
+                placeholder="Type your message..."
+                className="flex-1 bg-transparent text-sm font-mono text-white placeholder-white/30 px-3 py-3 focus:outline-none"
               />
               <button
                 onClick={handleChatSend}
-                disabled={isLoading}
-                className="px-4 py-2 text-[10px] font-mono text-white/50 hover:text-white hover:bg-white/5 transition-all disabled:opacity-50"
+                disabled={isLoading || !chatInput.trim()}
+                className="px-4 py-3 text-sm font-mono text-white/50 hover:text-white hover:bg-white/5 transition-all disabled:opacity-30"
               >
-                {isLoading ? '◐' : '▶'}
+                {isLoading ? '◐' : 'SEND ▶'}
               </button>
             </div>
           </div>
