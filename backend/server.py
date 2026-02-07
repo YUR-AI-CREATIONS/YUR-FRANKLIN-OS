@@ -1530,6 +1530,83 @@ async def get_video_task_status(task_id: str):
 
 
 # ============================================================================
+#                         SUPABASE ENDPOINTS
+# ============================================================================
+
+@supabase_router.get("/status")
+async def get_supabase_status():
+    """Check Supabase connection status"""
+    return {
+        "configured": supabase is not None,
+        "url": SUPABASE_URL,
+        "project_ref": os.getenv("SUPABASE_PROJECT_REF"),
+        "features": ["auth", "database", "storage", "realtime", "edge-functions"]
+    }
+
+
+@supabase_router.get("/tables")
+async def list_supabase_tables():
+    """List tables in Supabase database"""
+    if not supabase:
+        raise HTTPException(status_code=400, detail="Supabase not configured")
+    
+    try:
+        # Query pg_tables for public schema
+        result = supabase.table("pg_tables").select("tablename").eq("schemaname", "public").execute()
+        return {"tables": [r["tablename"] for r in result.data] if result.data else []}
+    except Exception as e:
+        # Fallback - just return status
+        return {"message": "Connected to Supabase", "error": str(e)}
+
+
+class SupabaseQueryRequest(BaseModel):
+    table: str
+    select: Optional[str] = "*"
+    filters: Optional[Dict[str, Any]] = None
+    limit: Optional[int] = 100
+
+
+@supabase_router.post("/query")
+async def query_supabase(request: SupabaseQueryRequest):
+    """Query data from Supabase table"""
+    if not supabase:
+        raise HTTPException(status_code=400, detail="Supabase not configured")
+    
+    try:
+        query = supabase.table(request.table).select(request.select)
+        
+        if request.filters:
+            for key, value in request.filters.items():
+                query = query.eq(key, value)
+        
+        if request.limit:
+            query = query.limit(request.limit)
+        
+        result = query.execute()
+        return {"data": result.data, "count": len(result.data) if result.data else 0}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class SupabaseInsertRequest(BaseModel):
+    table: str
+    data: Dict[str, Any]
+
+
+@supabase_router.post("/insert")
+async def insert_supabase(request: SupabaseInsertRequest):
+    """Insert data into Supabase table"""
+    if not supabase:
+        raise HTTPException(status_code=400, detail="Supabase not configured")
+    
+    try:
+        result = supabase.table(request.table).insert(request.data).execute()
+        return {"success": True, "data": result.data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
 #                         ENHANCED BUILD ENDPOINTS
 # ============================================================================
 
