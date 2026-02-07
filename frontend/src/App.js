@@ -542,6 +542,7 @@ function App() {
           answers={answers}
           onAnswerChange={handleAnswerChange}
           onSubmit={submitAnswers}
+          onSimulate={simulateFullBuild}
           isLoading={isLoading}
           confidenceScore={session.confidence_score}
         />
