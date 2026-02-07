@@ -1,4 +1,5 @@
 from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -17,6 +18,9 @@ from llm_providers import (
 import json
 import re
 import asyncio
+import shutil
+import zipfile
+import io
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 # Import Genesis Pipeline modules
@@ -32,6 +36,8 @@ from multi_kernel_orchestrator import (
 )
 from tech_stack_registry import tech_registry, TechCategory
 from build_engine import BuildEngine
+from prompt_optimizer import prompt_optimizer, OPTIMIZATION_SYSTEM_PROMPT
+from marketing_generator import marketing_generator, MARKETING_SYSTEM_PROMPT
 
 
 ROOT_DIR = Path(__file__).parent
