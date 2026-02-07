@@ -1166,7 +1166,7 @@ async def configure_llm(request: LLMConfigRequest):
 
 
 class SetAPIKeyRequest(BaseModel):
-    provider: Literal["openai", "anthropic", "xai", "emergent"]
+    provider: Literal["openai", "anthropic", "xai", "google", "emergent"]
     api_key: str
 
 
@@ -1179,6 +1179,7 @@ async def set_api_key(request: SetAPIKeyRequest):
     - "openai": Direct OpenAI (GPT-4o, etc.)
     - "anthropic": Direct Anthropic (Claude)
     - "xai": xAI/Grok
+    - "google": Google/Gemini
     - "emergent": Emergent Universal Key
     """
     global llm_provider
@@ -1193,6 +1194,9 @@ async def set_api_key(request: SetAPIKeyRequest):
     elif request.provider == "xai":
         os.environ["XAI_API_KEY"] = request.api_key
         os.environ["LLM_PROVIDER"] = "xai"
+    elif request.provider == "google":
+        os.environ["GOOGLE_API_KEY"] = request.api_key
+        os.environ["LLM_PROVIDER"] = "google"
     else:
         os.environ["EMERGENT_LLM_KEY"] = request.api_key
         os.environ["LLM_PROVIDER"] = "emergent"
