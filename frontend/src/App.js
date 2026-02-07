@@ -428,7 +428,7 @@ function App() {
       </div>
 
       {/* RIGHT PANEL - 3 Tabs */}
-      <div className="absolute right-0 top-0 bottom-48 w-64 z-40 border-l border-white/10 bg-black/80 backdrop-blur-md">
+      <div className="absolute right-0 top-0 bottom-64 w-64 z-40 border-l border-white/10 bg-black/80 backdrop-blur-md">
         <div className="flex border-b border-white/10">
           {['media', 'agents', 'workflows'].map(tab => (
             <button
