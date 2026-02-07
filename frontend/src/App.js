@@ -472,18 +472,19 @@ function AppContent() {
       });
       
       setGenesisProject(response.data);
-      setShowPipeline(true);
+      setShowPipeline(false); // Don't auto-show pipeline panel - keeps canvas clean
       
-      // Create pipeline visualization nodes - onRunStage will be added via useEffect
+      // Create pipeline visualization nodes with better spacing
       const stageNodes = PIPELINE_STAGES.map((stage, index) => ({
         id: `stage_${stage}`,
         type: 'stage',
-        position: { x: 100 + (index * 180), y: 100 },
+        position: { x: 150 + (index * 220), y: 200 }, // Better starting position
         data: {
           label: stage.charAt(0).toUpperCase() + stage.slice(1),
           stage: stage,
           status: index === 0 ? 'active' : 'pending',
-          score: 0
+          score: 0,
+          isProcessing: false
         }
       }));
       
@@ -492,12 +493,17 @@ function AppContent() {
         source: `stage_${stage}`,
         target: `stage_${PIPELINE_STAGES[index + 1]}`,
         animated: index === 0,
-        style: { stroke: index === 0 ? '#6366F1' : '#3F3F46' },
+        style: { stroke: index === 0 ? '#6366F1' : '#3F3F46', strokeWidth: 2 },
         markerEnd: { type: MarkerType.ArrowClosed, color: index === 0 ? '#6366F1' : '#3F3F46' }
       }));
       
       setNodes(stageNodes);
       setEdges(stageEdges);
+      
+      // Fit view after nodes are set
+      setTimeout(() => {
+        fitView({ padding: 0.3, duration: 500 });
+      }, 100);
       
       return response.data;
     } catch (err) {
