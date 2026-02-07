@@ -579,7 +579,11 @@ function App() {
       }
       
     } catch (err) {
-      setError(err.response?.data?.detail || `Failed to run ${stageId}`);
+      const errorMsg = typeof err === 'string' ? err : 
+                       err?.response?.data?.detail || 
+                       err?.message || 
+                       `Failed to run ${stageId}`;
+      setError(errorMsg);
       // Mark as failed
       setNodes(nds => nds.map(n => {
         if (n.id === `stage_${stageId}`) {
