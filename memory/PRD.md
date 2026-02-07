@@ -1,138 +1,80 @@
-# Sovereign Genesis Platform (SGP) v2.0 - Product Requirements Document
+# Sovereign Genesis Platform (SGP) - Product Requirements Document
 
 ## Original Problem Statement
-Build SGP as a **meta-system that creates systems** - not industry-specific, but a universal software factory. The system must:
-1. Accept ANY domain requirement via Socratic questioning
-2. Self-improve through Ouroboros Loop until 99% quality convergence
-3. Detect drift from intended trajectory (Frozen Spine)
-4. Track milestones with Evolution Playbook
-5. Manage governance, compliance, and licensing
-6. Generate complete multi-page applications (Landing, App, Marketing, Governance)
-7. Support cutting-edge tech stack options (AWS, K8s, Vercel, Supabase, etc.)
-8. Support dual-mode LLM (cloud + local) for cost-free development
-9. **Write actual code files to disk** (not just JSON artifacts)
+Build a "Sovereign Genesis Platform" (SGP), a 100% enterprise-grade, end-to-end software factory. The core of the application is a "Genesis Pipeline" that visually builds a workflow, generates code for multi-page applications, and handles specifications. The system should provide a real-time, visual build experience with automatic layout and per-stage execution controls.
 
-## What's Been Implemented (Feb 2026)
+## User Personas
+1. **Enterprise Developers** - Need to rapidly generate production-ready codebases
+2. **Solution Architects** - Want to visualize and control the software generation pipeline
+3. **Technical Leads** - Require quality gates and compliance checks
 
-### Phase 1 - MVP ✓
-- [x] Socratic Pre-Prompt Engine with ambiguity detection
-- [x] Glass Box 2D DAG visualization (React Flow)
-- [x] Dark "Tactical Minimalism" theme
+## Core Requirements
+1. Visual pipeline with 8 stages: Inception → Specification → Architecture → Construction → Validation → Evolution → Deployment → Governance
+2. Real-time build visualization with "spider web" workflow expansion
+3. Socratic AI that asks clarifying questions before generating code
+4. Multi-LLM support (OpenAI, Anthropic, xAI, Google)
+5. Code generation with downloadable ZIP output
+6. Quality assessment and Ouroboros loop for iterative improvement
 
-### Phase 2 - Genesis Pipeline v2.0 ✓
-- [x] Ouroboros Loop (99% convergence)
-- [x] Quality Gate (8 dimensions)
-- [x] Frozen Spine (drift detection)
-- [x] Evolution Playbook (milestones)
-- [x] Governance Engine (compliance/licensing)
-- [x] Multi-Kernel Orchestrator (agent tiers)
+## Tech Stack
+- **Frontend**: React, React Flow, TailwindCSS, Dagre (auto-layout)
+- **Backend**: FastAPI, Python
+- **Database**: MongoDB (sessions), Supabase (project data)
+- **AI**: Multi-provider LLM architecture
 
-### Phase 3 - Build Engine v1 ✓
-- [x] Technology Stack Registry (40+ technologies)
-- [x] Build Engine (JSON code artifact generation)
-- [x] Multi-stack support (Next.js, FastAPI, PostgreSQL, etc.)
-- [x] Docker/Kubernetes configurations
-- [x] CI/CD pipeline generation (GitHub Actions)
-- [x] Deployment configs (Vercel, Railway, Render)
+---
 
-### Phase 4 - Dual LLM Support ✓ (Feb 6, 2026)
-- [x] HybridLLMProvider abstraction layer
-- [x] Cloud mode (Claude via Emergent Key)
-- [x] Local mode (Ollama - Llama3.1, Mistral, etc.)
-- [x] Hybrid mode with automatic fallback
-- [x] Frontend LLM Mode Selector
+## Implementation Status
 
-### Phase 5 - Real Code Generation ✓ (Feb 6, 2026)
-- [x] **POST /api/build/write** - Writes actual code files to disk
-- [x] **GET /api/build/tree** - Returns file tree structure
-- [x] Generated files saved to `/app/generated/{project_name}/`
-- [x] Creates complete project structure:
-  - `backend/` - FastAPI app (main.py, models.py, routes.py, Dockerfile)
-  - `frontend/` - Next.js/React app (page.tsx, layout.tsx, Dockerfile)
-  - `database/` - SQL schemas
-  - `.github/workflows/` - CI/CD pipelines
-  - `docker-compose.yml`
-  - `sgp-manifest.json`
+### ✅ Completed (December 2025)
 
-## API Endpoints v2.0
+#### UI/UX Improvements (Latest Session)
+- **Tracer Animation**: Added glowing border animation that traces around the active stage node
+- **Global Loading Indicator**: Added top-center loading indicator showing "Processing [stage]..."
+- **Collapsible Questions Panel**: Made the clarification panel collapsible with click-to-expand
+- **Better Zoom Controls**: Set minZoom=0.1, maxZoom=2 for better canvas navigation
+- **Improved Auto-Layout**: Better dagre spacing (nodesep=100, ranksep=150) and positioning
+- **Pipeline Panel Hidden by Default**: No longer blocks the canvas view
+- **Visual Node Processing State**: Nodes show "Processing..." text when active
 
-### Core
+#### Previous Sessions
+- Full workflow visualization with spider web effect
+- Per-stage "RUN" buttons on each pipeline node
+- Auto-layout using dagre library
+- AI Recommendation highlighting (first option marked with AI badge)
+- "Auto Build" feature for autonomous execution
+- Landing page integration
+- Deployment configuration (Render, Vercel)
+- Error handling for React rendering issues
+
+### 🔄 In Progress
+- User verification of UI improvements
+
+### 📋 Backlog
+
+#### P1 - High Priority
+- Deploy to Production (Render + Vercel)
+- Implement Checkpoints/Save Progress feature
+
+#### P2 - Medium Priority
+- Refactor `server.py` into `/routes/` structure
+- Refactor `App.js` state management (Context or Zustand)
+- Address code quality warnings (ruff linting)
+- Consider WebSockets/SSE for true real-time updates
+
+---
+
+## Key Files
+- `/app/frontend/src/App.js` - Main application logic
+- `/app/frontend/src/App.css` - Global styles including tracer animations
+- `/app/frontend/src/components/nodes/StageNode.jsx` - Pipeline stage node component
+- `/app/frontend/src/components/panels/ClarificationPanel.jsx` - Questions panel
+- `/app/backend/server.py` - FastAPI endpoints
+
+## API Endpoints
 - `POST /api/analyze` - Socratic analysis
-- `POST /api/resolve` - Answer ambiguities
-
-### Genesis Pipeline
+- `POST /api/resolve` - Submit answers to questions
 - `POST /api/genesis/project/init` - Initialize project
-- `POST /api/genesis/quality/assess` - Quality gate
-- `POST /api/genesis/ouroboros/execute` - Convergence loop
-
-### Build Engine
-- `POST /api/build/generate` - Generate code artifacts (14+ files)
-- `POST /api/build/write` - **Write files to disk**
-- `GET /api/build/tree` - Get file tree structure
-- `GET /api/build/artifacts/{id}` - Get artifact list
-- `GET /api/build/artifact/{id}/{artifact_id}` - Get file content
-- `GET /api/build/deployment/{id}` - Deployment config
-
-### LLM
-- `GET /api/llm/status` - Provider status
-- `POST /api/llm/config` - Switch modes
-
-### Tech Stack
-- `GET /api/stack/catalog` - Technology catalog
-
-## Generated Project Structure
-```
-/app/generated/{ProjectName}/
-├── backend/
-│   ├── app/
-│   │   ├── main.py         # FastAPI application
-│   │   ├── models.py       # Pydantic models from data model
-│   │   └── routes.py       # API endpoints from contracts
-│   ├── requirements.txt
-│   └── Dockerfile
-├── frontend/
-│   ├── app/
-│   │   ├── layout.tsx      # Next.js layout
-│   │   └── page.tsx        # Home page
-│   ├── package.json
-│   ├── tailwind.config.ts
-│   └── Dockerfile
-├── database/
-│   └── schema.sql          # PostgreSQL/Supabase schema
-├── .github/workflows/
-│   ├── ci.yml              # CI pipeline
-│   └── deploy.yml          # Deployment pipeline
-├── docker-compose.yml
-└── sgp-manifest.json       # Build metadata
-```
-
-## Testing Status
-- Backend: 100% pass rate across all endpoints
-- Build Engine: 14+ files generated, all valid syntax
-- File Writing: Verified files exist on disk
-- End-to-end: Full workflow tested
-
-## Prioritized Backlog
-
-### P0 - Critical
-- [ ] Deploy generated code to cloud (one-click Vercel/Railway)
-- [ ] Live preview of generated applications
-
-### P1 - High Priority  
-- [ ] More sophisticated code generation (CRUD operations, auth)
-- [ ] Streaming LLM responses
-- [ ] Marketing content generation
-
-### P2 - Medium Priority
-- [ ] Visual tech stack selector UI
-- [ ] Download generated project as ZIP
-- [ ] Template library
-
-## Usage Flow
-1. Enter requirements in Socratic Terminal
-2. Answer clarification questions (ambiguities)
-3. Reach 99% confidence score
-4. Select tech stack (or use defaults)
-5. `POST /api/build/generate` - Creates artifacts
-6. `POST /api/build/write` - **Writes actual code to disk**
-7. Files available at `/app/generated/{project_name}/`
+- `POST /api/genesis/quality/assess` - Quality assessment
+- `POST /api/build/enhanced` - Generate code
+- `GET /api/build/download-zip` - Download generated code
