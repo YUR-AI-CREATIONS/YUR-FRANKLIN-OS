@@ -292,7 +292,7 @@ function App() {
       
       return response.data;
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to initialize project');
+      setError(getErrorMessage(err, 'Failed to initialize project'));
     } finally {
       setIsLoading(false);
     }
@@ -320,7 +320,7 @@ function App() {
       
       return response.data;
     } catch (err) {
-      setError(err.response?.data?.detail || 'Quality assessment failed');
+      setError(getErrorMessage(err, 'Quality assessment failed'));
     } finally {
       setIsLoading(false);
     }
@@ -388,7 +388,7 @@ function App() {
       
       return result;
     } catch (err) {
-      setError(err.response?.data?.detail || 'Ouroboros execution failed');
+      setError(getErrorMessage(err, 'Ouroboros execution failed'));
     } finally {
       setIsLoading(false);
     }
@@ -469,7 +469,7 @@ function App() {
       }));
 
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to analyze prompt');
+      setError(getErrorMessage(err, 'Failed to analyze prompt'));
     } finally {
       setIsLoading(false);
     }
@@ -519,7 +519,7 @@ function App() {
       }
 
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to resolve ambiguities');
+      setError(getErrorMessage(err, 'Failed to resolve ambiguities'));
     } finally {
       setIsLoading(false);
     }
@@ -616,7 +616,7 @@ function App() {
       alert(`✅ Simulation Complete!\n\nProject: ${projectName}\nFiles Generated: ${buildResponse.data?.artifacts?.length || 15}+\n\nClick "Build Project" to download your code.`);
 
     } catch (err) {
-      setError(err.response?.data?.detail || 'Simulation failed');
+      setError(getErrorMessage(err, 'Simulation failed'));
     } finally {
       setIsLoading(false);
     }
@@ -704,7 +704,7 @@ function App() {
       alert(`✅ Quick Demo Complete!\n\nPrompt: "${demoPrompt}"\n\nClick "Build Project" to customize and download your code.`);
 
     } catch (err) {
-      setError(err.response?.data?.detail || 'Quick demo failed');
+      setError(getErrorMessage(err, 'Quick demo failed'));
     } finally {
       setIsLoading(false);
     }
