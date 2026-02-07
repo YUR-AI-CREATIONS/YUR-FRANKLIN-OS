@@ -285,9 +285,9 @@ function App() {
       </div>
 
       {/* LEFT PANEL */}
-      <div className="absolute left-0 top-0 bottom-0 w-56 z-40 border-r border-white/10">
+      <div className="absolute left-0 top-0 bottom-0 w-56 z-40 border-r border-white/10 bg-black/90 backdrop-blur-sm overflow-hidden">
         {/* Interface Mode View */}
-        <div className={`absolute inset-0 bg-black/90 backdrop-blur-sm transition-transform duration-300 ${leftPanelView === 'interface' ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className={`absolute inset-0 transition-transform duration-300 ease-in-out ${leftPanelView === 'interface' ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="p-4 h-full flex flex-col">
             {/* Interface Mode */}
             <div className="mb-6">
@@ -333,7 +333,7 @@ function App() {
         </div>
 
         {/* Project Files View */}
-        <div className={`absolute inset-0 bg-black/90 backdrop-blur-sm transition-transform duration-300 ${leftPanelView === 'project' ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className={`absolute inset-0 transition-transform duration-300 ease-in-out ${leftPanelView === 'project' ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className={`p-4 h-full flex flex-col ${fileTreeGlow ? 'file-tree-glow' : ''}`}>
             {/* Back to Interface */}
             <button
