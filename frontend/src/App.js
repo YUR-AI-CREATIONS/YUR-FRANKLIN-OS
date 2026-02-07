@@ -475,6 +475,94 @@ function App() {
     }
   };
 
+  // Quick Demo - one click to full simulation
+  const quickSimulate = async (demoPrompt) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Initialize project
+      if (!genesisProject) {
+        await initializeGenesisProject(demoPrompt.substring(0, 30));
+      }
+
+      // Run analysis
+      const response = await axios.post(`${API}/analyze`, { prompt: demoPrompt });
+      const { session_id, analysis, confidence_score, can_proceed } = response.data;
+
+      setSession({
+        session_id,
+        original_prompt: demoPrompt,
+        analysis,
+        confidence_score,
+        can_proceed
+      });
+
+      // Advance to specification
+      setCurrentStage('specification');
+      setNodes(nds => nds.map(n => {
+        if (n.id === 'stage_inception') return { ...n, data: { ...n.data, status: 'completed' } };
+        if (n.id === 'stage_specification') return { ...n, data: { ...n.data, status: 'active' } };
+        return n;
+      }));
+
+      // Auto-select answers
+      const autoAnswers = {};
+      const ambiguities = analysis?.ambiguities || [];
+      ambiguities.forEach(amb => {
+        if (amb.options && amb.options.length > 0) {
+          autoAnswers[amb.id] = { answer: amb.options[0], selected_option: amb.options[0] };
+        }
+      });
+      setAnswers(autoAnswers);
+
+      // Submit answers
+      const formattedAnswers = Object.entries(autoAnswers).map(([id, data]) => ({
+        ambiguity_id: id,
+        answer: data.answer,
+        selected_option: data.selected_option
+      }));
+
+      await axios.post(`${API}/resolve`, {
+        session_id: session_id,
+        answers: formattedAnswers
+      });
+
+      // Progress through stages
+      for (const stage of ['architecture', 'construction', 'validation']) {
+        await new Promise(r => setTimeout(r, 500));
+        setCurrentStage(stage);
+        setNodes(nds => nds.map(n => {
+          const prevStage = stage === 'architecture' ? 'specification' : stage === 'construction' ? 'architecture' : 'construction';
+          if (n.id === `stage_${prevStage}`) return { ...n, data: { ...n.data, status: 'completed' } };
+          if (n.id === `stage_${stage}`) return { ...n, data: { ...n.data, status: 'active' } };
+          return n;
+        }));
+      }
+
+      // Generate build
+      await axios.post(`${API}/build/enhanced`, {
+        prompt: demoPrompt,
+        options: { include_auth: true, include_tests: true, include_crud: true }
+      });
+
+      // Complete
+      setCurrentStage('deployment');
+      setNodes(nds => nds.map(n => {
+        if (n.id === 'stage_validation') return { ...n, data: { ...n.data, status: 'completed' } };
+        if (n.id === 'stage_deployment') return { ...n, data: { ...n.data, status: 'active' } };
+        return n;
+      }));
+
+      alert(`✅ Quick Demo Complete!\n\nPrompt: "${demoPrompt}"\n\nClick "Build Project" to customize and download your code.`);
+
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Quick demo failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const currentAmbiguities = session?.analysis?.ambiguities || [];
   const hasUnresolvedAmbiguities = currentAmbiguities.length > 0;
 
