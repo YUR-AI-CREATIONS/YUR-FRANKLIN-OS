@@ -153,9 +153,24 @@ function App() {
           break;
           
         case 'construction':
-          await axios.post(`${API}/build/enhanced`, {
-            prompt: session?.original_prompt || 'Build a web application',
-            options: { include_auth: true, include_tests: true, include_crud: true }
+          // Use the correct build endpoint with required fields
+          const projectId = `build-${Date.now()}`;
+          const projectName = session?.original_prompt?.substring(0, 20).replace(/[^a-zA-Z0-9]/g, '') + 'App' || 'GeneratedApp';
+          await axios.post(`${API}/build/generate`, {
+            project_id: projectId,
+            project_name: projectName,
+            specification: {
+              name: projectName,
+              data_model: {
+                entities: session?.analysis?.entities || []
+              },
+              api_contracts: session?.analysis?.api_contracts || []
+            },
+            tech_stack: {
+              frontend_framework: 'nextjs',
+              backend_framework: 'fastapi',
+              database: 'postgresql'
+            }
           });
           break;
           
