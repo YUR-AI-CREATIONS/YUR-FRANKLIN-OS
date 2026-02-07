@@ -52,7 +52,7 @@ export const InputPanel = ({ onSubmit, onQuickSimulate, isLoading, disabled }) =
             className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 hover:from-emerald-500/30 hover:to-cyan-500/30 border border-emerald-500/50 text-emerald-300 text-[10px] font-mono uppercase tracking-wider transition-all disabled:opacity-50"
           >
             <Zap size={12} className="text-yellow-400" />
-            <span>Quick Demo</span>
+            <span>Quick Build</span>
           </button>
         </div>
         
