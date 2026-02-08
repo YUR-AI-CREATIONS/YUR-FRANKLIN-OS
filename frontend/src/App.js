@@ -572,9 +572,23 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
   };
 
   const toggleSubcategory = (sub) => {
+    // Toggle selection state
+    const isSelected = selectedSubcategories.includes(sub);
     setSelectedSubcategories(prev => 
-      prev.includes(sub) ? prev.filter(x => x !== sub) : [...prev, sub]
+      isSelected ? prev.filter(x => x !== sub) : [...prev, sub]
     );
+    
+    // Trigger action based on subcategory
+    if (!isSelected) {
+      addOutput('BUILD', `Selected: ${sub}`, 'system');
+      addOutput('TIP', `Use /genesis with ${sub} or type what you want to build`, 'info');
+    }
+  };
+
+  // Handle subcategory click - start building
+  const handleSubcategoryAction = (category, subcategory) => {
+    addOutput('BUILD', `Initiating ${category} > ${subcategory}...`, 'system');
+    setChatInput(`/genesis Create a ${subcategory.toLowerCase()} ${category.toLowerCase()} component`);
   };
 
   const switchToProjectView = () => {
