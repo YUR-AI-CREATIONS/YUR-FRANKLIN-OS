@@ -44,7 +44,7 @@ from supabase import create_client, Client as SupabaseClient
 # Import FRANKLIN OS routes
 from franklin_routes import (
     franklin_router, academy_router, bots_router, 
-    marketplace_router, grok_router
+    marketplace_router, grok_router, agent_chat_router
 )
 from quality_routes import quality_router
 from marketing_routes import marketing_router as marketing_content_router
