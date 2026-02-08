@@ -366,6 +366,11 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
   const [selectedBot, setSelectedBot] = useState(null);
   const [selectedProgram, setSelectedProgram] = useState(null);
   
+  // Detail panel state (for agent/bot engagement)
+  const [detailPanel, setDetailPanel] = useState(null); // { type: 'agent'|'bot'|'program', data: {...}, conversation: [] }
+  const [detailInput, setDetailInput] = useState('');
+  const [detailLoading, setDetailLoading] = useState(false);
+  
   // Data states
   const [dashboard, setDashboard] = useState(null);
   const [marketplaceAgents, setMarketplaceAgents] = useState([]);
@@ -394,6 +399,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
   const [fileTreeGlow, setFileTreeGlow] = useState(false);
   
   const outputRef = useRef(null);
+  const detailRef = useRef(null);
 
   // Load initial data
   useEffect(() => {
