@@ -359,7 +359,7 @@ Agent context: ${JSON.stringify(agentContext)}
   }
 
   /**
-   * Call Anthropic Claude API (backup)
+   * Call Anthropic Claude Sonnet 4 API
    */
   async callClaude(message, agentContext) {
     if (!this.anthropicKey) {
@@ -372,8 +372,8 @@ Agent context: ${JSON.stringify(agentContext)}
       const response = await axios.post(
         'https://api.anthropic.com/v1/messages',
         {
-          model: 'claude-3-opus-20240229',
-          max_tokens: 2000,
+          model: this.models.claude, // claude-sonnet-4
+          max_tokens: 4000,
           system: systemPrompt,
           messages: [
             { role: 'user', content: message }
@@ -385,7 +385,7 @@ Agent context: ${JSON.stringify(agentContext)}
             'x-api-key': this.anthropicKey,
             'anthropic-version': '2023-06-01'
           },
-          timeout: 30000
+          timeout: 60000
         }
       );
 
@@ -394,6 +394,19 @@ Agent context: ${JSON.stringify(agentContext)}
       console.error('Claude API error:', error.response?.data || error.message);
       throw new Error(`Claude unavailable: ${error.message}`);
     }
+  }
+
+  /**
+   * Franklin - Chitchat agent that can voice male agents
+   * Uses Gemini for natural conversation
+   */
+  async callFranklin(message, agentContext = {}) {
+    const franklinPrompt = `You are Franklin, the friendly onboarding assistant for FRANKLIN OS. 
+You help users navigate the system, answer questions, and can take on the personality of any male agent when needed.
+Be warm, helpful, and conversational - NOT robotic.
+${agentContext.voiceAs ? `Currently speaking as: ${agentContext.voiceAs}` : ''}`;
+
+    return await this.callGemini(message, { ...agentContext, customPrompt: franklinPrompt }, true);
   }
 
   /**
