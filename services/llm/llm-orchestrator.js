@@ -1,9 +1,15 @@
 /**
  * Multi-LLM Orchestration Service
- * Intelligently distributes tasks across Gemini, Grok, and GPT
- * Gemini: Primary orchestrator, complex reasoning
- * Grok: Fast real-time tasks, data analysis
- * GPT: Creative tasks, content generation
+ * Intelligently distributes tasks across latest models:
+ * 
+ * GPT 5.2: Creative tasks, content generation
+ * Grok 4: CODE ONLY - strict coding agent, no chitchat
+ * Gemini 3 Pro / Flash 2.5: Primary orchestrator, complex reasoning
+ * Claude: Analysis, reasoning
+ * Llama 4: Open source fallback
+ * 
+ * Franklin: Onboarding chitchat, can voice male agents
+ * Female Agents: Sophisticated natural woman's voice (TTS)
  */
 
 const axios = require('axios');
@@ -18,11 +24,30 @@ class LLMOrchestrator {
     this.primaryLLM = process.env.PRIMARY_LLM || 'grok';
     this.multiLLMEnabled = process.env.ENABLE_MULTI_LLM_ORCHESTRATION === 'true';
 
+    // Model versions - LATEST
+    this.models = {
+      gpt: 'gpt-5.2',           // GPT 5.2 - creative/content
+      grok: 'grok-4',           // Grok 4 - CODE ONLY
+      gemini: 'gemini-3-pro',   // Gemini 3 Pro - orchestration
+      geminiFlash: 'gemini-2.5-flash', // Fast tasks
+      claude: 'claude-sonnet-4', // Claude Sonnet 4
+      llama: 'llama-4'          // Llama 4 fallback
+    };
+
     // Task queues for load balancing
     this.taskQueues = {
       gemini: [],
       grok: [],
-      gpt: []
+      gpt: [],
+      claude: [],
+      llama: []
+    };
+
+    // Agent voice assignments
+    this.voiceConfig = {
+      grok: null,  // NO VOICE - code only
+      franklin: 'male_agents', // Can embody any male agent voice
+      femaleAgents: 'sophisticated_woman' // Natural, not robotic
     };
   }
 
