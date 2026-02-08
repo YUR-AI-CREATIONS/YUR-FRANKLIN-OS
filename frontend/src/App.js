@@ -1182,7 +1182,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleChatSend()}
                 placeholder="Describe what you want to build or type /genesis <mission>..."
-                className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm font-mono text-white placeholder-white/30 focus:outline-none focus:border-white/30"
+                className="flex-1 silver-input rounded-lg px-4 py-3 text-sm font-mono text-white placeholder-white/30"
                 data-testid="command-input"
                 disabled={isLoading}
               />
@@ -1190,7 +1190,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
                 onClick={handleChatSend}
                 disabled={isLoading || !chatInput.trim()}
                 data-testid="send-btn"
-                className="px-6 py-3 bg-white/10 border border-white/20 rounded-lg text-sm font-mono text-white hover:bg-white/20 transition-all disabled:opacity-30"
+                className="silver-btn px-6 py-3 rounded-lg text-sm font-mono text-white transition-all disabled:opacity-30"
               >
                 {isLoading ? '◐' : 'SEND ▶'}
               </button>
