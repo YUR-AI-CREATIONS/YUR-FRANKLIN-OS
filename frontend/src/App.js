@@ -796,7 +796,15 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
             <div className="space-y-3">
               <div className="text-[10px] font-mono text-white/40 tracking-wider mb-2">◆ ELITE_AGENTS</div>
               {marketplaceAgents.map((agent, idx) => (
-                <div key={idx} className="p-3 rounded bg-white/5 border border-white/10 hover:border-white/20 transition-all cursor-pointer">
+                <div 
+                  key={idx} 
+                  onClick={() => handleAgentClick(agent)}
+                  className={`p-3 rounded bg-white/5 border transition-all cursor-pointer ${
+                    selectedAgent?.agent_id === agent.agent_id 
+                      ? 'border-green-400/50 bg-green-400/10' 
+                      : 'border-white/10 hover:border-white/20'
+                  }`}
+                >
                   <div className="text-xs font-mono text-white/90">{agent.name}</div>
                   <div className="text-[9px] text-white/50 mt-1 truncate">{agent.primary_specialization}</div>
                   <div className="flex justify-between mt-2 text-[9px]">
@@ -812,7 +820,15 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
             <div className="space-y-3">
               <div className="text-[10px] font-mono text-white/40 tracking-wider mb-2">◆ BOT_TIERS</div>
               {botTiers.map((tier, idx) => (
-                <div key={idx} className="p-3 rounded bg-white/5 border border-white/10 hover:border-white/20 transition-all cursor-pointer">
+                <div 
+                  key={idx} 
+                  onClick={() => handleBotClick(tier)}
+                  className={`p-3 rounded bg-white/5 border transition-all cursor-pointer ${
+                    selectedBot?.name === tier.name 
+                      ? 'border-amber-400/50 bg-amber-400/10' 
+                      : 'border-white/10 hover:border-white/20'
+                  }`}
+                >
                   <div className="text-xs font-mono text-white/90">{tier.name}</div>
                   <div className="text-[9px] text-white/50 mt-1">{tier.description.slice(0, 60)}...</div>
                   <div className="flex justify-between mt-2 text-[9px]">
@@ -828,7 +844,15 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
             <div className="space-y-3">
               <div className="text-[10px] font-mono text-white/40 tracking-wider mb-2">◆ TRAINING_PROGRAMS</div>
               {academyPrograms.slice(0, 5).map((program, idx) => (
-                <div key={idx} className="p-3 rounded bg-white/5 border border-white/10 hover:border-white/20 transition-all cursor-pointer">
+                <div 
+                  key={idx} 
+                  onClick={() => handleProgramClick(program)}
+                  className={`p-3 rounded bg-white/5 border transition-all cursor-pointer ${
+                    selectedProgram?.program_id === program.program_id 
+                      ? 'border-purple-400/50 bg-purple-400/10' 
+                      : 'border-white/10 hover:border-white/20'
+                  }`}
+                >
                   <div className="text-xs font-mono text-white/90 truncate">{program.name}</div>
                   <div className="text-[9px] text-white/50 mt-1">{program.field} • {program.duration_weeks} weeks</div>
                   <div className="flex justify-between mt-2 text-[9px]">
@@ -840,6 +864,8 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
             </div>
           )}
         </div>
+          </>
+        )}
       </div>
 
       {/* BOTTOM PANEL */}
