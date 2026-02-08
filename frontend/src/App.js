@@ -777,6 +777,27 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
   return (
     <div className="h-screen w-screen overflow-hidden bg-black text-white relative" data-testid="franklin-os">
       <GalacticBackground />
+      
+      {/* FRANKLIN Chrome Branding - FIXED CENTER, Always Visible */}
+      <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-[5]">
+        <h1 
+          className="select-none whitespace-nowrap"
+          style={{ 
+            fontFamily: "'Orbitron', sans-serif",
+            fontSize: 'clamp(3rem, 9vw, 8rem)',
+            fontWeight: 700,
+            letterSpacing: '0.4em',
+            background: 'linear-gradient(180deg, #ffffff 0%, #d0d0d0 25%, #a0a0a0 50%, #d0d0d0 75%, #ffffff 100%)',
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            filter: 'drop-shadow(0 0 40px rgba(255, 255, 255, 0.25))',
+            textShadow: '0 0 60px rgba(255,255,255,0.1)'
+          }}
+        >
+          FRANKLIN
+        </h1>
+      </div>
 
       {/* LEFT PANEL */}
       <div className={`absolute left-0 top-0 bottom-0 z-40 silver-glass silver-outline overflow-hidden transition-all duration-300 ${leftCollapsed ? 'w-12' : 'w-56'}`}>
