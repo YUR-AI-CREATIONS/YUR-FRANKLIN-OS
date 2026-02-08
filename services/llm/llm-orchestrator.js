@@ -320,7 +320,7 @@ Agent context: ${JSON.stringify(agentContext)}
   }
 
   /**
-   * Call OpenAI GPT API
+   * Call OpenAI GPT 5.2 API - Creative/Content
    */
   async callGPT(message, agentContext) {
     if (!this.openaiKey) {
@@ -333,20 +333,20 @@ Agent context: ${JSON.stringify(agentContext)}
       const response = await axios.post(
         'https://api.openai.com/v1/chat/completions',
         {
-          model: 'gpt-4-turbo-preview',
+          model: this.models.gpt, // gpt-5.2
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: message }
           ],
           temperature: 0.8,
-          max_tokens: 2000
+          max_tokens: 4000
         },
         {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${this.openaiKey}`
           },
-          timeout: 30000
+          timeout: 60000
         }
       );
 
