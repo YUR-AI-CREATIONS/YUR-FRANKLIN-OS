@@ -860,11 +860,15 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
       {/* CENTER CHAT AREA - Main conversation with Franklin */}
       <div className={`absolute top-0 bottom-64 z-30 flex flex-col transition-all duration-300 ${leftCollapsed ? 'left-14' : 'left-60'} ${rightCollapsed ? 'right-14' : 'right-68'}`}>
         
-        {/* FRANKLIN Chrome Branding - CENTER STAGE */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[1]">
+        {/* FRANKLIN Chrome Branding - CENTER STAGE, Properly Sized */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[1] overflow-hidden">
           <h1 
-            className="franklin-chrome text-[clamp(4rem,12vw,10rem)] select-none"
-            style={{ fontFamily: "'Orbitron', sans-serif" }}
+            className="franklin-chrome select-none whitespace-nowrap"
+            style={{ 
+              fontFamily: "'Orbitron', sans-serif",
+              fontSize: 'clamp(3rem, 10vw, 8rem)',
+              letterSpacing: '0.4em'
+            }}
           >
             FRANKLIN
           </h1>
