@@ -851,12 +851,65 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         )}
       </div>
 
-      {/* CENTER AREA - Shows Detail Panel or Output */}
-      <div className={`absolute top-4 bottom-72 z-30 flex transition-all duration-300 ${leftCollapsed ? 'left-14' : 'left-60'} ${rightCollapsed ? 'right-14' : 'right-68'}`}>
+      {/* CENTER CHAT AREA - Main conversation with Franklin */}
+      <div className={`absolute top-0 bottom-64 z-30 flex flex-col transition-all duration-300 ${leftCollapsed ? 'left-14' : 'left-60'} ${rightCollapsed ? 'right-14' : 'right-68'}`}>
         
+        {/* Ghost FRANKLIN Branding - subtle behind chat */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[1] opacity-10">
+          <h1 className="text-[clamp(2rem,8vw,6rem)] font-semibold tracking-[0.55em] select-none text-white/20"
+              style={{ fontFamily: "'Orbitron', sans-serif" }}>
+            FRANKLIN
+          </h1>
+        </div>
+
+        {/* Chat Messages Area */}
+        <div 
+          ref={outputRef}
+          className="flex-1 overflow-y-auto px-6 py-4 space-y-3 z-10"
+          data-testid="chat-area"
+        >
+          {outputLog.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <div className="text-6xl mb-4 opacity-20">⬡</div>
+              <p className="text-white/40 font-mono text-sm">FRANKLIN OS Ready</p>
+              <p className="text-white/20 font-mono text-xs mt-2">Type a message or use /genesis to build</p>
+            </div>
+          ) : (
+            outputLog.map((entry, idx) => (
+              <div 
+                key={idx} 
+                className={`flex ${entry.type === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div className={`max-w-[70%] p-3 rounded-lg font-mono text-sm ${
+                  entry.type === 'user' 
+                    ? 'bg-cyan-500/20 border border-cyan-500/30 text-cyan-100' 
+                    : entry.type === 'error'
+                    ? 'bg-red-500/20 border border-red-500/30 text-red-200'
+                    : entry.type === 'success'
+                    ? 'bg-green-500/20 border border-green-500/30 text-green-200'
+                    : 'bg-white/10 border border-white/20 text-white/90'
+                }`}>
+                  <span className="text-white/40 text-[10px] block mb-1">[{entry.phase}]</span>
+                  <span className="leading-relaxed">{entry.message}</span>
+                </div>
+              </div>
+            ))
+          )}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="bg-purple-500/20 border border-purple-500/30 p-3 rounded-lg">
+                <div className="flex items-center gap-2 text-purple-300 text-sm font-mono">
+                  <span className="w-2 h-2 bg-purple-400 rounded-full animate-ping" />
+                  Franklin is thinking...
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Detail Panel - Shows when agent/bot/program selected */}
         {detailPanel && (
-          <div className="w-80 h-full bg-black/90 border-r border-white/10 flex flex-col" data-testid="detail-panel">
+          <div className="absolute left-0 top-0 bottom-0 w-80 bg-black/95 border-r border-white/10 flex flex-col z-20" data-testid="detail-panel">
             {/* Header */}
             <div className="p-4 border-b border-white/10 flex items-start justify-between">
               <div>
@@ -940,43 +993,6 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
             </div>
           </div>
         )}
-        
-        {/* Main Output Area */}
-        <div className="flex-1 flex justify-center">
-          <div 
-            ref={outputRef}
-            className="w-full max-w-[600px] h-full overflow-y-auto px-4 py-6 space-y-2 scrollbar-thin"
-            data-testid="output-area"
-          >
-            {outputLog.length === 0 && !detailPanel ? (
-              <div className="text-center text-white/30 font-mono text-sm pt-20">
-                <div className="text-4xl mb-4 opacity-30">⬡</div>
-                <p>FRANKLIN OS Ready</p>
-                <p className="text-xs mt-2">Type a command or describe what you want to build...</p>
-                <p className="text-xs text-white/20 mt-4">Commands: /genesis, /build, /workflow, /help, /clear</p>
-              </div>
-            ) : outputLog.length === 0 && detailPanel ? (
-              <div className="text-center text-white/30 font-mono text-sm pt-20">
-                <div className="text-2xl mb-4 opacity-30">←</div>
-                <p>Engage with {detailPanel.data.name}</p>
-                <p className="text-xs mt-2 text-white/20">Or use the command input below for Franklin</p>
-              </div>
-            ) : (
-              outputLog.map((entry, idx) => (
-                <div key={idx} className="font-mono text-sm animate-fade-in">
-                  <span className="text-white/40 text-xs">[{entry.phase}]</span>
-                  <span className={`ml-2 ${getPhaseColor(entry.type)}`}>{entry.message}</span>
-                </div>
-              ))
-            )}
-            {isLoading && (
-              <div className="font-mono text-sm text-purple-400 animate-pulse flex items-center gap-2">
-                <span className="inline-block w-2 h-2 bg-purple-400 rounded-full animate-ping" />
-                Processing...
-              </div>
-            )}
-          </div>
-        </div>
       </div>
 
       {/* RIGHT PANEL */}
