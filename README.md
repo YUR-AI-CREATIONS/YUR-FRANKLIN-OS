@@ -142,7 +142,7 @@ Automatically generates production-ready artifacts:
 4. **LLM Providers** (`llm_providers.py`): Hybrid Cloud/Local/Hybrid LLM support
 5. **Governance Engine** (`governance_engine.py`): Compliance and licensing
 6. **Multi-Kernel Orchestrator** (`multi_kernel_orchestrator.py`): Agent tier management
-7. **Quality Gates** (`quality_gates.py`): 5-dimensional certification system
+7. **Quality Gates** (`quality_gates.py`): 8-dimensional certification system
 8. **Franklin Runtime** (`franklin_runtime.py`): DPOA and PQC simulation
 
 ---
@@ -161,7 +161,7 @@ Automatically generates production-ready artifacts:
 - **Framework**: React 19.0.0
 - **Routing**: React Router 7.5.1
 - **Visualization**: React Flow 12.10.0, Recharts 3.6.0
-- **UI Components**: Radix UI, Shadcn/UI
+- **UI Components**: Radix UI, shadcn/ui
 - **Styling**: Tailwind CSS 3.4.17
 - **Build Tool**: Craco 7.1.0
 
@@ -208,7 +208,7 @@ pip install -r requirements.txt
 cat > .env << EOF
 MONGO_URL=mongodb://localhost:27017
 DB_NAME=franklin_os
-CORS_ORIGINS=*
+CORS_ORIGINS=http://localhost:3000  # For production, use specific origins only
 XAI_API_KEY=your_xai_api_key_here
 EMERGENT_LLM_KEY=your_emergent_llm_key_here
 EOF
@@ -531,7 +531,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **OpenAI**: For pioneering AI/LLM research
 - **FastAPI Community**: For the excellent web framework
 - **React Community**: For the robust frontend ecosystem
-- **Shadcn**: For the beautiful UI component library
+- **shadcn/ui**: For the beautiful UI component library
 
 ---
 
