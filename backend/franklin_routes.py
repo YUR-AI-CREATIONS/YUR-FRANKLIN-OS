@@ -411,6 +411,12 @@ class ChatRequest(BaseModel):
     history: Optional[List[Dict[str, str]]] = None
 
 
+class AgentChatRequest(BaseModel):
+    message: str
+    context: str
+    history: Optional[List[Dict[str, str]]] = None
+
+
 @grok_router.post("/chat")
 async def grok_chat(request: ChatRequest):
     """Have a conversation with Grok/Franklin"""
@@ -425,6 +431,47 @@ async def grok_chat(request: ChatRequest):
             "success": True,
             "fallback": True
         }
+
+
+# Agent-specific chat endpoint
+agent_chat_router = APIRouter(prefix="/api/agent")
+
+@agent_chat_router.post("/chat")
+async def agent_specific_chat(request: AgentChatRequest):
+    """Have a conversation with a specific agent/bot/program persona"""
+    if not grok_agent.api_key:
+        # Return a contextual fallback
+        return {"response": "I understand. Tell me more about what you need.", "success": True, "fallback": True}
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            messages = [{"role": "system", "content": request.context}]
+            
+            if request.history:
+                for msg in request.history[-6:]:
+                    role = "assistant" if msg.get("role") != "user" else "user"
+                    messages.append({"role": role, "content": msg.get("content", "")})
+            
+            messages.append({"role": "user", "content": request.message})
+            
+            response = await client.post(
+                "https://api.x.ai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {grok_agent.api_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "grok-3",
+                    "messages": messages,
+                    "temperature": 0.7,
+                    "max_tokens": 300
+                }
+            )
+            response.raise_for_status()
+            result = response.json()
+            return {"response": result["choices"][0]["message"]["content"], "success": True}
+    except Exception as e:
+        return {"response": "Let me think about that... What specifically would you like to explore?", "success": True, "fallback": True}
 
 
 # ============================================================================
