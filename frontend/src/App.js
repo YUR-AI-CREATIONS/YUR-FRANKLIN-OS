@@ -577,6 +577,33 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
     setTimeout(() => setFileTreeGlow(false), 2000);
   };
 
+  // Handle agent click
+  const handleAgentClick = (agent) => {
+    setSelectedAgent(agent);
+    addOutput('AGENT', `Selected: ${agent.name}`, 'system');
+    addOutput('INFO', `Specialization: ${agent.primary_specialization}`, 'info');
+    addOutput('INFO', `Rating: ${agent.client_satisfaction}★ | Price: $${agent.starter_price}/mo`, 'info');
+    addOutput('TIP', `Type "/genesis hire ${agent.name} for <task>" to engage this agent`, 'success');
+  };
+
+  // Handle bot tier click
+  const handleBotClick = (tier) => {
+    setSelectedBot(tier);
+    addOutput('BOT', `Selected Tier: ${tier.name}`, 'system');
+    addOutput('INFO', `Autonomy: ${tier.autonomy_level.toUpperCase()}`, 'info');
+    addOutput('INFO', `Budget Range: $${tier.min_usd.toLocaleString()} - $${tier.max_usd.toLocaleString()}`, 'info');
+    addOutput('INFO', `Allowed Tasks: ${tier.task_types?.join(', ') || 'Various'}`, 'info');
+  };
+
+  // Handle academy program click
+  const handleProgramClick = (program) => {
+    setSelectedProgram(program);
+    addOutput('ACADEMY', `Selected: ${program.name}`, 'system');
+    addOutput('INFO', `Field: ${program.field} | Level: ${program.level}`, 'info');
+    addOutput('INFO', `Duration: ${program.duration_weeks} weeks | Cost: $${program.cost.toLocaleString()}`, 'info');
+    addOutput('TIP', `Type "/genesis enroll in ${program.name}" to start training`, 'success');
+  };
+
   const renderFileTree = (items, depth = 0) => {
     return items.map((item, idx) => (
       <div key={idx} style={{ marginLeft: depth * 12 }}>
