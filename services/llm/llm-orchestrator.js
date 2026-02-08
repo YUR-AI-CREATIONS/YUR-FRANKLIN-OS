@@ -435,16 +435,26 @@ Respond in character, using your unique expertise and personality. Be concise, h
     return {
       primaryLLM: this.primaryLLM,
       multiLLMEnabled: this.multiLLMEnabled,
+      models: this.models,
+      voiceConfig: this.voiceConfig,
       availableModels: {
-        gemini: !!this.geminiKey,
-        grok: !!this.grokKey,
-        gpt: !!this.openaiKey,
-        claude: !!this.anthropicKey
+        'gpt-5.2': !!this.openaiKey,
+        'grok-4': !!this.grokKey,
+        'gemini-3-pro': !!this.geminiKey,
+        'claude-sonnet-4': !!this.anthropicKey
+      },
+      agentRouting: {
+        code: 'grok-4 (strict, no chitchat)',
+        creative: 'gpt-5.2',
+        reasoning: 'gemini-3-pro',
+        analysis: 'claude-sonnet-4',
+        chitchat: 'franklin (gemini-backed)'
       },
       queueSizes: {
         gemini: this.taskQueues.gemini.length,
         grok: this.taskQueues.grok.length,
-        gpt: this.taskQueues.gpt.length
+        gpt: this.taskQueues.gpt.length,
+        claude: this.taskQueues.claude.length
       }
     };
   }
