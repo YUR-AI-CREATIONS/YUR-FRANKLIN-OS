@@ -851,34 +851,131 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         )}
       </div>
 
-      {/* CENTER OUTPUT AREA */}
-      <div className={`absolute top-4 bottom-72 z-30 flex justify-center transition-all duration-300 ${leftCollapsed ? 'left-14' : 'left-60'} ${rightCollapsed ? 'right-14' : 'right-68'}`}>
-        <div 
-          ref={outputRef}
-          className="w-full max-w-[600px] h-full overflow-y-auto px-4 py-6 space-y-2 scrollbar-thin"
-          data-testid="output-area"
-        >
-          {outputLog.length === 0 ? (
-            <div className="text-center text-white/30 font-mono text-sm pt-20">
-              <div className="text-4xl mb-4 opacity-30">⬡</div>
-              <p>FRANKLIN OS Ready</p>
-              <p className="text-xs mt-2">Type a command or describe what you want to build...</p>
-              <p className="text-xs text-white/20 mt-4">Commands: /genesis, /build, /workflow, /help, /clear</p>
-            </div>
-          ) : (
-            outputLog.map((entry, idx) => (
-              <div key={idx} className="font-mono text-sm animate-fade-in">
-                <span className="text-white/40 text-xs">[{entry.phase}]</span>
-                <span className={`ml-2 ${getPhaseColor(entry.type)}`}>{entry.message}</span>
+      {/* CENTER AREA - Shows Detail Panel or Output */}
+      <div className={`absolute top-4 bottom-72 z-30 flex transition-all duration-300 ${leftCollapsed ? 'left-14' : 'left-60'} ${rightCollapsed ? 'right-14' : 'right-68'}`}>
+        
+        {/* Detail Panel - Shows when agent/bot/program selected */}
+        {detailPanel && (
+          <div className="w-80 h-full bg-black/90 border-r border-white/10 flex flex-col" data-testid="detail-panel">
+            {/* Header */}
+            <div className="p-4 border-b border-white/10 flex items-start justify-between">
+              <div>
+                <div className="text-[10px] font-mono text-white/40 tracking-wider mb-1">
+                  {detailPanel.type === 'agent' ? '◆ AGENT' : detailPanel.type === 'bot' ? '◆ BOT' : '◆ PROGRAM'}
+                </div>
+                <div className="text-sm font-mono text-white">{detailPanel.data.name}</div>
+                <div className="text-[10px] text-white/50 mt-1">
+                  {detailPanel.type === 'agent' && detailPanel.data.primary_specialization}
+                  {detailPanel.type === 'bot' && `${detailPanel.data.autonomy_level?.toUpperCase()} AUTONOMY`}
+                  {detailPanel.type === 'program' && `${detailPanel.data.field} • ${detailPanel.data.level}`}
+                </div>
               </div>
-            ))
-          )}
-          {isLoading && (
-            <div className="font-mono text-sm text-purple-400 animate-pulse flex items-center gap-2">
-              <span className="inline-block w-2 h-2 bg-purple-400 rounded-full animate-ping" />
-              Processing...
+              <button 
+                onClick={closeDetailPanel}
+                className="text-white/40 hover:text-white text-lg"
+              >
+                ✕
+              </button>
             </div>
-          )}
+            
+            {/* Stats */}
+            <div className="px-4 py-3 border-b border-white/10 bg-white/5">
+              {detailPanel.type === 'agent' && (
+                <div className="flex justify-between text-[10px] font-mono">
+                  <span className="text-green-400">★ {detailPanel.data.client_satisfaction}</span>
+                  <span className="text-cyan-400">${detailPanel.data.starter_price}/mo</span>
+                </div>
+              )}
+              {detailPanel.type === 'bot' && (
+                <div className="flex justify-between text-[10px] font-mono">
+                  <span className="text-amber-400">TIER {detailPanel.data.tier_level || '?'}</span>
+                  <span className="text-cyan-400">${detailPanel.data.min_usd?.toLocaleString()} - ${detailPanel.data.max_usd?.toLocaleString()}</span>
+                </div>
+              )}
+              {detailPanel.type === 'program' && (
+                <div className="flex justify-between text-[10px] font-mono">
+                  <span className="text-purple-400">{detailPanel.data.duration_weeks} WEEKS</span>
+                  <span className="text-cyan-400">${detailPanel.data.cost?.toLocaleString()}</span>
+                </div>
+              )}
+            </div>
+            
+            {/* Conversation */}
+            <div ref={detailRef} className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin">
+              {detailPanel.conversation.map((msg, idx) => (
+                <div key={idx} className={`text-sm font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/80'}`}>
+                  {msg.role === 'user' && <span className="text-white/40 text-[10px]">[YOU] </span>}
+                  {msg.role !== 'user' && <span className="text-white/40 text-[10px]">[{detailPanel.data.name?.split(' ')[0]?.toUpperCase()}] </span>}
+                  <span className="leading-relaxed">{msg.content}</span>
+                </div>
+              ))}
+              {detailLoading && (
+                <div className="text-sm text-purple-400 animate-pulse flex items-center gap-2">
+                  <span className="w-2 h-2 bg-purple-400 rounded-full animate-ping" />
+                  Thinking...
+                </div>
+              )}
+            </div>
+            
+            {/* Input */}
+            <div className="p-3 border-t border-white/10">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={detailInput}
+                  onChange={(e) => setDetailInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleDetailSend()}
+                  placeholder={`Ask ${detailPanel.data.name?.split(' ')[0]}...`}
+                  className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-xs font-mono text-white placeholder-white/30 focus:outline-none focus:border-white/30"
+                  disabled={detailLoading}
+                />
+                <button
+                  onClick={handleDetailSend}
+                  disabled={detailLoading || !detailInput.trim()}
+                  className="px-3 py-2 bg-white/10 border border-white/20 rounded text-xs font-mono text-white hover:bg-white/20 disabled:opacity-30"
+                >
+                  ▶
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Main Output Area */}
+        <div className="flex-1 flex justify-center">
+          <div 
+            ref={outputRef}
+            className="w-full max-w-[600px] h-full overflow-y-auto px-4 py-6 space-y-2 scrollbar-thin"
+            data-testid="output-area"
+          >
+            {outputLog.length === 0 && !detailPanel ? (
+              <div className="text-center text-white/30 font-mono text-sm pt-20">
+                <div className="text-4xl mb-4 opacity-30">⬡</div>
+                <p>FRANKLIN OS Ready</p>
+                <p className="text-xs mt-2">Type a command or describe what you want to build...</p>
+                <p className="text-xs text-white/20 mt-4">Commands: /genesis, /build, /workflow, /help, /clear</p>
+              </div>
+            ) : outputLog.length === 0 && detailPanel ? (
+              <div className="text-center text-white/30 font-mono text-sm pt-20">
+                <div className="text-2xl mb-4 opacity-30">←</div>
+                <p>Engage with {detailPanel.data.name}</p>
+                <p className="text-xs mt-2 text-white/20">Or use the command input below for Franklin</p>
+              </div>
+            ) : (
+              outputLog.map((entry, idx) => (
+                <div key={idx} className="font-mono text-sm animate-fade-in">
+                  <span className="text-white/40 text-xs">[{entry.phase}]</span>
+                  <span className={`ml-2 ${getPhaseColor(entry.type)}`}>{entry.message}</span>
+                </div>
+              ))
+            )}
+            {isLoading && (
+              <div className="font-mono text-sm text-purple-400 animate-pulse flex items-center gap-2">
+                <span className="inline-block w-2 h-2 bg-purple-400 rounded-full animate-ping" />
+                Processing...
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
