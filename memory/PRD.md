@@ -1,216 +1,149 @@
-# FRANKLIN OS - Sovereign Genesis Platform
+# FRANKLIN OS - Product Requirements Document
 
-## Product Requirements Document (PRD)
+## Original Problem Statement
+Build a "Sovereign Genesis Platform" (SGP), evolved into "FRANKLIN OS" - a sophisticated, VS Code-style IDE. This platform is a complete software factory designed to build, certify, and deploy enterprise-grade applications. The system architecture is multi-layered, encompassing an AI agent academy, tiered agent system, human-AI governance, self-healing code generation engine (Grok), and quality assurance/certification pipeline.
 
-### Original Problem Statement
-Build "FRANKLIN OS," a sophisticated, VS Code-style integrated development environment that serves as a 100% enterprise-grade, end-to-end software factory with:
-- **Zero Hallucination** - Evidence-based outputs only
-- **No Drift** - Frozen Spine integrity monitoring
-- **Sovereign Grade** - Post-quantum resilient security
-- **Stage-Gated Certification** - 99% quality threshold across 5 dimensions
-- **Full Audit Trail** - Merkle-chained cryptographic evidence
-
-### Core Principles
-1. **Truth** - No speculation, only proof
-2. **Trust** - Verifiable at every step
-3. **Honor First** - Real builds, no bogus code
-4. **Transparency** - Show all work, log all actions
-5. **Governance** - Compliance and licensing built-in
+**Design Aesthetic:** Galactic liquid glassmorphism cyberpunk
+**Core Principles:** Truth, Trust, Transparency, Zero Hallucination, Complete Auditable Trail
 
 ---
 
-## Architecture
+## Architecture Overview
 
-### Three Kernel System
+### Frontend (React)
+- **Landing Page** (`/`): Space-themed entry page with login/command inputs
+- **IDE Page** (`/ide`): Main FRANKLIN OS interface with:
+  - Left Panel: Interface mode selector & project file tree
+  - Center: Scrolling output area for commands and responses
+  - Right Panel: Tabs for Agents, Bots, Academy data
+  - Bottom Panel: Build categories (Frontend/Backend/Database/Deploy) & command input
+- **Workflow Page** (`/workflow`): React Flow visualization of build pipeline
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      FRANKLIN OS ENTERPRISE                      │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
-│  │  GENESIS KERNEL  │  │ MULTI-KERNEL     │  │  GOVERNANCE      │
-│  │  (Ouroboros)     │  │ ORCHESTRATOR     │  │  ENGINE          │
-│  ├──────────────────┤  ├──────────────────┤  ├──────────────────┤
-│  │ • Self-healing   │  │ • Parallel exec  │  │ • Approvals      │
-│  │ • 99% converge   │  │ • Agent tiers    │  │ • Compliance     │
-│  │ • Quality gates  │  │ • Task priority  │  │ • Licensing      │
-│  │ • Frozen Spine   │  │ • Cross-kernel   │  │ • Audit trails   │
-│  └──────────────────┘  └──────────────────┘  └──────────────────┘
-│                                                                  │
-│  ┌──────────────────────────────────────────────────────────────┐
-│  │              QUALITY GATE CERTIFICATION SYSTEM               │
-│  ├──────────────────────────────────────────────────────────────┤
-│  │  5 DIMENSIONS (99% Required):                                │
-│  │  • ORIGINALITY - IP-clean, unique architecture               │
-│  │  • EFFECTIVENESS - Solves the problem                        │
-│  │  • APPEARANCE - Production-ready UI/UX                       │
-│  │  • FUNCTIONALITY - Zero bugs, fully tested                   │
-│  │  • MONETIZABLE - Revenue-ready, deployable DAY 1             │
-│  │                                                              │
-│  │  6 STAGE GATES:                                              │
-│  │  Specification → Architecture → Implementation →              │
-│  │  Integration → Quality → Certification                       │
-│  │                                                              │
-│  │  CERTIFICATE AUTHORITY:                                      │
-│  │  • AI: Franklin                                              │
-│  │  • Enterprise: Franklin OS Enterprise                        │
-│  └──────────────────────────────────────────────────────────────┘
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### File Structure
-
-```
-/app/backend/
-├── server.py                    # Main FastAPI application
-├── genesis_kernel.py            # Ouroboros-Lattice Core
-├── multi_kernel_orchestrator.py # Parallel kernel coordination
-├── governance_engine.py         # Compliance & licensing
-├── quality_gates.py             # 5-dimension certification system
-├── quality_routes.py            # Quality API endpoints
-├── franklin_runtime.py          # Sovereign Runtime (PQC, DPOA, Sentinel)
-├── agent_academy.py             # Training & certification programs
-├── bot_tiers.py                 # 4-tier autonomous bot system
-├── agent_marketplace.py         # Elite agent profiles
-├── grok_agent.py                # Self-healing Grok agent
-└── franklin_routes.py           # FRANKLIN OS API routes
-```
+### Backend (FastAPI)
+Core Modules:
+- `grok_agent.py`: Self-healing agent using XAI API
+- `agent_marketplace.py`: Catalog of elite AI agents
+- `bot_tiers.py`: 4-tier operational bot governance
+- `agent_academy.py`: AI training/certification system
+- `franklin_runtime.py`: DPOA, PQC simulation, security layers
+- `quality_gates.py`: 5-dimensional quality gate & certification
+- `marketing_content.py`: AI marketing copy generator
+- `deployment_engine.py`: Controlled deployment system
 
 ---
 
-## ✅ Implemented Features
+## Implemented Features ✅
 
-### Quality Gate Certification System
-- **5 Dimensions**: Originality, Effectiveness, Appearance, Functionality, Monetizable
-- **6 Stage Gates**: Specification → Architecture → Implementation → Integration → Quality → Certification
-- **99% Pass Threshold**: Cannot certify below threshold
-- **Auto-Heal**: Up to 3 retry attempts with Grok self-healing
-- **Escalation**: Escalates to human review after max retries
-- **Certificate Generation**: Full certificate with Merkle audit hash
-- **Certificate Authority**: Franklin (AI) + Franklin OS Enterprise
+### Session Date: 2026-02-08
 
-### Kernel Integration
-- **Genesis Kernel**: Ouroboros loop for self-healing convergence
-- **Frozen Spine**: Drift detection with cryptographic checkpoints
-- **Multi-Kernel Orchestrator**: Parallel kernel coordination
-- **Governance Engine**: Compliance verification and licensing
+1. **Full Backend Ecosystem**
+   - Grok Self-Healing Agent (XAI API integrated)
+   - Agent Marketplace & Bot Tiers systems
+   - AI Agent Academy with training programs
+   - Franklin Sovereign Runtime (DPOA/PQC)
+   - 5-Dimensional Quality Gate & Certification
+   - Marketing Content Generator
+   - Controlled Deployment Engine
 
-### Franklin Sovereign Runtime
-- **PQC Key Vault**: Kyber + Dilithium post-quantum cryptography
-- **DPOA Manifest**: Digital Power of Attorney with constraints
-- **Sentinel**: Kill-switch with quarantine/revoke capabilities
-- **Audit Log**: Merkle-chained evidence trail
+2. **3-Page Frontend Application**
+   - Landing page with space theme
+   - IDE with functional panels and tabs
+   - Electric Workflow visualization
 
-### Supporting Systems
-- **Neo3 AI Agent Academy**: 7 training programs, Human-AI Oversight Board
-- **4-Tier Bot System**: Scout → Qualifier → Pipeline → Elite Scalar
-- **Agent Marketplace**: 5 elite agents with metrics and pricing
-- **Grok Self-Healing**: Architect → Engineer → Healer pattern
+3. **API Integration**
+   - All backend APIs connected to frontend
+   - Real-time data fetching for agents, bots, academy
+
+4. **Button Functionality** (Verified 2026-02-08)
+   - All IDE buttons working correctly
+   - Interface mode switching functional
+   - Tab navigation working
+   - Command input and send working
+   - Category expansion working
+   - File tree navigation working
+   - Workflow navigation working
 
 ---
 
 ## API Endpoints
 
-### Quality Gate APIs
-- `POST /api/quality/build/start` - Start certified build
-- `GET /api/quality/build/{id}/status` - Get build status
-- `POST /api/quality/stage/evaluate` - Evaluate stage gate
-- `POST /api/quality/stage/heal` - Apply heal to failed stage
-- `POST /api/quality/dimension/score` - Score a dimension
-- `POST /api/quality/certificate/generate` - Generate certificate
-- `GET /api/quality/audit/trail` - Get audit trail
-- `POST /api/quality/ouroboros/cycle` - Run Ouroboros loop
-- `GET /api/quality/drift/{id}` - Check for drift
-- `POST /api/quality/governance/check` - Run compliance check
-- `POST /api/quality/governance/license` - Configure licensing
-- `GET /api/quality/kernels/status` - Get kernel status
-
-### Franklin OS APIs
-- `/api/franklin/*` - Runtime, DPOA, PQC, Sentinel, Audit
-- `/api/academy/*` - Programs, Board, Enrollments, Certifications
-- `/api/bots/*` - Tiers, Bot instances, Task management
-- `/api/marketplace/*` - Elite agent profiles
-- `/api/grok/*` - Genesis loop, Tasks, Output streaming
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/franklin/dashboard` | GET | Sovereign runtime status |
+| `/api/marketplace/agents/summary` | GET | Elite agents list |
+| `/api/bots/tiers` | GET | Bot tier information |
+| `/api/academy/programs` | GET | Training programs |
+| `/api/quality/status` | GET | Quality gate status |
+| `/api/quality/build/certify` | POST | Start certified build |
+| `/api/grok/genesis` | POST | Run Grok self-healing genesis |
+| `/api/marketing-content-gen/generate` | POST | Generate marketing content |
+| `/api/deployment/deploy` | POST | Manage deployment |
+| `/api/analyze` | POST | Analyze user prompt |
 
 ---
 
-## Testing Status
+## Upcoming Tasks
 
-### Backend APIs ✅
-- Quality Gate System: TESTED & WORKING
-- Certificate Generation: TESTED - Certificate FRANKLIN-20260207-CERT-000001 issued
-- Audit Trail: TESTED - 13 entries with Merkle verification
-- Kernel Integration: TESTED - All 3 kernels operational
-- All endpoints returning correct data
+### P0 (High Priority)
+- [ ] Full End-to-End Build Test: Complete project build through all 8 phases
+- [ ] User domain deployment: `franklin-os.com`, `YUR_AI.com`
 
-### Frontend ✅
-- Landing Page: Visual verification passed
-- Main IDE: AGENTS, BOTS, ACADEMY tabs working
-- Data loading from all backend systems
+### P1 (Medium Priority)
+- [ ] Refactor `server.py` into organized routes/services
+- [ ] Refactor `App.js` into smaller components
+
+### P2 (Low Priority)
+- [ ] Address code quality warnings (ruff linting)
+- [ ] Add comprehensive error handling
+- [ ] Implement user authentication flow
 
 ---
 
-## Certificate Example
+## Technical Stack
+- **Frontend:** React, React Flow, TailwindCSS
+- **Backend:** Python, FastAPI
+- **AI/LLM:** XAI/Grok API
+- **Security:** PQC simulation, Merkle Tree auditing
 
+---
+
+## Credentials Required
+- `XAI_API_KEY`: Present in `/app/backend/.env`
+
+---
+
+## Known Issues
+- React Flow nodeTypes warning (non-breaking)
+- Code quality warnings from ruff (cosmetic)
+
+---
+
+## File Structure
 ```
-Certificate ID: CERT-000001
-Certification Number: FRANKLIN-20260207-CERT-000001
-Overall Score: 99.5%
-Status: CERTIFIED
-
-Dimensions:
-  ✓ Originality: 99.5%
-  ✓ Effectiveness: 99.5%
-  ✓ Appearance: 99.5%
-  ✓ Functionality: 99.5%
-  ✓ Monetizable: 99.5%
-
-Stages (All Passed):
-  ✓ Specification: 100%
-  ✓ Architecture: 100%
-  ✓ Implementation: 100%
-  ✓ Integration: 100%
-  ✓ Quality: 100%
-  ✓ Certification: 100%
-
-Authority:
-  AI: Franklin
-  Enterprise: Franklin OS Enterprise
-
-Audit Hash: 94a05d17ebae9bea... (Merkle verified)
-License: Commercial, IP: Client
-Valid Until: PERPETUAL
+/app/
+├── backend/
+│   ├── agent_academy.py
+│   ├── agent_marketplace.py
+│   ├── bot_tiers.py
+│   ├── deployment_engine.py
+│   ├── deployment_routes.py
+│   ├── franklin_runtime.py
+│   ├── franklin_routes.py
+│   ├── grok_agent.py
+│   ├── marketing_content.py
+│   ├── marketing_routes.py
+│   ├── quality_gates.py
+│   ├── quality_routes.py
+│   └── server.py
+├── frontend/
+│   └── src/
+│       ├── App.js
+│       ├── App.css
+│       └── components/
+│           ├── LandingPage.jsx
+│           ├── ParticleBackground.jsx
+│           ├── nodes/
+│           └── panels/
+└── memory/
+    └── PRD.md
 ```
-
----
-
-## Roadmap
-
-### P0 - Completed ✅
-- [x] Quality Gate Certification System
-- [x] 5-Dimension Scoring
-- [x] 6-Stage Gate Pipeline
-- [x] Kernel Integration (Genesis, Orchestrator, Governance)
-- [x] Certificate Generation with Audit Trail
-- [x] API Endpoints for all quality functions
-
-### P1 - Next Sprint
-- [ ] Wire Quality Gates to actual code generation
-- [ ] Integrate with Grok for real-time auto-healing
-- [ ] Build Quality Dashboard in frontend
-- [ ] Add certificate display/download UI
-- [ ] Implement drift alerts in real-time
-
-### P2 - Future
-- [ ] Electric Workflow Page (Page 3)
-- [ ] Multi-model LLM selector
-- [ ] Code Editor integration
-- [ ] Production deployment optimization
-
----
-
-**Last Updated**: 2026-02-07
-**Status**: Quality Gate Certification System COMPLETE
-**Certificate Authority**: Franklin (AI) + Franklin OS Enterprise
