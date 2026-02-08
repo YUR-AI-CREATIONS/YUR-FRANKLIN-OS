@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime
+import httpx
 
 # Import FRANKLIN OS systems
 from franklin_runtime import franklin_runtime, SentinelStatus
