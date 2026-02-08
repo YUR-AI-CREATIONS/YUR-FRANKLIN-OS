@@ -726,13 +726,15 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
             </div>
           </div>
         </div>
+          </>
+        )}
       </div>
 
       {/* CENTER OUTPUT AREA */}
-      <div className="absolute top-4 left-60 right-68 bottom-72 z-30 flex justify-center">
+      <div className={`absolute top-4 bottom-72 z-30 flex justify-center transition-all duration-300 ${leftCollapsed ? 'left-14' : 'left-60'} ${rightCollapsed ? 'right-14' : 'right-68'}`}>
         <div 
           ref={outputRef}
-          className="w-[500px] h-full overflow-y-auto px-4 py-6 space-y-2 scrollbar-thin"
+          className="w-full max-w-[600px] h-full overflow-y-auto px-4 py-6 space-y-2 scrollbar-thin"
           data-testid="output-area"
         >
           {outputLog.length === 0 ? (
@@ -740,7 +742,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
               <div className="text-4xl mb-4 opacity-30">⬡</div>
               <p>FRANKLIN OS Ready</p>
               <p className="text-xs mt-2">Type a command or describe what you want to build...</p>
-              <p className="text-xs text-white/20 mt-4">Commands: /genesis, /build, /workflow</p>
+              <p className="text-xs text-white/20 mt-4">Commands: /genesis, /build, /workflow, /help, /clear</p>
             </div>
           ) : (
             outputLog.map((entry, idx) => (
@@ -760,8 +762,19 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
       </div>
 
       {/* RIGHT PANEL */}
-      <div className="absolute right-0 top-0 bottom-64 w-64 z-40 border-l border-white/10 bg-black/80 backdrop-blur-md">
-        <div className="flex border-b border-white/10">
+      <div className={`absolute right-0 top-0 bottom-64 z-40 border-l border-white/10 bg-black/80 backdrop-blur-md transition-all duration-300 ${rightCollapsed ? 'w-10' : 'w-64'}`}>
+        {/* Collapse Toggle */}
+        <button
+          onClick={() => setRightCollapsed(!rightCollapsed)}
+          className="absolute top-2 left-2 z-50 w-6 h-6 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded transition-all"
+          data-testid="collapse-right"
+        >
+          {rightCollapsed ? '◀' : '▶'}
+        </button>
+        
+        {!rightCollapsed && (
+          <>
+        <div className="flex border-b border-white/10 mt-8">
           {['agents', 'bots', 'academy'].map(tab => (
             <button
               key={tab}
