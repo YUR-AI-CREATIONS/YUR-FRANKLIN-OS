@@ -763,14 +763,6 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
   return (
     <div className="h-screen w-screen overflow-hidden bg-black text-white relative" data-testid="franklin-os">
       <GalacticBackground />
-      
-      {/* Ghost FRANKLIN Text */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[2]">
-        <h1 className="text-[clamp(3rem,12vw,10rem)] font-semibold tracking-[0.55em] select-none franklin-chrome-dim"
-            style={{ fontFamily: "'Orbitron', sans-serif" }}>
-          FRANKLIN
-        </h1>
-      </div>
 
       {/* LEFT PANEL */}
       <div className={`absolute left-0 top-0 bottom-0 z-40 border-r border-white/10 bg-black/80 backdrop-blur-md overflow-hidden transition-all duration-300 ${leftCollapsed ? 'w-10' : 'w-56'}`}>
