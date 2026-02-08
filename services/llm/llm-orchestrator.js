@@ -75,12 +75,26 @@ class LLMOrchestrator {
 
   /**
    * Analyze task to determine complexity and best distribution
+   * Routes CODE tasks to Grok 4 (strict, no chitchat)
    */
   async analyzeTask(message) {
     const lowerMessage = message.toLowerCase();
 
+    // CODE detection - goes to Grok 4 ONLY
+    const isCodeTask = lowerMessage.includes('code') || 
+                       lowerMessage.includes('function') ||
+                       lowerMessage.includes('implement') ||
+                       lowerMessage.includes('debug') ||
+                       lowerMessage.includes('fix') ||
+                       lowerMessage.includes('build') ||
+                       lowerMessage.includes('create app') ||
+                       lowerMessage.includes('api') ||
+                       lowerMessage.includes('database') ||
+                       lowerMessage.includes('/genesis');
+
     return {
       simple: message.length < 100,
+      isCodeTask,  // Goes to Grok 4 - NO CHITCHAT
       requiresData: lowerMessage.includes('analyze') || lowerMessage.includes('data') || lowerMessage.includes('calculate'),
       requiresCreativity: lowerMessage.includes('create') || lowerMessage.includes('write') || lowerMessage.includes('design'),
       requiresReasoning: lowerMessage.includes('why') || lowerMessage.includes('how') || lowerMessage.includes('explain'),
@@ -90,8 +104,15 @@ class LLMOrchestrator {
 
   /**
    * Distribute complex task across multiple LLMs in parallel
+   * CODE tasks go ONLY to Grok 4
    */
   async distributeTask(message, analysis, agentContext) {
+    // CODE TASKS - Grok 4 only, no chitchat
+    if (analysis.isCodeTask) {
+      console.log('[LLM] Code task detected - routing to Grok 4 (strict mode)');
+      return await this.callGrok(message, agentContext, true); // strict=true
+    }
+
     const subtasks = [];
 
     // Create subtasks based on analysis
