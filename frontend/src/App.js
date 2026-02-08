@@ -1006,11 +1006,11 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
       </div>
 
       {/* RIGHT PANEL */}
-      <div className={`absolute right-0 top-0 bottom-64 z-40 border-l border-white/10 bg-black/80 backdrop-blur-md transition-all duration-300 ${rightCollapsed ? 'w-10' : 'w-64'}`}>
+      <div className={`absolute right-0 top-0 bottom-64 z-40 silver-glass silver-outline transition-all duration-300 ${rightCollapsed ? 'w-12' : 'w-64'}`}>
         {/* Collapse Toggle */}
         <button
           onClick={() => setRightCollapsed(!rightCollapsed)}
-          className="absolute top-2 left-2 z-50 w-6 h-6 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded transition-all"
+          className="absolute top-3 left-3 z-50 w-6 h-6 flex items-center justify-center text-white/40 hover:text-white silver-btn rounded transition-all"
           data-testid="collapse-right"
         >
           {rightCollapsed ? '◀' : '▶'}
