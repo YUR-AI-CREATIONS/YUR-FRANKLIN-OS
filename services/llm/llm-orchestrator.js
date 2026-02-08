@@ -279,15 +279,18 @@ Agent context: ${JSON.stringify(agentContext)}
   }
 
   /**
-   * Call xAI Grok API
+   * Call xAI Grok 4 API - CODE ONLY MODE
+   * When strict=true, no chitchat, pure code generation
    */
-  async callGrok(message, agentContext) {
+  async callGrok(message, agentContext, strict = false) {
     if (!this.grokKey) {
       throw new Error('Grok API key not configured');
     }
 
     try {
-      const systemPrompt = this.buildSystemPrompt(agentContext);
+      const systemPrompt = strict 
+        ? `You are Grok 4, a strict coding agent. You ONLY write code. No chitchat, no explanations unless directly about the code. Output clean, production-ready code. No pleasantries.`
+        : this.buildSystemPrompt(agentContext);
 
       const response = await axios.post(
         'https://api.x.ai/v1/chat/completions',
@@ -296,16 +299,16 @@ Agent context: ${JSON.stringify(agentContext)}
             { role: 'system', content: systemPrompt },
             { role: 'user', content: message }
           ],
-          model: 'grok-3',
+          model: this.models.grok, // grok-4
           stream: false,
-          temperature: 0.7
+          temperature: strict ? 0.1 : 0.7 // Lower temp for code
         },
         {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${this.grokKey}`
           },
-          timeout: 30000
+          timeout: 60000
         }
       );
 
