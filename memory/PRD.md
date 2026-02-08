@@ -62,6 +62,9 @@ Core Modules:
    - Category expansion working
    - File tree navigation working
    - Workflow navigation working
+   - **Collapsible panels** - Left/right panels can collapse to show full FRANKLIN text
+   - **Agent/Bot/Academy cards clickable** - Show details in output area
+   - **Improved chat** - Natural conversation with Grok/Franklin AI
 
 ---
 
