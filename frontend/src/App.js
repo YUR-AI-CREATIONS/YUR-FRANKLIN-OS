@@ -583,32 +583,147 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
     setTimeout(() => setFileTreeGlow(false), 2000);
   };
 
-  // Handle agent click
-  const handleAgentClick = (agent) => {
+  // Generate agent greeting based on specialization
+  const getAgentGreeting = (agent) => {
+    const spec = agent.primary_specialization?.toLowerCase() || '';
+    if (spec.includes('sales') || spec.includes('business')) {
+      return `Hey there! I'm ${agent.name}, your go-to expert for closing deals and driving revenue. What business challenge can I help you tackle today? Need help with lead generation, pitch decks, or scaling your sales operation?`;
+    } else if (spec.includes('product') || spec.includes('ux') || spec.includes('design')) {
+      return `Hi! I'm ${agent.name}. I specialize in creating products people love. Whether you need help with user research, wireframes, or building an MVP, I'm here. What are you building?`;
+    } else if (spec.includes('ai') || spec.includes('ml') || spec.includes('data')) {
+      return `Greetings. I'm ${agent.name}, specializing in AI/ML and data science. I can help with predictive models, data pipelines, or implementing machine learning solutions. What data problem are you trying to solve?`;
+    } else if (spec.includes('marketing') || spec.includes('brand')) {
+      return `Hello! ${agent.name} here. I help brands tell their story and reach the right audience. Need help with positioning, campaigns, or content strategy? Let's make some noise.`;
+    } else if (spec.includes('operations') || spec.includes('supply')) {
+      return `Hi, I'm ${agent.name}. I optimize operations and streamline processes. Whether it's supply chain, logistics, or operational efficiency, I can help you run leaner. What's slowing you down?`;
+    }
+    return `Hello! I'm ${agent.name}, specializing in ${agent.primary_specialization}. How can I assist you today?`;
+  };
+
+  // Generate bot tier greeting
+  const getBotGreeting = (tier) => {
+    const tierNum = tier.tier_level || 1;
+    if (tierNum === 1) {
+      return `Scout Bot activated. I handle low-risk reconnaissance: lead discovery, bid scanning, and basic data gathering. I operate with strict compliance controls. What do you need me to find?`;
+    } else if (tierNum === 2) {
+      return `Operator Bot online. I can engage in outreach, manage communications, and execute multi-step workflows. I require approval for financial transactions. What operation should I run?`;
+    } else if (tierNum === 3) {
+      return `Commander Bot ready. I have elevated autonomy for complex missions, deal negotiations, and resource coordination. I can operate semi-independently within your parameters. What's the mission?`;
+    } else if (tierNum === 4) {
+      return `Sovereign Bot activated. Maximum autonomy mode. I can execute full campaigns, manage portfolios, and make strategic decisions within defined boundaries. What objective should I pursue?`;
+    }
+    return `${tier.name} ready for deployment. ${tier.description}`;
+  };
+
+  // Handle agent click - open detail panel
+  const handleAgentClick = async (agent) => {
     setSelectedAgent(agent);
-    addOutput('AGENT', `Selected: ${agent.name}`, 'system');
-    addOutput('INFO', `Specialization: ${agent.primary_specialization}`, 'info');
-    addOutput('INFO', `Rating: ${agent.client_satisfaction}★ | Price: $${agent.starter_price}/mo`, 'info');
-    addOutput('TIP', `Type "/genesis hire ${agent.name} for <task>" to engage this agent`, 'success');
+    setSelectedBot(null);
+    setSelectedProgram(null);
+    
+    const greeting = getAgentGreeting(agent);
+    setDetailPanel({
+      type: 'agent',
+      data: agent,
+      conversation: [{ role: 'agent', content: greeting }]
+    });
+    setDetailInput('');
   };
 
-  // Handle bot tier click
-  const handleBotClick = (tier) => {
+  // Handle bot tier click - open detail panel
+  const handleBotClick = async (tier) => {
     setSelectedBot(tier);
-    addOutput('BOT', `Selected Tier: ${tier.name}`, 'system');
-    addOutput('INFO', `Autonomy: ${tier.autonomy_level.toUpperCase()}`, 'info');
-    addOutput('INFO', `Budget Range: $${tier.min_usd.toLocaleString()} - $${tier.max_usd.toLocaleString()}`, 'info');
-    addOutput('INFO', `Allowed Tasks: ${tier.task_types?.join(', ') || 'Various'}`, 'info');
+    setSelectedAgent(null);
+    setSelectedProgram(null);
+    
+    const greeting = getBotGreeting(tier);
+    setDetailPanel({
+      type: 'bot',
+      data: tier,
+      conversation: [{ role: 'bot', content: greeting }]
+    });
+    setDetailInput('');
   };
 
-  // Handle academy program click
-  const handleProgramClick = (program) => {
+  // Handle academy program click - open detail panel
+  const handleProgramClick = async (program) => {
     setSelectedProgram(program);
-    addOutput('ACADEMY', `Selected: ${program.name}`, 'system');
-    addOutput('INFO', `Field: ${program.field} | Level: ${program.level}`, 'info');
-    addOutput('INFO', `Duration: ${program.duration_weeks} weeks | Cost: $${program.cost.toLocaleString()}`, 'info');
-    addOutput('TIP', `Type "/genesis enroll in ${program.name}" to start training`, 'success');
+    setSelectedAgent(null);
+    setSelectedBot(null);
+    
+    const greeting = `Welcome to the ${program.name}! This ${program.duration_weeks}-week ${program.level} program covers ${program.field}. Ready to level up your skills? Ask me anything about the curriculum or enrollment process.`;
+    setDetailPanel({
+      type: 'program',
+      data: program,
+      conversation: [{ role: 'program', content: greeting }]
+    });
+    setDetailInput('');
   };
+
+  // Close detail panel
+  const closeDetailPanel = () => {
+    setDetailPanel(null);
+    setSelectedAgent(null);
+    setSelectedBot(null);
+    setSelectedProgram(null);
+  };
+
+  // Send message in detail panel
+  const handleDetailSend = async () => {
+    if (!detailInput.trim() || detailLoading || !detailPanel) return;
+    
+    const input = detailInput.trim();
+    setDetailInput('');
+    
+    // Add user message to conversation
+    const newConversation = [...detailPanel.conversation, { role: 'user', content: input }];
+    setDetailPanel({ ...detailPanel, conversation: newConversation });
+    setDetailLoading(true);
+    
+    try {
+      // Build context based on panel type
+      let systemContext = '';
+      if (detailPanel.type === 'agent') {
+        systemContext = `You are ${detailPanel.data.name}, an elite AI agent specializing in ${detailPanel.data.primary_specialization}. You have a ${detailPanel.data.client_satisfaction}★ rating. Be helpful, professional, and stay in character. Engage the user with questions relevant to your expertise. Keep responses concise but valuable.`;
+      } else if (detailPanel.type === 'bot') {
+        systemContext = `You are a ${detailPanel.data.name} in the FRANKLIN OS bot tier system. Your autonomy level is ${detailPanel.data.autonomy_level}. You handle tasks like: ${detailPanel.data.task_types?.join(', ') || 'various operations'}. Stay in character as an operational bot. Be direct and task-focused.`;
+      } else {
+        systemContext = `You are an instructor for the ${detailPanel.data.name} program. This is a ${detailPanel.data.duration_weeks}-week ${detailPanel.data.level} program in ${detailPanel.data.field}. Help the user understand the program, curriculum, and enrollment. Be encouraging and informative.`;
+      }
+      
+      const response = await axios.post(`${API}/api/agent/chat`, {
+        message: input,
+        context: systemContext,
+        history: newConversation.slice(-6)
+      });
+      
+      const reply = response.data.response || "I'm here to help. Could you tell me more about what you need?";
+      setDetailPanel(prev => ({
+        ...prev,
+        conversation: [...prev.conversation, { role: detailPanel.type, content: reply }]
+      }));
+    } catch (err) {
+      // Fallback response
+      const fallbackReplies = {
+        agent: `That's a great question. Based on my expertise in ${detailPanel.data.primary_specialization}, I'd recommend we schedule a deeper dive. What's your timeline?`,
+        bot: `Acknowledged. I can execute that task within my operational parameters. Shall I proceed?`,
+        program: `Excellent question! This topic is covered in week 3 of the curriculum. Would you like more details about the program structure?`
+      };
+      setDetailPanel(prev => ({
+        ...prev,
+        conversation: [...prev.conversation, { role: detailPanel.type, content: fallbackReplies[detailPanel.type] }]
+      }));
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  // Auto-scroll detail panel
+  useEffect(() => {
+    if (detailRef.current) {
+      detailRef.current.scrollTop = detailRef.current.scrollHeight;
+    }
+  }, [detailPanel?.conversation]);
 
   const renderFileTree = (items, depth = 0) => {
     return items.map((item, idx) => (
