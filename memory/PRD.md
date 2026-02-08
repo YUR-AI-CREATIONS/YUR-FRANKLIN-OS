@@ -63,8 +63,14 @@ Core Modules:
    - File tree navigation working
    - Workflow navigation working
    - **Collapsible panels** - Left/right panels can collapse to show full FRANKLIN text
-   - **Agent/Bot/Academy cards clickable** - Show details in output area
+   - **Agent/Bot/Academy detail panels** - Click opens nested subdomain with:
+     - Agent info displayed in left detail panel
+     - Agents engage based on their industry/specialization
+     - Bots greet based on their tier/autonomy level
+     - Programs introduce curriculum and enrollment
    - **Improved chat** - Natural conversation with Grok/Franklin AI
+   - **Grok Genesis** - Strict code-only agent (no chitchat)
+   - **Franklin** - Conversational chitchat AI
 
 ---
 
