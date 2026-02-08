@@ -406,6 +406,27 @@ async def get_grok_output():
     return {"output": grok_agent.get_output_buffer()}
 
 
+class ChatRequest(BaseModel):
+    message: str
+    history: Optional[List[Dict[str, str]]] = None
+
+
+@grok_router.post("/chat")
+async def grok_chat(request: ChatRequest):
+    """Have a conversation with Grok/Franklin"""
+    response = await grok_agent.chat(request.message, request.history)
+    
+    if response:
+        return {"response": response, "success": True}
+    else:
+        # Fallback response when Grok is not available
+        return {
+            "response": f"I received your message: '{request.message}'. I'm here to help you build software. Try using /genesis <description> to start building, or /help for available commands.",
+            "success": True,
+            "fallback": True
+        }
+
+
 # ============================================================================
 #                         COMBINED DASHBOARD
 # ============================================================================
