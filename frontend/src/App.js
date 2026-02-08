@@ -350,6 +350,10 @@ const ElectricWorkflowPage = ({ onBack, workflowNodes, workflowEdges, onNodesCha
 // PAGE 2: MAIN IDE
 // ============================================================================
 const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, setWorkflowEdges }) => {
+  // Panel collapse states
+  const [leftCollapsed, setLeftCollapsed] = useState(false);
+  const [rightCollapsed, setRightCollapsed] = useState(false);
+  
   // Panel states
   const [leftPanelView, setLeftPanelView] = useState('interface');
   const [rightTab, setRightTab] = useState('agents');
@@ -358,6 +362,9 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
   const [selectedMode, setSelectedMode] = useState('neural_chat');
   const [expandedCategory, setExpandedCategory] = useState(null);
   const [selectedSubcategories, setSelectedSubcategories] = useState([]);
+  const [selectedAgent, setSelectedAgent] = useState(null);
+  const [selectedBot, setSelectedBot] = useState(null);
+  const [selectedProgram, setSelectedProgram] = useState(null);
   
   // Data states
   const [dashboard, setDashboard] = useState(null);
@@ -368,6 +375,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
   // Chat/Output states
   const [chatInput, setChatInput] = useState('');
   const [outputLog, setOutputLog] = useState([]);
+  const [conversationHistory, setConversationHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   
   // File tree state
