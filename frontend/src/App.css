@@ -318,3 +318,156 @@
     box-shadow: 0 0 8px currentColor;
   }
 }
+
+/* ============================================================================
+   FRANKLIN CHROME SILVER STYLING - Steve Jobs Level Polish
+   ============================================================================ */
+
+/* Chrome Silver FRANKLIN Text - Center Stage */
+.franklin-chrome {
+  font-family: 'Orbitron', 'SF Pro Display', -apple-system, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.5em;
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #e8e8e8 20%,
+    #c0c0c0 40%,
+    #a8a8a8 50%,
+    #c0c0c0 60%,
+    #e8e8e8 80%,
+    #ffffff 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.3))
+          drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+/* Chrome Silver Dim Version (for background) */
+.franklin-chrome-dim {
+  font-family: 'Orbitron', 'SF Pro Display', -apple-system, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.55em;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(200, 200, 200, 0.1) 50%,
+    rgba(255, 255, 255, 0.15) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Silver Glass Panel */
+.silver-glass {
+  background: linear-gradient(
+    135deg,
+    rgba(30, 30, 35, 0.95) 0%,
+    rgba(20, 20, 25, 0.98) 100%
+  );
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 20px 50px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(255, 255, 255, 0.02);
+}
+
+/* Silver Button */
+.silver-btn {
+  background: linear-gradient(
+    180deg,
+    rgba(60, 60, 65, 1) 0%,
+    rgba(40, 40, 45, 1) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 1px 0 rgba(255, 255, 255, 0.1) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.3) inset,
+    0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.15s ease;
+}
+
+.silver-btn:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(70, 70, 75, 1) 0%,
+    rgba(50, 50, 55, 1) 100%
+  );
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 
+    0 1px 0 rgba(255, 255, 255, 0.15) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.3) inset,
+    0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Silver Outline Elements */
+.silver-outline {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+
+/* Silver Input */
+.silver-input {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3) inset,
+    0 0 0 1px rgba(255, 255, 255, 0.02);
+  transition: all 0.15s ease;
+}
+
+.silver-input:focus {
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3) inset,
+    0 0 0 2px rgba(255, 255, 255, 0.05);
+  outline: none;
+}
+
+/* Chat Bubble Silver */
+.chat-bubble-user {
+  background: linear-gradient(135deg, rgba(0, 150, 200, 0.3) 0%, rgba(0, 100, 150, 0.4) 100%);
+  border: 1px solid rgba(0, 200, 255, 0.3);
+  border-radius: 16px 16px 4px 16px;
+}
+
+.chat-bubble-franklin {
+  background: linear-gradient(135deg, rgba(50, 50, 55, 0.9) 0%, rgba(30, 30, 35, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px 16px 16px 4px;
+}
+
+/* Scrollbar Silver Theme */
+.scrollbar-silver::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-silver::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.scrollbar-silver::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(100, 100, 105, 0.8) 0%, rgba(60, 60, 65, 0.8) 100%);
+  border-radius: 3px;
+}
+
+.scrollbar-silver::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(120, 120, 125, 0.9) 0%, rgba(80, 80, 85, 0.9) 100%);
+}
+
+/* Fade In Animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
