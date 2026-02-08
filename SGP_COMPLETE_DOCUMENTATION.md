@@ -331,7 +331,7 @@ EMERGENT_LLM_KEY=sk-emergent-xxxxx
 
 ### Frontend (.env)
 ```
-REACT_APP_BACKEND_URL=https://code-genesis-14.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://franklin-os.preview.emergentagent.com
 WDS_SOCKET_PORT=443
 ```
 
