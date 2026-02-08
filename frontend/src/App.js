@@ -497,24 +497,65 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
       return;
     }
     
+    if (input.toLowerCase() === '/clear') {
+      setOutputLog([]);
+      setConversationHistory([]);
+      addOutput('SYSTEM', 'Conversation cleared.', 'system');
+      return;
+    }
+    
+    if (input.toLowerCase() === '/help') {
+      addOutput('HELP', 'Available commands:', 'system');
+      addOutput('HELP', '/genesis <mission> - Start a build mission', 'info');
+      addOutput('HELP', '/build <mission> - Same as /genesis', 'info');
+      addOutput('HELP', '/workflow - Open workflow view', 'info');
+      addOutput('HELP', '/clear - Clear conversation', 'info');
+      addOutput('HELP', '/help - Show this help', 'info');
+      addOutput('HELP', 'Or just type naturally to chat with Franklin!', 'success');
+      return;
+    }
+    
     addOutput('USER', input, 'user');
     setIsLoading(true);
     
+    // Add to conversation history
+    const newHistory = [...conversationHistory, { role: 'user', content: input }];
+    setConversationHistory(newHistory);
+    
     try {
-      const response = await axios.post(`${API}/api/analyze`, { prompt: input });
-      addOutput('FRANKLIN', `Analysis complete. Confidence: ${response.data.confidence_score}%`, 'system');
+      // Try to have a real conversation via Grok
+      const response = await axios.post(`${API}/api/grok/chat`, { 
+        message: input,
+        history: newHistory.slice(-10) // Last 10 messages for context
+      });
       
-      if (response.data.analysis?.ambiguities?.length > 0) {
-        response.data.analysis.ambiguities.forEach(amb => {
-          addOutput('QUESTION', `[${amb.priority}] ${amb.question}`, 'warning');
-        });
-      }
-      
-      if (response.data.can_proceed) {
-        addOutput('READY', 'Specification ready. Use /genesis or /build to proceed.', 'success');
+      if (response.data.response) {
+        addOutput('FRANKLIN', response.data.response, 'system');
+        setConversationHistory([...newHistory, { role: 'assistant', content: response.data.response }]);
       }
     } catch (err) {
-      addOutput('ERROR', err.response?.data?.detail || err.message, 'error');
+      // Fallback to analyze endpoint
+      try {
+        const response = await axios.post(`${API}/api/analyze`, { prompt: input });
+        
+        if (response.data.analysis?.summary) {
+          addOutput('FRANKLIN', response.data.analysis.summary, 'system');
+        } else {
+          addOutput('FRANKLIN', `I understood your request. Confidence: ${response.data.confidence_score}%`, 'system');
+        }
+        
+        if (response.data.analysis?.ambiguities?.length > 0) {
+          response.data.analysis.ambiguities.forEach(amb => {
+            addOutput('QUESTION', `${amb.question}`, 'warning');
+          });
+        }
+        
+        if (response.data.can_proceed) {
+          addOutput('READY', 'Ready to build. Use /genesis <description> to start.', 'success');
+        }
+      } catch (analyzeErr) {
+        addOutput('FRANKLIN', `I'm here to help you build software. Try commands like "/genesis create a todo app" or just describe what you want to create.`, 'system');
+      }
     } finally {
       setIsLoading(false);
     }
