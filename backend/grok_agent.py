@@ -91,6 +91,52 @@ class GrokAgent:
         """Check if Grok is properly configured"""
         return bool(self.api_key)
     
+    async def chat(self, message: str, history: List[Dict[str, str]] = None) -> Optional[str]:
+        """Have a conversation with Grok"""
+        if not self.api_key:
+            return None
+        
+        system_prompt = """You are Franklin, an advanced AI assistant built into the FRANKLIN OS platform. 
+You help users build software, manage AI agents, and navigate the platform.
+Be concise but helpful. You have access to:
+- Elite AI Agents (for hiring specialized help)
+- Bot Tiers (for automated tasks)  
+- Academy Programs (for training)
+- Genesis Engine (for building software)
+
+When users want to build something, guide them to use /genesis <description>.
+Be friendly, professional, and to the point."""
+        
+        messages = [{"role": "system", "content": system_prompt}]
+        
+        if history:
+            for msg in history[-10:]:  # Last 10 messages
+                messages.append({"role": msg.get("role", "user"), "content": msg.get("content", "")})
+        
+        messages.append({"role": "user", "content": message})
+        
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    self.api_url,
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": self.model,
+                        "messages": messages,
+                        "temperature": 0.7,
+                        "max_tokens": 500
+                    }
+                )
+                response.raise_for_status()
+                result = response.json()
+                return result["choices"][0]["message"]["content"]
+        except Exception as e:
+            logger.error(f"[GROK CHAT ERROR] {str(e)}")
+            return None
+    
     async def consult_oracle(self, system_role: str, user_input: str) -> Optional[str]:
         """Interact with Grok API"""
         if not self.api_key:
