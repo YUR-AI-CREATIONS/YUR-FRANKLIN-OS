@@ -1113,15 +1113,16 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
       </div>
 
       {/* BOTTOM PANEL */}
-      <div className={`absolute bottom-0 h-64 z-40 bg-black/90 border-t border-white/10 backdrop-blur-md flex flex-col transition-all duration-300 ${leftCollapsed ? 'left-10' : 'left-56'} ${rightCollapsed ? 'right-10' : 'right-64'}`}>
+      <div className={`absolute bottom-0 h-64 z-40 silver-glass silver-outline flex flex-col transition-all duration-300 ${leftCollapsed ? 'left-12' : 'left-56'} ${rightCollapsed ? 'right-12' : 'right-64'}`}>
+        {/* BRANDING BAR - Category Buttons */}
         <div className="flex border-b border-white/10 shrink-0">
           {BUILD_CATEGORIES.map(cat => (
             <button
               key={cat.id}
               onClick={() => toggleCategory(cat.id)}
-              className={`flex-1 py-2 text-[10px] font-mono uppercase tracking-wider transition-all border-r border-white/10 last:border-r-0 ${
+              className={`flex-1 py-3 text-[10px] font-mono uppercase tracking-wider transition-all border-r border-white/5 last:border-r-0 ${
                 expandedCategory === cat.id 
-                  ? 'text-white bg-white/10' 
+                  ? 'text-white bg-white/10 franklin-chrome-dim' 
                   : 'text-white/50 hover:text-white/80 hover:bg-white/5'
               }`}
             >
