@@ -246,18 +246,19 @@ Agent context: ${JSON.stringify(agentContext)}
   }
 
   /**
-   * Call Google Gemini API
+   * Call Google Gemini 3 Pro API - Orchestration/Reasoning
    */
-  async callGemini(message, agentContext) {
+  async callGemini(message, agentContext, useFlash = false) {
     if (!this.geminiKey) {
       throw new Error('Gemini API key not configured');
     }
 
     try {
       const systemPrompt = this.buildSystemPrompt(agentContext);
+      const model = useFlash ? this.models.geminiFlash : this.models.gemini;
 
       const response = await axios.post(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${this.geminiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.geminiKey}`,
         {
           contents: [{
             parts: [{
@@ -267,7 +268,7 @@ Agent context: ${JSON.stringify(agentContext)}
         },
         {
           headers: { 'Content-Type': 'application/json' },
-          timeout: 30000
+          timeout: 60000
         }
       );
 
