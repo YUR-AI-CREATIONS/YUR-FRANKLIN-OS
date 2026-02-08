@@ -652,7 +652,18 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
       </div>
 
       {/* LEFT PANEL */}
-      <div className="absolute left-0 top-0 bottom-0 w-56 z-40 border-r border-white/10 bg-black/80 backdrop-blur-md overflow-hidden">
+      <div className={`absolute left-0 top-0 bottom-0 z-40 border-r border-white/10 bg-black/80 backdrop-blur-md overflow-hidden transition-all duration-300 ${leftCollapsed ? 'w-10' : 'w-56'}`}>
+        {/* Collapse Toggle */}
+        <button
+          onClick={() => setLeftCollapsed(!leftCollapsed)}
+          className="absolute top-2 right-2 z-50 w-6 h-6 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded transition-all"
+          data-testid="collapse-left"
+        >
+          {leftCollapsed ? '▶' : '◀'}
+        </button>
+        
+        {!leftCollapsed && (
+          <>
         <div className={`absolute inset-0 transition-transform duration-300 ${leftPanelView === 'interface' ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="p-4 h-full flex flex-col">
             <div className="text-[10px] font-mono text-white/40 mb-4 tracking-wider">◆ INTERFACE_MODE</div>
