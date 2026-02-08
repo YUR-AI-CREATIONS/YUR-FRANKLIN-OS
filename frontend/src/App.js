@@ -869,7 +869,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
       </div>
 
       {/* BOTTOM PANEL */}
-      <div className="absolute bottom-0 left-56 right-64 h-64 z-40 bg-black/90 border-t border-white/10 backdrop-blur-md flex flex-col">
+      <div className={`absolute bottom-0 h-64 z-40 bg-black/90 border-t border-white/10 backdrop-blur-md flex flex-col transition-all duration-300 ${leftCollapsed ? 'left-10' : 'left-56'} ${rightCollapsed ? 'right-10' : 'right-64'}`}>
         <div className="flex border-b border-white/10 shrink-0">
           {BUILD_CATEGORIES.map(cat => (
             <button
