@@ -1603,6 +1603,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
           isOpen={rightFolders.agents} 
           onToggle={() => toggleRightFolder('agents')}
           side="right"
+          stackOffset={0}
         >
           <div className="p-3 border-b border-white/10">
             <div className="text-[10px] font-mono text-green-400 tracking-wider">◆ ELITE AGENTS</div>
