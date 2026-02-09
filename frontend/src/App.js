@@ -1463,8 +1463,8 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         </StackedFolder>
       </div>
 
-      {/* CENTER - Main Content Area (positioned to the right of the stacked folders) */}
-      <div className="absolute top-10 bottom-44 left-80 right-72 z-10 transition-all duration-300">
+      {/* CENTER - Main Content Area */}
+      <div className="absolute top-10 bottom-40 left-72 right-72 z-10">
         {/* Chat Messages Area */}
         <div 
           ref={outputRef}
