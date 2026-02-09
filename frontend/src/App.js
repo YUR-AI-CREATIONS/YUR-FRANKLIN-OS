@@ -639,11 +639,12 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
   
   // Individual slide panel states (each section slides independently)
   // Stacked folder states (left side) - which folders are slid open
+  // Higher z-index = front. When you close a folder, you see the one behind it
   const [leftFolders, setLeftFolders] = useState({
-    franklin: true,      // Front - Franklin chat
-    providers: false,    // Behind franklin - LLM providers
-    projects: false,     // Behind providers - Projects
-    build: false         // Back - Frontend/Backend/DB/Deploy
+    franklin: true,      // Front - Franklin chat (z-index 40)
+    providers: true,     // Behind franklin - LLM providers (z-index 30)
+    projects: true,      // Behind providers - Projects (z-index 20)
+    build: true          // Back - Frontend/Backend/DB/Deploy (z-index 10)
   });
   
   const toggleLeftFolder = (folder) => {
@@ -653,8 +654,8 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
   // Stacked folder states (right side)
   const [rightFolders, setRightFolders] = useState({
     agents: true,
-    bots: false,
-    academy: false
+    bots: true,
+    academy: true
   });
   
   const toggleRightFolder = (folder) => {
