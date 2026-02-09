@@ -215,15 +215,9 @@ const ElectricWorkflowPage = ({ onBack, workflowNodes, workflowEdges, onNodesCha
     { type: 'info', text: '> Type commands or use natural language' },
     { type: 'success', text: '> System ready.' }
   ]);
-  const [aiRecommendations, setAiRecommendations] = useState([
-    { id: 1, text: 'Add authentication module', priority: 'high' },
-    { id: 2, text: 'Configure database schema', priority: 'medium' },
-    { id: 3, text: 'Set up CI/CD pipeline', priority: 'low' }
-  ]);
   const [isProcessing, setIsProcessing] = useState(false);
   
   const chatRef = useRef(null);
-  const terminalRef = useRef(null);
 
   // Load build status
   useEffect(() => {
