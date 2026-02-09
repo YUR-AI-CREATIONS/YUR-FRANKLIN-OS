@@ -1,246 +1,124 @@
 # FRANKLIN OS - Product Requirements Document
 
 ## Original Problem Statement
-Build a "Sovereign Genesis Platform" (SGP), evolved into "FRANKLIN OS" - a sophisticated, VS Code-style IDE. This platform is a complete software factory designed to build, certify, and deploy enterprise-grade applications. The system architecture is multi-layered, encompassing an AI agent academy, tiered agent system, human-AI governance, self-healing code generation engine (Grok), and quality assurance/certification pipeline.
+Build "FRANKLIN OS," a sophisticated, VS Code-style IDE for building, certifying, and deploying enterprise applications with a "galactic liquid glassmorphism" cyberpunk aesthetic. The core mission is to create a fully functional software factory where a user interacts with an AI agent (Franklin) to define a project, which is then executed by a team of specialized agents (Grok, Genesis, Architect, etc.).
 
-**Design Aesthetic:** Galactic liquid glassmorphism cyberpunk
-**Core Principles:** Truth, Trust, Transparency, Zero Hallucination, Complete Auditable Trail
+## User's Vision
+- Chrome FRANKLIN title with shimmer effect
+- Galactic starfield background with twinkling stars
+- 3-column IDE layout: Franklin (left) | Code Area (center) | Grok (right)
+- Transparent, resizable panels
+- "1 million context" labels on panels
+- Ghost lines connecting Franklin ↔ Code ↔ Grok
+- Terminal at bottom center
+- Projects/Folders tabs
+- Stripe integration for user subscriptions
 
----
-
-## Architecture Overview
-
-### Frontend (React)
-- **Landing Page** (`/`): Space-themed entry page with login/command inputs
-- **IDE Page** (`/ide`): Main FRANKLIN OS interface with:
-  - Left Panel: Interface mode selector & project file tree
-  - Center: Scrolling output area for commands and responses
-  - Right Panel: Tabs for Agents, Bots, Academy data
-  - Bottom Panel: Build categories (Frontend/Backend/Database/Deploy) & command input
-- **Workflow Page** (`/workflow`): React Flow visualization of build pipeline
-
-### Backend (FastAPI)
-Core Modules:
-- `grok_agent.py`: Self-healing agent using XAI API
-- `agent_marketplace.py`: Catalog of elite AI agents
-- `bot_tiers.py`: 4-tier operational bot governance
-- `agent_academy.py`: AI training/certification system
-- `franklin_runtime.py`: DPOA, PQC simulation, security layers
-- `quality_gates.py`: 5-dimensional quality gate & certification
-- `marketing_content.py`: AI marketing copy generator
-- `deployment_engine.py`: Controlled deployment system
-
----
-
-## Implemented Features ✅
-
-### Session Date: 2026-02-08
-
-1. **Full Backend Ecosystem**
-   - Grok Self-Healing Agent (XAI API integrated)
-   - Agent Marketplace & Bot Tiers systems
-   - AI Agent Academy with training programs
-   - Franklin Sovereign Runtime (DPOA/PQC)
-   - 5-Dimensional Quality Gate & Certification
-   - Marketing Content Generator
-   - Controlled Deployment Engine
-
-2. **3-Page Frontend Application**
-   - Landing page with space theme
-   - IDE with functional panels and tabs
-   - Electric Workflow visualization
-
-3. **API Integration**
-   - All backend APIs connected to frontend
-   - Real-time data fetching for agents, bots, academy
-
-4. **Button Functionality** (Verified 2026-02-08)
-   - All IDE buttons working correctly
-   - Interface mode switching functional
-   - Tab navigation working
-   - Command input and send working
-   - Category expansion working
-   - File tree navigation working
-   - Workflow navigation working
-   - **Collapsible panels** - Left/right panels can collapse to show full FRANKLIN text
-   - **Agent/Bot/Academy detail panels** - Click opens nested subdomain with:
-     - Agent info displayed in left detail panel
-     - Agents engage based on their industry/specialization
-     - Bots greet based on their tier/autonomy level
-     - Programs introduce curriculum and enrollment
-   - **Improved chat** - Natural conversation with Grok/Franklin AI
-   - **Grok Genesis** - Strict code-only agent (no chitchat)
-   - **Franklin** - Conversational chitchat AI
-
----
-
-## API Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/franklin/dashboard` | GET | Sovereign runtime status |
-| `/api/marketplace/agents/summary` | GET | Elite agents list |
-| `/api/bots/tiers` | GET | Bot tier information |
-| `/api/academy/programs` | GET | Training programs |
-| `/api/quality/status` | GET | Quality gate status |
-| `/api/quality/build/certify` | POST | Start certified build |
-| `/api/grok/genesis` | POST | Run Grok self-healing genesis |
-| `/api/marketing-content-gen/generate` | POST | Generate marketing content |
-| `/api/deployment/deploy` | POST | Manage deployment |
-| `/api/analyze` | POST | Analyze user prompt |
-
----
-
-## Upcoming Tasks
-
-### P0 (High Priority)
-- [ ] Full End-to-End Build Test: Complete project build through all 8 phases
-- [ ] User domain deployment: `franklin-os.com`, `YUR_AI.com`
-
-### P1 (Medium Priority)
-- [ ] Refactor `server.py` into organized routes/services
-- [ ] Refactor `App.js` into smaller components
-
-### P2 (Low Priority)
-- [ ] Address code quality warnings (ruff linting)
-- [ ] Add comprehensive error handling
-- [ ] Implement user authentication flow
-
----
-
-## Technical Stack
-- **Frontend:** React, React Flow, TailwindCSS
-- **Backend:** Python, FastAPI
-- **AI/LLM:** XAI/Grok API
-- **Security:** PQC simulation, Merkle Tree auditing
-
----
-
-## Credentials Required
-- `XAI_API_KEY`: Present in `/app/backend/.env`
-
----
-
-## Known Issues
-- React Flow nodeTypes warning (non-breaking)
-- Code quality warnings from ruff (cosmetic)
-
----
-
-## Session Log: 2025-12-XX
-
-### Fixed Issues
-1. **JSX Syntax Error (P0 CRITICAL)** - RESOLVED
-   - Fixed stray `</div>` tag at line 1282 in `/app/frontend/src/App.js`
-   - Build now compiles successfully
-   - Application fully functional again
-
-2. **Stacked Folder UI System (P0)** - IMPLEMENTED
-   - Replaced accordion-style slide panels with full-height stacked folders
-   - Created `StackedFolder` component with vertical tab staggering
-   - Each folder is full height, slides left/right to reveal folder behind
-   - Tabs positioned on folder edges, staggered vertically to remain visible
-
-### Current UI State
-**LEFT SIDE - 4 Stacked Full-Height Folders:**
-1. FRANKLIN (emerald tab) - Full-height onboard chat with 1M context window
-2. LLM (cyan tab) - LLM Providers with nested sections (OpenAI, xAI, Anthropic, Google)
-3. PROJECTS (yellow tab) - Saved projects with nested file structure
-4. BUILD (red tab) - Frontend/Backend/Database/Deploy tabs with nested content
-
-**RIGHT SIDE - 3 Stacked Full-Height Folders:**
-1. AGENTS (green tab) - Elite agents marketplace
-2. BOTS (amber tab) - Bot tiers listing
-3. ACADEMY (purple tab) - Training programs
-
-**BOTTOM PANEL:**
-- TERMINAL (left) - SDK Cloud, Ubuntu/Linux, PowerShell with command input
-- GROK RESPONSE (right) - 1M context window with dedicated chat input
-- Neural Brain widget (far right) - Visual thinking indicator
-
-### Session Update: Orchestration Wired Up
-
-**Implemented Full Agent Orchestration:**
-The complete FRANKLIN → GROK → AGENTS workflow is now functional:
-
-1. **USER talks to FRANKLIN** (left panel chat or terminal)
-2. **FRANKLIN perfect-prompts GROK** via the orchestrator
-3. **AGENTS involved in build:**
-   - Genesis (The Creator) - Initiates builds, creates specifications
-   - Architect (The Designer) - Designs system architecture
-   - Implementer (The Builder) - Writes production code
-   - Healer (The Fixer) - Reviews and fixes issues
-4. **WHITEBOARD** - Collaborative review of sections
-5. **WORKSPACE** - Code output appears in terminal
-6. **WORKFLOW** - Auto-populated with build nodes
-7. **GOVERNANCE** - Audit, Verify, Certify, Sign-off by Franklin
-
-**API Endpoints Created:**
-- `POST /api/build-orchestrator/chat` - User talks to Franklin
-- `POST /api/build-orchestrator/build` - Full genesis build with all agents
-- `POST /api/build-orchestrator/agent/interact` - Talk to specific agent
-- `GET /api/build-orchestrator/whiteboard` - View current build session
-- `POST /api/build-orchestrator/approve` - User approves sections
-- `GET /api/build-orchestrator/sessions` - List all sessions
-
-**Commands:**
-- `/genesis <mission>` or `/build <mission>` - Start full agent build
-- `/whiteboard` - View current build session
-- `/workflow` - Open workflow visualization
-- `/help` - Show available commands
-- Or just type naturally to chat with Franklin
-
-**Fixed Issues:**
-1. **Colored Tab Design** - REMOVED
-   - Replaced funky colored tabs with clean black panels
-   - Added faint line borders (1px rgba(255,255,255,0.08))
-   - Button at top with ◀/▶ toggle and COLLAPSE/EXPAND text
-
-2. **9 Items Under Each Build Category** - RESTORED
-   - FRONTEND: React Components, Vue.js, Angular, Svelte, Next.js, TailwindCSS, Styled Components, CSS Modules, Framer Motion
-   - BACKEND: Node.js Express, Python FastAPI, Django REST, GraphQL, REST API, WebSockets, JWT Auth, OAuth 2.0, Microservices
-   - DATABASE: PostgreSQL, MongoDB, MySQL, Redis, Supabase, Firebase, SQLite, Prisma ORM, Vector DB
-   - DEPLOY: Vercel, Render, AWS, Docker, Kubernetes, CI/CD Pipeline, GitHub Actions, Governance, Testing Suite
-
-3. **Bottom Panel Auto-Snap** - FIXED
-   - Terminal and Grok Response now span full width (left-0 right-0)
-   - Clean black background with subtle borders
-   - Both have pulsing indicator dots (cyan/purple)
-   - Input fields properly aligned at bottom
-
-**Current Folder Layout:**
-- LEFT: FRANKLIN (chat) > LLM (providers) > PROJECTS > BUILD (Frontend/Backend/Database/Deploy)
-- RIGHT: AGENTS > BOTS > ACADEMY
-- Folders slide smoothly when toggled, revealing folder behind
-
----
-
-## File Structure
+## Core Architecture
 ```
 /app/
 ├── backend/
-│   ├── agent_academy.py
-│   ├── agent_marketplace.py
-│   ├── bot_tiers.py
-│   ├── deployment_engine.py
-│   ├── deployment_routes.py
-│   ├── franklin_runtime.py
-│   ├── franklin_routes.py
-│   ├── grok_agent.py
-│   ├── marketing_content.py
-│   ├── marketing_routes.py
-│   ├── quality_gates.py
-│   ├── quality_routes.py
-│   └── server.py
+│   ├── server.py              # Main FastAPI app
+│   ├── franklin_routes.py     # Core API routes
+│   ├── franklin_orchestrator.py # User→Franklin→Grok→Agents workflow
+│   ├── persistence.py         # Chat persistence
+│   ├── payment_routes.py      # Stripe payment integration
+│   └── ...
 ├── frontend/
 │   └── src/
-│       ├── App.js
-│       ├── App.css
+│       ├── App.js             # Main app with 3 pages
 │       └── components/
-│           ├── LandingPage.jsx
-│           ├── ParticleBackground.jsx
-│           ├── nodes/
-│           └── panels/
+│           └── LandingPage.jsx # Login + Pricing
 └── memory/
     └── PRD.md
 ```
+
+## What's Been Implemented
+
+### December 2025 - Latest Session
+
+**UI/UX:**
+- [x] 3-page application: Landing → IDE → Workflow
+- [x] Landing page with chrome FRANKLIN title, login form, pricing view
+- [x] IDE page matching user's wireframe:
+  - Left: Franklin panel (resizable, transparent)
+  - Center: Code area with ghost lines indicator
+  - Right: Grok panel (resizable, transparent)
+  - Bottom: Terminal + Projects/Folders sections
+  - Franklin Prompt and Grok Prompt aligned with panels
+  - "1 million context" labels on both panels
+- [x] Workflow page restored to original state (Electric Workflow with ReactFlow)
+- [x] Galactic background with twinkling stars
+- [x] Ghost FRANKLIN title visible through transparent panels
+
+**Stripe Integration:**
+- [x] Backend payment routes (`/api/payments/checkout`, `/api/payments/status`, `/api/payments/packages`)
+- [x] Webhook endpoint for Stripe events
+- [x] 4 subscription tiers: Free ($0), Starter ($9.99), Pro ($29.99), Enterprise ($99.99)
+- [x] Frontend pricing cards with Stripe checkout flow
+- [x] Payment status polling on success redirect
+
+**Agent Orchestration:**
+- [x] User → Franklin → Grok → Agents pipeline
+- [x] `/genesis` command for initiating builds
+- [x] Real-time terminal output
+- [x] Grok response panel
+
+**Chat & Persistence:**
+- [x] Franklin chat with localStorage persistence
+- [x] Grok responses with localStorage persistence
+- [x] Terminal output history
+- [x] Saved chats functionality
+
+## API Endpoints
+
+### Payment APIs
+- `GET /api/payments/packages` - Get subscription packages
+- `POST /api/payments/checkout` - Create Stripe checkout session
+- `GET /api/payments/status/{session_id}` - Get payment status
+- `GET /api/payments/user/{email}` - Get user subscription
+- `POST /api/webhook/stripe` - Stripe webhook handler
+
+### Agent APIs
+- `POST /api/build-orchestrator/build` - Start build with agents
+- `POST /api/build-orchestrator/chat` - Chat with Franklin
+- `POST /api/grok/chat` - Direct Grok conversation
+
+## Subscription Packages
+| Package | Price | Features |
+|---------|-------|----------|
+| Free | $0/mo | Basic access, 1 project, Community support |
+| Starter | $9.99/mo | Full IDE, 5 projects, Email support, 1M context |
+| Pro | $29.99/mo | Unlimited projects, Priority support, Team collaboration |
+| Enterprise | $99.99/mo | Custom deployment, Dedicated support, SLA guarantee |
+
+## Backlog / Future Tasks
+
+### P1 - High Priority
+- [ ] Implement "Whiteboard" view for collaborative code agreement
+- [ ] Implement "Workspace" view for auto-populated code sections
+- [ ] Make panels slide in/out smoothly with proper animation
+- [ ] Synchronize prompt box movements with panel resizing
+
+### P2 - Medium Priority
+- [ ] Implement remaining UI windows (Pulse, Matrix, Ledger, Archive)
+- [ ] Vector DB integration for "Memory Mesh"
+- [ ] Supabase database schema creation
+- [ ] Continuous workflow loop ("The Loop")
+
+### P3 - Low Priority / Refactoring
+- [ ] Break down App.js into smaller components
+- [ ] Create route-based sections (/studio, /agents, /academy)
+- [ ] Optimize React re-renders
+- [ ] Add proper TypeScript types
+
+## Technical Notes
+- Frontend: React with Tailwind CSS
+- Backend: FastAPI with MongoDB
+- Payments: Stripe via emergentintegrations library
+- LLM: Claude via Anthropic/Emergent integration
+- Workflow: ReactFlow for visual pipelines
+
+## Known Issues
+- App.js is still monolithic (~800 lines) but significantly reduced from 2000+
+- Some panel alignment may need fine-tuning based on screen size
