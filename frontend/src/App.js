@@ -779,14 +779,15 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
       <GalacticBackground />
       
       {/* FRANKLIN Chrome Branding - GHOST FORMAT, LARGE, CENTER */}
-      <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-[5]">
+      <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-[5] px-4">
         <h1 
-          className="select-none franklin-chrome-ide"
+          className="select-none franklin-chrome-ide whitespace-nowrap"
           style={{ 
             fontFamily: "'Orbitron', sans-serif",
-            fontSize: 'clamp(4rem,14vw,12rem)',
+            fontSize: 'clamp(3rem,11vw,10rem)',
             fontWeight: 600,
-            letterSpacing: '0.55em',
+            letterSpacing: '0.5em',
+            marginLeft: '0.25em',
           }}
         >
           FRANKLIN
@@ -798,22 +799,22 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         .franklin-chrome-ide {
           background: linear-gradient(
             135deg,
-            rgba(60, 60, 60, 0.4) 0%,
-            rgba(120, 120, 120, 0.5) 15%,
-            rgba(200, 200, 200, 0.6) 30%,
-            rgba(255, 255, 255, 0.7) 45%,
-            rgba(200, 200, 200, 0.6) 55%,
-            rgba(120, 120, 120, 0.5) 70%,
-            rgba(80, 80, 80, 0.4) 85%,
-            rgba(150, 150, 150, 0.5) 100%
+            rgba(80, 80, 80, 0.5) 0%,
+            rgba(140, 140, 140, 0.6) 15%,
+            rgba(220, 220, 220, 0.7) 30%,
+            rgba(255, 255, 255, 0.8) 45%,
+            rgba(220, 220, 220, 0.7) 55%,
+            rgba(140, 140, 140, 0.6) 70%,
+            rgba(100, 100, 100, 0.5) 85%,
+            rgba(170, 170, 170, 0.6) 100%
           );
           background-size: 200% 200%;
           -webkit-background-clip: text;
           background-clip: text;
           -webkit-text-fill-color: transparent;
           animation: chromeShimmerIDE 20s ease-in-out infinite;
-          filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.1));
-          opacity: 0.35;
+          filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.15));
+          opacity: 0.3;
         }
         
         @keyframes chromeShimmerIDE {
