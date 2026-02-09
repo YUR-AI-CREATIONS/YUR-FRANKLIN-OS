@@ -1058,92 +1058,67 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         }
       `}</style>
 
-      {/* LEFT PANEL */}
-      <div className={`absolute left-0 top-0 bottom-0 z-40 silver-glass silver-outline overflow-hidden transition-all duration-300 ${leftCollapsed ? 'w-12' : 'w-56'}`}>
-        {/* Collapse Toggle */}
+      {/* LEFT SLIDE PANEL - Franklin Onboard Chat */}
+      <div className={`absolute top-0 bottom-48 z-40 bg-black/90 border-r border-white/10 backdrop-blur-md transition-all duration-300 ${franklinPanelOpen ? 'left-0 w-72' : '-left-72 w-72'}`}>
         <button
-          onClick={() => setLeftCollapsed(!leftCollapsed)}
-          className="absolute top-3 right-3 z-50 w-6 h-6 flex items-center justify-center text-white/40 hover:text-white silver-btn rounded transition-all"
-          data-testid="collapse-left"
+          onClick={() => setFranklinPanelOpen(!franklinPanelOpen)}
+          className="absolute -right-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/80 border border-white/10 rounded-r-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
+          data-testid="toggle-franklin-panel"
         >
-          {leftCollapsed ? '▶' : '◀'}
+          {franklinPanelOpen ? '◀' : '▶'}
         </button>
         
-        {!leftCollapsed && (
-          <>
-        <div className={`absolute inset-0 transition-transform duration-300 ${leftPanelView === 'interface' ? 'translate-x-0' : '-translate-x-full'}`}>
-          <div className="p-4 h-full flex flex-col">
-            <div className="text-[10px] font-mono text-white/40 mb-4 tracking-wider">◆ INTERFACE_MODE</div>
-            
-            <div className="space-y-1">
-              {INTERFACE_MODES.map(mode => (
-                <button
-                  key={mode.id}
-                  onClick={() => {
-                    setSelectedMode(mode.id);
-                    if (mode.id === 'workflow') {
-                      onNavigate(PAGES.WORKFLOW);
-                    }
-                  }}
-                  data-testid={`mode-${mode.id}`}
-                  className={`w-full text-left px-3 py-2 rounded text-xs font-mono transition-all flex items-center gap-3 ${
-                    selectedMode === mode.id 
-                      ? 'bg-white/10 text-white border border-white/20' 
-                      : 'text-white/50 hover:text-white/80 hover:bg-white/5'
-                  }`}
-                >
-                  <span className="text-sm">{mode.icon}</span>
-                  <span>{mode.label}</span>
-                </button>
-              ))}
-            </div>
-
-            <div className="flex-1" />
-            
-            <button
-              onClick={switchToProjectView}
-              data-testid="project-btn"
-              className="w-full px-3 py-3 text-xs font-mono text-white/80 hover:bg-white/5 rounded border border-white/10 transition-all flex items-center gap-2"
-            >
-              <span>◀</span>
-              <span>PROJECT</span>
-            </button>
+        <div className="p-4 h-full flex flex-col">
+          <div className="text-[10px] font-mono text-white/40 tracking-wider mb-1">◆ ONBOARD CHAT</div>
+          <div className="text-sm font-mono text-white">FRANKLIN</div>
+          <div className="text-[10px] text-white/50 mt-1 mb-4">Your AI Assistant</div>
+          
+          {/* Franklin Conversation */}
+          <div ref={franklinRef} className="flex-1 overflow-y-auto space-y-3 scrollbar-thin">
+            {franklinChat.map((msg, idx) => (
+              <div key={idx} className={`text-xs font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/80'}`}>
+                <span className="text-white/40 text-[9px]">[{msg.role === 'user' ? 'YOU' : 'FRANKLIN'}]</span>
+                <p className="mt-1 leading-relaxed">{msg.content}</p>
+              </div>
+            ))}
+            {franklinLoading && (
+              <div className="text-xs text-purple-400 flex items-center gap-2">
+                <span className="w-2 h-2 bg-purple-400 rounded-full animate-ping" />
+                Thinking...
+              </div>
+            )}
           </div>
-        </div>
-
-        <div className={`absolute inset-0 transition-transform duration-300 ${leftPanelView === 'project' ? 'translate-x-0' : 'translate-x-full'}`}>
-          <div className={`p-4 h-full flex flex-col ${fileTreeGlow ? 'file-tree-glow' : ''}`}>
-            <button
-              onClick={() => setLeftPanelView('interface')}
-              className="w-full text-left px-3 py-2 text-xs font-mono text-white/50 hover:text-white/80 hover:bg-white/5 rounded mb-4 flex items-center gap-2"
-            >
-              <span>▶</span>
-              <span>INTERFACE</span>
-            </button>
-
-            <div className="text-[10px] font-mono text-white/40 mb-3 tracking-wider">◆ PROJECT_FILES</div>
-            
-            <div className="flex-1 overflow-y-auto">
-              {renderFileTree(fileTree)}
-            </div>
-
-            <div className="text-[10px] font-mono text-green-400/70 mt-4 flex items-center gap-2">
-              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              AUTO_SAVED
+          
+          {/* Franklin Input */}
+          <div className="pt-3 border-t border-white/10 mt-3">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={franklinInput}
+                onChange={(e) => setFranklinInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleFranklinSend()}
+                placeholder="Ask Franklin..."
+                className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs font-mono text-white placeholder-white/30 focus:outline-none focus:border-white/30"
+                disabled={franklinLoading}
+              />
+              <button
+                onClick={handleFranklinSend}
+                disabled={franklinLoading || !franklinInput.trim()}
+                className="px-3 py-2 bg-white/10 border border-white/10 rounded-lg text-xs font-mono text-white hover:bg-white/20 transition-all disabled:opacity-30"
+              >
+                ▶
+              </button>
             </div>
           </div>
         </div>
-          </>
-        )}
       </div>
 
-      {/* CENTER CHAT AREA - Main conversation with Franklin */}
-      <div className={`absolute top-0 bottom-64 z-30 flex flex-col transition-all duration-300 ${leftCollapsed ? 'left-14' : 'left-60'} ${rightCollapsed ? 'right-14' : 'right-68'}`}>
-
-        {/* Chat Messages Area - Overlays on FRANKLIN */}
+      {/* CENTER - Code/Chat Output Area */}
+      <div className={`absolute top-0 bottom-48 z-10 transition-all duration-300 ${franklinPanelOpen ? 'left-72' : 'left-0'} ${agentsPanelOpen ? 'right-64' : 'right-0'} ${agentChatOpen && detailPanel ? 'right-[320px]' : ''}`}>
+        {/* Chat Messages Area */}
         <div 
           ref={outputRef}
-          className="flex-1 overflow-y-auto px-8 py-6 z-10 scrollbar-silver"
+          className="h-full overflow-y-auto px-8 py-6 scrollbar-thin"
           data-testid="chat-area"
         >
           {outputLog.length === 0 ? (
@@ -1184,226 +1159,182 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
             </div>
           )}
         </div>
-
-        {/* Detail Panel - Shows when agent/bot/program selected - NOW MOVED TO RIGHT */}
-        {/* Franklin Onboard Chat - Always visible on left */}
-        <div className="absolute left-0 top-0 bottom-0 w-72 silver-glass flex flex-col z-20" data-testid="franklin-onboard-panel">
-          {/* Header */}
-          <div className="p-4 border-b border-white/10">
-            <div className="text-[10px] font-mono text-white/40 tracking-wider mb-1">◆ ONBOARD CHAT</div>
-            <div className="text-sm font-mono text-white">FRANKLIN</div>
-            <div className="text-[10px] text-white/50 mt-1">Your AI Assistant</div>
-          </div>
-          
-          {/* Franklin Conversation */}
-          <div ref={franklinRef} className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-silver">
-            {franklinChat.map((msg, idx) => (
-              <div key={idx} className={`text-xs font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/80'}`}>
-                <span className="text-white/40 text-[9px]">[{msg.role === 'user' ? 'YOU' : 'FRANKLIN'}]</span>
-                <p className="mt-1 leading-relaxed">{msg.content}</p>
-              </div>
-            ))}
-            {franklinLoading && (
-              <div className="text-xs text-purple-400 flex items-center gap-2">
-                <span className="w-2 h-2 bg-purple-400 rounded-full animate-ping" />
-                Thinking...
-              </div>
-            )}
-          </div>
-          
-          {/* Franklin Input */}
-          <div className="p-3 border-t border-white/10">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={franklinInput}
-                onChange={(e) => setFranklinInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleFranklinSend()}
-                placeholder="Ask Franklin..."
-                className="flex-1 silver-input rounded-lg px-3 py-2 text-xs font-mono text-white placeholder-white/30"
-                disabled={franklinLoading}
-              />
-              <button
-                onClick={handleFranklinSend}
-                disabled={franklinLoading || !franklinInput.trim()}
-                className="silver-btn px-3 py-2 rounded-lg text-xs font-mono text-white disabled:opacity-30"
-              >
-                ▶
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
 
-      {/* RIGHT PANEL - Agents/Bots/Academy + Agent Chat */}
-      <div className={`absolute right-0 top-0 bottom-64 z-40 silver-glass silver-outline transition-all duration-300 ${rightCollapsed ? 'w-12' : detailPanel ? 'w-[420px]' : 'w-64'}`}>
-        {/* Collapse Toggle */}
-        <button
-          onClick={() => setRightCollapsed(!rightCollapsed)}
-          className="absolute top-3 left-3 z-50 w-6 h-6 flex items-center justify-center text-white/40 hover:text-white silver-btn rounded transition-all"
-          data-testid="collapse-right"
-        >
-          {rightCollapsed ? '◀' : '▶'}
-        </button>
-        
-        {!rightCollapsed && (
-          <div className="flex h-full">
-            {/* Agent Chat Box - Shows when agent selected */}
-            {detailPanel && (
-              <div className="w-56 h-full border-r border-white/10 flex flex-col" data-testid="agent-chat-panel">
-                {/* Agent Header */}
-                <div className="p-3 border-b border-white/10 flex items-center justify-between">
-                  <div>
-                    <div className="text-[9px] font-mono text-white/40">{detailPanel.type === 'agent' ? '◆ AGENT CHAT' : '◆ CHAT'}</div>
-                    <div className="text-xs font-mono text-white">{detailPanel.data.name}</div>
-                  </div>
-                  <button 
-                    onClick={closeDetailPanel}
-                    className="w-6 h-6 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded transition-all text-xs"
-                  >
-                    ✕
-                  </button>
-                </div>
-                
-                {/* Agent Conversation */}
-                <div ref={detailRef} className="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-silver">
-                  {detailPanel.conversation.map((msg, idx) => (
-                    <div key={idx} className={`text-[10px] font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/80'}`}>
-                      <span className="text-white/40 text-[8px]">[{msg.role === 'user' ? 'YOU' : detailPanel.data.name?.split(' ')[0]?.toUpperCase()}]</span>
-                      <p className="mt-0.5 leading-relaxed">{msg.content}</p>
-                    </div>
-                  ))}
-                  {detailLoading && (
-                    <div className="text-[10px] text-purple-400 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-ping" />
-                      Thinking...
-                    </div>
-                  )}
-                </div>
-                
-                {/* Agent Input */}
-                <div className="p-2 border-t border-white/10">
-                  <div className="flex gap-1">
-                    <input
-                      type="text"
-                      value={detailInput}
-                      onChange={(e) => setDetailInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleDetailSend()}
-                      placeholder={`Ask ${detailPanel.data.name?.split(' ')[0]}...`}
-                      className="flex-1 silver-input rounded px-2 py-1.5 text-[10px] font-mono text-white placeholder-white/30"
-                      disabled={detailLoading}
-                    />
-                    <button
-                      onClick={handleDetailSend}
-                      disabled={detailLoading || !detailInput.trim()}
-                      className="silver-btn px-2 py-1.5 rounded text-[10px] font-mono text-white disabled:opacity-30"
-                    >
-                      ▶
-                    </button>
-                  </div>
-                </div>
+      {/* RIGHT SLIDE PANEL - Agent Chat (when agent selected) */}
+      {detailPanel && (
+        <div className={`absolute top-0 bottom-48 z-40 bg-black/90 border-l border-white/10 backdrop-blur-md transition-all duration-300 ${agentChatOpen ? 'right-64 w-56' : '-right-56 w-56'}`} style={{ right: agentsPanelOpen ? '256px' : '0' }}>
+          <button
+            onClick={() => setAgentChatOpen(!agentChatOpen)}
+            className="absolute -left-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/80 border border-white/10 rounded-l-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
+          >
+            {agentChatOpen ? '▶' : '◀'}
+          </button>
+          
+          <div className="p-3 h-full flex flex-col">
+            {/* Agent Header */}
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <div className="text-[9px] font-mono text-white/40">{detailPanel.type === 'agent' ? '◆ AGENT CHAT' : '◆ CHAT'}</div>
+                <div className="text-xs font-mono text-white">{detailPanel.data.name}</div>
               </div>
-            )}
+              <button 
+                onClick={closeDetailPanel}
+                className="w-6 h-6 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded transition-all text-xs"
+              >
+                ✕
+              </button>
+            </div>
             
-            {/* Agents/Bots/Academy Tabs */}
-            <div className="flex-1 flex flex-col">
-        <div className="flex border-b border-white/10 mt-8">
-          {['agents', 'bots', 'academy'].map(tab => (
-            <button
-              key={tab}
-              onClick={() => setRightTab(tab)}
-              data-testid={`tab-${tab}`}
-              className={`flex-1 py-3 text-[10px] font-mono uppercase tracking-wider transition-all ${
-                rightTab === tab 
-                  ? 'text-white border-b border-white/50 bg-white/5' 
-                  : 'text-white/40 hover:text-white/60'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        <div className="p-4 h-full overflow-y-auto">
-          {rightTab === 'agents' && (
-            <div className="space-y-3">
-              <div className="text-[10px] font-mono text-white/40 tracking-wider mb-2">◆ ELITE_AGENTS</div>
-              {marketplaceAgents.map((agent, idx) => (
-                <div 
-                  key={idx} 
-                  onClick={() => handleAgentClick(agent)}
-                  className={`p-3 rounded bg-white/5 border transition-all cursor-pointer ${
-                    selectedAgent?.agent_id === agent.agent_id 
-                      ? 'border-green-400/50 bg-green-400/10' 
-                      : 'border-white/10 hover:border-white/20'
-                  }`}
-                >
-                  <div className="text-xs font-mono text-white/90">{agent.name}</div>
-                  <div className="text-[9px] text-white/50 mt-1 truncate">{agent.primary_specialization}</div>
-                  <div className="flex justify-between mt-2 text-[9px]">
-                    <span className="text-green-400">★ {agent.client_satisfaction}</span>
-                    <span className="text-cyan-400">${agent.starter_price}/mo</span>
-                  </div>
+            {/* Agent Conversation */}
+            <div ref={detailRef} className="flex-1 overflow-y-auto space-y-2 scrollbar-thin">
+              {detailPanel.conversation.map((msg, idx) => (
+                <div key={idx} className={`text-[10px] font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/80'}`}>
+                  <span className="text-white/40 text-[8px]">[{msg.role === 'user' ? 'YOU' : detailPanel.data.name?.split(' ')[0]?.toUpperCase()}]</span>
+                  <p className="mt-0.5 leading-relaxed">{msg.content}</p>
                 </div>
               ))}
-            </div>
-          )}
-
-          {rightTab === 'bots' && (
-            <div className="space-y-3">
-              <div className="text-[10px] font-mono text-white/40 tracking-wider mb-2">◆ BOT_TIERS</div>
-              {botTiers.map((tier, idx) => (
-                <div 
-                  key={idx} 
-                  onClick={() => handleBotClick(tier)}
-                  className={`p-3 rounded bg-white/5 border transition-all cursor-pointer ${
-                    selectedBot?.name === tier.name 
-                      ? 'border-amber-400/50 bg-amber-400/10' 
-                      : 'border-white/10 hover:border-white/20'
-                  }`}
-                >
-                  <div className="text-xs font-mono text-white/90">{tier.name}</div>
-                  <div className="text-[9px] text-white/50 mt-1">{tier.description.slice(0, 60)}...</div>
-                  <div className="flex justify-between mt-2 text-[9px]">
-                    <span className="text-amber-400">{tier.autonomy_level.toUpperCase()}</span>
-                    <span className="text-cyan-400">${tier.min_usd.toLocaleString()}-${tier.max_usd.toLocaleString()}</span>
-                  </div>
+              {detailLoading && (
+                <div className="text-[10px] text-purple-400 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-ping" />
+                  Thinking...
                 </div>
-              ))}
+              )}
             </div>
-          )}
-
-          {rightTab === 'academy' && (
-            <div className="space-y-3">
-              <div className="text-[10px] font-mono text-white/40 tracking-wider mb-2">◆ TRAINING_PROGRAMS</div>
-              {academyPrograms.slice(0, 5).map((program, idx) => (
-                <div 
-                  key={idx} 
-                  onClick={() => handleProgramClick(program)}
-                  className={`p-3 rounded bg-white/5 border transition-all cursor-pointer ${
-                    selectedProgram?.program_id === program.program_id 
-                      ? 'border-purple-400/50 bg-purple-400/10' 
-                      : 'border-white/10 hover:border-white/20'
-                  }`}
+            
+            {/* Agent Input */}
+            <div className="pt-2 border-t border-white/10 mt-2">
+              <div className="flex gap-1">
+                <input
+                  type="text"
+                  value={detailInput}
+                  onChange={(e) => setDetailInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleDetailSend()}
+                  placeholder={`Ask ${detailPanel.data.name?.split(' ')[0]}...`}
+                  className="flex-1 bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[10px] font-mono text-white placeholder-white/30 focus:outline-none"
+                  disabled={detailLoading}
+                />
+                <button
+                  onClick={handleDetailSend}
+                  disabled={detailLoading || !detailInput.trim()}
+                  className="px-2 py-1.5 bg-white/10 border border-white/10 rounded text-[10px] font-mono text-white disabled:opacity-30"
                 >
-                  <div className="text-xs font-mono text-white/90 truncate">{program.name}</div>
-                  <div className="text-[9px] text-white/50 mt-1">{program.field} • {program.duration_weeks} weeks</div>
-                  <div className="flex justify-between mt-2 text-[9px]">
-                    <span className="text-purple-400">{program.level}</span>
-                    <span className="text-cyan-400">${program.cost.toLocaleString()}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                  ▶
+                </button>
+              </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
+
+      {/* RIGHT SLIDE PANEL - Agents/Bots/Academy List */}
+      <div className={`absolute top-0 bottom-48 z-40 bg-black/90 border-l border-white/10 backdrop-blur-md transition-all duration-300 ${agentsPanelOpen ? 'right-0 w-64' : '-right-64 w-64'}`}>
+        <button
+          onClick={() => setAgentsPanelOpen(!agentsPanelOpen)}
+          className="absolute -left-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/80 border border-white/10 rounded-l-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
+          data-testid="toggle-agents-panel"
+        >
+          {agentsPanelOpen ? '▶' : '◀'}
+        </button>
+        
+        <div className="h-full flex flex-col">
+          {/* Tabs */}
+          <div className="flex border-b border-white/10">
+            {['agents', 'bots', 'academy'].map(tab => (
+              <button
+                key={tab}
+                onClick={() => setRightTab(tab)}
+                data-testid={`tab-${tab}`}
+                className={`flex-1 py-3 text-[10px] font-mono uppercase tracking-wider transition-all ${
+                  rightTab === tab 
+                    ? 'text-white border-b border-white/50 bg-white/5' 
+                    : 'text-white/40 hover:text-white/60'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 p-4 overflow-y-auto scrollbar-thin">
+            {rightTab === 'agents' && (
+              <div className="space-y-3">
+                <div className="text-[10px] font-mono text-white/40 tracking-wider mb-2">◆ ELITE_AGENTS</div>
+                {marketplaceAgents.map((agent, idx) => (
+                  <div 
+                    key={idx} 
+                    onClick={() => handleAgentClick(agent)}
+                    className={`p-3 rounded bg-white/5 border transition-all cursor-pointer ${
+                      selectedAgent?.agent_id === agent.agent_id 
+                        ? 'border-green-400/50 bg-green-400/10' 
+                        : 'border-white/10 hover:border-white/20'
+                    }`}
+                  >
+                    <div className="text-xs font-mono text-white/90">{agent.name}</div>
+                    <div className="text-[9px] text-white/50 mt-1 truncate">{agent.primary_specialization}</div>
+                    <div className="flex justify-between mt-2 text-[9px]">
+                      <span className="text-green-400">★ {agent.client_satisfaction}</span>
+                      <span className="text-cyan-400">${agent.starter_price}/mo</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {rightTab === 'bots' && (
+              <div className="space-y-3">
+                <div className="text-[10px] font-mono text-white/40 tracking-wider mb-2">◆ BOT_TIERS</div>
+                {botTiers.map((tier, idx) => (
+                  <div 
+                    key={idx} 
+                    onClick={() => handleBotClick(tier)}
+                    className={`p-3 rounded bg-white/5 border transition-all cursor-pointer ${
+                      selectedBot?.name === tier.name 
+                        ? 'border-amber-400/50 bg-amber-400/10' 
+                        : 'border-white/10 hover:border-white/20'
+                    }`}
+                  >
+                    <div className="text-xs font-mono text-white/90">{tier.name}</div>
+                    <div className="text-[9px] text-white/50 mt-1">{tier.description?.slice(0, 60)}...</div>
+                    <div className="flex justify-between mt-2 text-[9px]">
+                      <span className="text-amber-400">{tier.autonomy_level?.toUpperCase()}</span>
+                      <span className="text-cyan-400">${tier.min_usd?.toLocaleString()}-${tier.max_usd?.toLocaleString()}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {rightTab === 'academy' && (
+              <div className="space-y-3">
+                <div className="text-[10px] font-mono text-white/40 tracking-wider mb-2">◆ TRAINING_PROGRAMS</div>
+                {academyPrograms.slice(0, 5).map((program, idx) => (
+                  <div 
+                    key={idx} 
+                    onClick={() => handleProgramClick(program)}
+                    className={`p-3 rounded bg-white/5 border transition-all cursor-pointer ${
+                      selectedProgram?.program_id === program.program_id 
+                        ? 'border-purple-400/50 bg-purple-400/10' 
+                        : 'border-white/10 hover:border-white/20'
+                    }`}
+                  >
+                    <div className="text-xs font-mono text-white/90 truncate">{program.name}</div>
+                    <div className="text-[9px] text-white/50 mt-1">{program.field} • {program.duration_weeks} weeks</div>
+                    <div className="flex justify-between mt-2 text-[9px]">
+                      <span className="text-purple-400">{program.level}</span>
+                      <span className="text-cyan-400">${program.cost?.toLocaleString()}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* BOTTOM PANEL - Terminal | Grok Response | Recommendations */}
-      <div className={`absolute bottom-0 h-64 z-40 silver-glass silver-outline flex flex-col transition-all duration-300 ${leftCollapsed ? 'left-12' : 'left-56'} ${rightCollapsed ? 'right-12' : detailPanel ? 'right-[420px]' : 'right-64'}`}>
+      <div className={`absolute bottom-0 h-48 z-40 bg-black/95 border-t border-white/10 backdrop-blur-md flex transition-all duration-300 ${franklinPanelOpen ? 'left-72' : 'left-0'} ${agentsPanelOpen ? 'right-64' : 'right-0'}`}>
         {/* BRANDING BAR - Category Buttons */}
         <div className="flex border-b border-white/10 shrink-0">
           {BUILD_CATEGORIES.map(cat => (
