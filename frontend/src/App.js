@@ -555,10 +555,27 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
   const [selectedBot, setSelectedBot] = useState(null);
   const [selectedProgram, setSelectedProgram] = useState(null);
   
-  // Detail panel state (for agent/bot engagement)
+  // Detail panel state (for agent/bot engagement) - NOW ON RIGHT SIDE
   const [detailPanel, setDetailPanel] = useState(null); // { type: 'agent'|'bot'|'program', data: {...}, conversation: [] }
   const [detailInput, setDetailInput] = useState('');
   const [detailLoading, setDetailLoading] = useState(false);
+  
+  // Franklin Onboard Chat (Left panel)
+  const [franklinChat, setFranklinChat] = useState([
+    { role: 'franklin', content: 'Welcome to FRANKLIN OS. I\'m here to help you navigate and build. What would you like to create today?' }
+  ]);
+  const [franklinInput, setFranklinInput] = useState('');
+  const [franklinLoading, setFranklinLoading] = useState(false);
+  
+  // Grok Response Area (Bottom center)
+  const [grokResponses, setGrokResponses] = useState([]);
+  
+  // AI Recommendations (Bottom right)
+  const [recommendations, setRecommendations] = useState([
+    { id: 1, text: 'Start with /genesis to create a new project', priority: 'tip' },
+    { id: 2, text: 'Click an agent to get specialized assistance', priority: 'tip' },
+    { id: 3, text: 'Use /workflow to visualize your build pipeline', priority: 'tip' }
+  ]);
   
   // Data states
   const [dashboard, setDashboard] = useState(null);
