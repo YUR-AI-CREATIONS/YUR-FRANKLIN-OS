@@ -1511,176 +1511,108 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         </div>
       </div>
 
-      {/* RIGHT SLIDE PANEL - Agent Chat (when agent selected) */}
-      {detailPanel && (
-        <div className={`absolute top-10 bottom-36 z-40 bg-black/90 border-l border-white/10 backdrop-blur-md transition-all duration-300 ${agentChatOpen ? 'right-64 w-56' : '-right-56 w-56'}`} style={{ right: agentsPanelOpen ? '256px' : '0' }}>
-          <button
-            onClick={() => setAgentChatOpen(!agentChatOpen)}
-            className="absolute -left-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/80 border border-white/10 rounded-l-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
-          >
-            {agentChatOpen ? '▶' : '◀'}
-          </button>
-          
-          <div className="p-3 h-full flex flex-col">
-            {/* Agent Header */}
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <div className="text-[9px] font-mono text-white/40">{detailPanel.type === 'agent' ? '◆ AGENT CHAT' : '◆ CHAT'}</div>
-                <div className="text-xs font-mono text-white">{detailPanel.data.name}</div>
-              </div>
-              <button 
-                onClick={closeDetailPanel}
-                className="w-6 h-6 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded transition-all text-xs"
-              >
-                ✕
-              </button>
-            </div>
-            
-            {/* Agent Conversation */}
-            <div ref={detailRef} className="flex-1 overflow-y-auto space-y-2 scrollbar-thin">
-              {detailPanel.conversation.map((msg, idx) => (
-                <div key={idx} className={`text-[10px] font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/80'}`}>
-                  <span className="text-white/40 text-[8px]">[{msg.role === 'user' ? 'YOU' : detailPanel.data.name?.split(' ')[0]?.toUpperCase()}]</span>
-                  <p className="mt-0.5 leading-relaxed">{msg.content}</p>
-                </div>
-              ))}
-              {detailLoading && (
-                <div className="text-[10px] text-purple-400 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-ping" />
-                  Thinking...
-                </div>
-              )}
-            </div>
-            
-            {/* Agent Input */}
-            <div className="pt-2 border-t border-white/10 mt-2">
-              <div className="flex gap-1">
-                <input
-                  type="text"
-                  value={detailInput}
-                  onChange={(e) => setDetailInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleDetailSend()}
-                  placeholder={`Ask ${detailPanel.data.name?.split(' ')[0]}...`}
-                  className="flex-1 bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[10px] font-mono text-white placeholder-white/30 focus:outline-none"
-                  disabled={detailLoading}
-                />
-                <button
-                  onClick={handleDetailSend}
-                  disabled={detailLoading || !detailInput.trim()}
-                  className="px-2 py-1.5 bg-white/10 border border-white/10 rounded text-[10px] font-mono text-white disabled:opacity-30"
-                >
-                  ▶
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* RIGHT SLIDE PANEL - Agents/Bots/Academy List */}
-      <div className={`absolute top-10 bottom-36 z-40 bg-black/90 border-l border-white/10 backdrop-blur-md transition-all duration-300 ${agentsPanelOpen ? 'right-0 w-64' : '-right-64 w-64'}`}>
-        <button
-          onClick={() => setAgentsPanelOpen(!agentsPanelOpen)}
-          className="absolute -left-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/80 border border-white/10 rounded-l-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
-          data-testid="toggle-agents-panel"
-        >
-          {agentsPanelOpen ? '▶' : '◀'}
-        </button>
+      {/* RIGHT SIDE - Full Height Stacked Sliding Folders */}
+      <div className="absolute top-10 bottom-44 right-0 w-72 z-40 overflow-visible" data-testid="right-folders">
         
-        <div className="h-full flex flex-col">
-          {/* Tabs */}
-          <div className="flex border-b border-white/10">
-            {['agents', 'bots', 'academy'].map(tab => (
-              <button
-                key={tab}
-                onClick={() => setRightTab(tab)}
-                data-testid={`tab-${tab}`}
-                className={`flex-1 py-3 text-[10px] font-mono uppercase tracking-wider transition-all ${
-                  rightTab === tab 
-                    ? 'text-white border-b border-white/50 bg-white/5' 
-                    : 'text-white/40 hover:text-white/60'
+        {/* FOLDER 3 (Back) - ACADEMY */}
+        <StackedFolder 
+          title="ACADEMY" 
+          tabColor="bg-purple-500" 
+          zIndex={10} 
+          isOpen={rightFolders.academy} 
+          onToggle={() => toggleRightFolder('academy')}
+        >
+          <div className="p-3 border-b border-white/10">
+            <div className="text-[10px] font-mono text-purple-400 tracking-wider">◆ TRAINING PROGRAMS</div>
+          </div>
+          <div className="flex-1 overflow-y-auto p-3 scrollbar-thin space-y-2">
+            {academyPrograms.slice(0, 8).map((program, idx) => (
+              <div 
+                key={idx} 
+                onClick={() => handleProgramClick(program)}
+                className={`p-2 rounded bg-white/5 border transition-all cursor-pointer ${
+                  selectedProgram?.program_id === program.program_id 
+                    ? 'border-purple-400/50 bg-purple-400/10' 
+                    : 'border-white/10 hover:border-white/20'
                 }`}
               >
-                {tab}
-              </button>
+                <div className="text-[10px] font-mono text-white/90 truncate">{program.name}</div>
+                <div className="text-[8px] text-white/50 mt-1">{program.field} • {program.duration_weeks}w</div>
+                <div className="flex justify-between mt-1 text-[8px]">
+                  <span className="text-purple-400">{program.level}</span>
+                  <span className="text-cyan-400">${program.cost?.toLocaleString()}</span>
+                </div>
+              </div>
             ))}
           </div>
+        </StackedFolder>
 
-          {/* Content */}
-          <div className="flex-1 p-4 overflow-y-auto scrollbar-thin">
-            {rightTab === 'agents' && (
-              <div className="space-y-3">
-                <div className="text-[10px] font-mono text-white/40 tracking-wider mb-2">◆ ELITE_AGENTS</div>
-                {marketplaceAgents.map((agent, idx) => (
-                  <div 
-                    key={idx} 
-                    onClick={() => handleAgentClick(agent)}
-                    className={`p-3 rounded bg-white/5 border transition-all cursor-pointer ${
-                      selectedAgent?.agent_id === agent.agent_id 
-                        ? 'border-green-400/50 bg-green-400/10' 
-                        : 'border-white/10 hover:border-white/20'
-                    }`}
-                  >
-                    <div className="text-xs font-mono text-white/90">{agent.name}</div>
-                    <div className="text-[9px] text-white/50 mt-1 truncate">{agent.primary_specialization}</div>
-                    <div className="flex justify-between mt-2 text-[9px]">
-                      <span className="text-green-400">★ {agent.client_satisfaction}</span>
-                      <span className="text-cyan-400">${agent.starter_price}/mo</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {rightTab === 'bots' && (
-              <div className="space-y-3">
-                <div className="text-[10px] font-mono text-white/40 tracking-wider mb-2">◆ BOT_TIERS</div>
-                {botTiers.map((tier, idx) => (
-                  <div 
-                    key={idx} 
-                    onClick={() => handleBotClick(tier)}
-                    className={`p-3 rounded bg-white/5 border transition-all cursor-pointer ${
-                      selectedBot?.name === tier.name 
-                        ? 'border-amber-400/50 bg-amber-400/10' 
-                        : 'border-white/10 hover:border-white/20'
-                    }`}
-                  >
-                    <div className="text-xs font-mono text-white/90">{tier.name}</div>
-                    <div className="text-[9px] text-white/50 mt-1">{tier.description?.slice(0, 60)}...</div>
-                    <div className="flex justify-between mt-2 text-[9px]">
-                      <span className="text-amber-400">{tier.autonomy_level?.toUpperCase()}</span>
-                      <span className="text-cyan-400">${tier.min_usd?.toLocaleString()}-${tier.max_usd?.toLocaleString()}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {rightTab === 'academy' && (
-              <div className="space-y-3">
-                <div className="text-[10px] font-mono text-white/40 tracking-wider mb-2">◆ TRAINING_PROGRAMS</div>
-                {academyPrograms.slice(0, 5).map((program, idx) => (
-                  <div 
-                    key={idx} 
-                    onClick={() => handleProgramClick(program)}
-                    className={`p-3 rounded bg-white/5 border transition-all cursor-pointer ${
-                      selectedProgram?.program_id === program.program_id 
-                        ? 'border-purple-400/50 bg-purple-400/10' 
-                        : 'border-white/10 hover:border-white/20'
-                    }`}
-                  >
-                    <div className="text-xs font-mono text-white/90 truncate">{program.name}</div>
-                    <div className="text-[9px] text-white/50 mt-1">{program.field} • {program.duration_weeks} weeks</div>
-                    <div className="flex justify-between mt-2 text-[9px]">
-                      <span className="text-purple-400">{program.level}</span>
-                      <span className="text-cyan-400">${program.cost?.toLocaleString()}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+        {/* FOLDER 2 - BOTS */}
+        <StackedFolder 
+          title="BOTS" 
+          tabColor="bg-amber-500" 
+          zIndex={20} 
+          isOpen={rightFolders.bots} 
+          onToggle={() => toggleRightFolder('bots')}
+        >
+          <div className="p-3 border-b border-white/10">
+            <div className="text-[10px] font-mono text-amber-400 tracking-wider">◆ BOT TIERS</div>
           </div>
-        </div>
+          <div className="flex-1 overflow-y-auto p-3 scrollbar-thin space-y-2">
+            {botTiers.map((tier, idx) => (
+              <div 
+                key={idx} 
+                onClick={() => handleBotClick(tier)}
+                className={`p-2 rounded bg-white/5 border transition-all cursor-pointer ${
+                  selectedBot?.name === tier.name 
+                    ? 'border-amber-400/50 bg-amber-400/10' 
+                    : 'border-white/10 hover:border-white/20'
+                }`}
+              >
+                <div className="text-[10px] font-mono text-white/90">{tier.name}</div>
+                <div className="text-[8px] text-white/50 mt-1 line-clamp-2">{tier.description?.slice(0, 60)}...</div>
+                <div className="flex justify-between mt-1 text-[8px]">
+                  <span className="text-amber-400">{tier.autonomy_level?.toUpperCase()}</span>
+                  <span className="text-cyan-400">${tier.min_usd?.toLocaleString()}-${tier.max_usd?.toLocaleString()}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </StackedFolder>
+
+        {/* FOLDER 1 (Front) - AGENTS */}
+        <StackedFolder 
+          title="AGENTS" 
+          tabColor="bg-green-500" 
+          zIndex={30} 
+          isOpen={rightFolders.agents} 
+          onToggle={() => toggleRightFolder('agents')}
+        >
+          <div className="p-3 border-b border-white/10">
+            <div className="text-[10px] font-mono text-green-400 tracking-wider">◆ ELITE AGENTS</div>
+            <div className="text-[8px] font-mono text-white/40 mt-1">{marketplaceAgents.length} available</div>
+          </div>
+          <div className="flex-1 overflow-y-auto p-3 scrollbar-thin space-y-2">
+            {marketplaceAgents.map((agent, idx) => (
+              <div 
+                key={idx} 
+                onClick={() => handleAgentClick(agent)}
+                className={`p-2 rounded bg-white/5 border transition-all cursor-pointer ${
+                  selectedAgent?.agent_id === agent.agent_id 
+                    ? 'border-green-400/50 bg-green-400/10' 
+                    : 'border-white/10 hover:border-white/20'
+                }`}
+              >
+                <div className="text-[10px] font-mono text-white/90">{agent.name}</div>
+                <div className="text-[8px] text-white/50 mt-1 truncate">{agent.primary_specialization}</div>
+                <div className="flex justify-between mt-1 text-[8px]">
+                  <span className="text-green-400">★ {agent.client_satisfaction}</span>
+                  <span className="text-cyan-400">${agent.starter_price}/mo</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </StackedFolder>
       </div>
 
       {/* BOTTOM PANEL - Terminal | Grok Response (both with inputs) | Brain */}
