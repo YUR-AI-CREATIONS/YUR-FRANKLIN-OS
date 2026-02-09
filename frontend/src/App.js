@@ -1186,7 +1186,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
       </div>
 
       {/* LEFT SIDE - Full Height Stacked Sliding Folders */}
-      <div className="absolute top-10 bottom-44 left-0 w-80 z-40 overflow-visible" data-testid="left-folders">
+      <div className="absolute top-10 bottom-40 left-0 w-72 z-40 overflow-visible" data-testid="left-folders">
         
         {/* FOLDER 4 (Back) - BUILD: Frontend/Backend/Database/Deploy */}
         <StackedFolder 
