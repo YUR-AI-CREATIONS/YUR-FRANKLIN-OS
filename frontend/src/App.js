@@ -1140,17 +1140,44 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
     setFranklinChat(prev => [...prev, { role: 'user', content: input }]);
     setFranklinLoading(true);
     
+    // Check for build commands in Franklin chat
+    if (input.toLowerCase().startsWith('/genesis ') || input.toLowerCase().startsWith('/build ')) {
+      const mission = input.replace(/^\/(?:genesis|build)\s+/i, '');
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: `Initiating build: ${mission}. Check the terminal for progress.` }]);
+      setFranklinLoading(false);
+      setChatInput(`/genesis ${mission}`);
+      setTimeout(() => handleChatSend(), 100);
+      return;
+    }
+    
     try {
-      const response = await axios.post(`${API}/api/grok/chat`, {
-        message: input,
-        context: 'You are Franklin, the main AI assistant of FRANKLIN OS. Help users navigate the platform, understand features, and guide them to the right agents or tools. Be friendly, professional, and concise.',
-        history: franklinChat.slice(-6)
+      // Use orchestrator chat - Franklin perfect-prompts Grok
+      const response = await axios.post(`${API}/api/build-orchestrator/chat`, {
+        message: input
       });
       
       const reply = response.data.response || "I can help you with that. Would you like me to guide you through the process?";
       setFranklinChat(prev => [...prev, { role: 'franklin', content: reply }]);
+      
+      // If ready to build, add a hint
+      if (response.data.ready_to_build) {
+        setFranklinChat(prev => [...prev, { 
+          role: 'franklin', 
+          content: "💡 I sense you want to build something! Type '/genesis' followed by your project description to start the full agent workflow." 
+        }]);
+      }
     } catch (err) {
-      setFranklinChat(prev => [...prev, { role: 'franklin', content: "I'm here to help. You can start by typing /genesis followed by your project idea, or click on an agent for specialized assistance." }]);
+      // Fallback to direct Grok chat
+      try {
+        const response = await axios.post(`${API}/api/grok/chat`, {
+          message: input,
+          history: franklinChat.slice(-6)
+        });
+        const reply = response.data.response || "I'm here to help. What would you like to build?";
+        setFranklinChat(prev => [...prev, { role: 'franklin', content: reply }]);
+      } catch (e) {
+        setFranklinChat(prev => [...prev, { role: 'franklin', content: "I'm here to help. Type /genesis followed by your project idea to start building, or describe what you want to create." }]);
+      }
     } finally {
       setFranklinLoading(false);
     }
