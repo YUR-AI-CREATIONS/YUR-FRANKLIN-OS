@@ -330,11 +330,11 @@ const ElectricWorkflowPage = ({ onBack, workflowNodes, workflowEdges, onNodesCha
         )}
       </div>
 
-      {/* LEFT SLIDE PANEL - Chat Response */}
-      <div className={`absolute top-16 bottom-48 z-40 bg-black/90 border-r border-white/10 backdrop-blur-md transition-all duration-300 ${leftPanelOpen ? 'left-0 w-72' : '-left-72 w-72'}`}>
+      {/* LEFT SLIDE PANEL - Chat Response (Full Height) */}
+      <div className={`absolute top-16 bottom-12 z-40 bg-black/90 border-r border-white/10 backdrop-blur-md transition-all duration-300 ${leftPanelOpen ? 'left-0 w-72' : '-left-72 w-72'}`}>
         <button
           onClick={() => setLeftPanelOpen(!leftPanelOpen)}
-          className="absolute -right-8 top-4 w-8 h-16 bg-black/80 border border-white/10 rounded-r-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
+          className="absolute -right-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/80 border border-white/10 rounded-r-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
         >
           {leftPanelOpen ? '◀' : '▶'}
         </button>
@@ -362,11 +362,11 @@ const ElectricWorkflowPage = ({ onBack, workflowNodes, workflowEdges, onNodesCha
         </div>
       </div>
 
-      {/* RIGHT SLIDE PANEL - Workflow Controls */}
-      <div className={`absolute top-16 bottom-48 z-40 bg-black/90 border-l border-white/10 backdrop-blur-md transition-all duration-300 ${rightPanelOpen ? 'right-0 w-72' : '-right-72 w-72'}`}>
+      {/* RIGHT SLIDE PANEL - Workflow Controls (Full Height) */}
+      <div className={`absolute top-16 bottom-12 z-40 bg-black/90 border-l border-white/10 backdrop-blur-md transition-all duration-300 ${rightPanelOpen ? 'right-0 w-72' : '-right-72 w-72'}`}>
         <button
           onClick={() => setRightPanelOpen(!rightPanelOpen)}
-          className="absolute -left-8 top-4 w-8 h-16 bg-black/80 border border-white/10 rounded-l-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
+          className="absolute -left-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/80 border border-white/10 rounded-l-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
         >
           {rightPanelOpen ? '▶' : '◀'}
         </button>
@@ -433,7 +433,7 @@ const ElectricWorkflowPage = ({ onBack, workflowNodes, workflowEdges, onNodesCha
       </div>
 
       {/* Main Workflow Canvas - Center */}
-      <div className={`absolute top-16 bottom-48 z-10 transition-all duration-300 ${leftPanelOpen ? 'left-72' : 'left-0'} ${rightPanelOpen ? 'right-72' : 'right-0'}`}>
+      <div className={`absolute top-16 bottom-12 z-10 transition-all duration-300 ${leftPanelOpen ? 'left-72' : 'left-0'} ${rightPanelOpen ? 'right-72' : 'right-0'}`}>
         <ReactFlow
           nodes={workflowNodes}
           edges={workflowEdges}
@@ -457,77 +457,44 @@ const ElectricWorkflowPage = ({ onBack, workflowNodes, workflowEdges, onNodesCha
         </ReactFlow>
       </div>
 
-      {/* BOTTOM PANEL - Chat Prompt, Terminal, AI Recommendations */}
-      <div className="absolute bottom-0 left-0 right-0 h-48 z-40 bg-black/95 border-t border-white/10 backdrop-blur-md flex">
+      {/* BOTTOM BAR - Chat Prompt | Project Info | Terminal */}
+      <div className="absolute bottom-0 left-0 right-0 h-12 z-40 bg-black/95 border-t border-white/10 backdrop-blur-md flex items-center">
         
         {/* Chat Prompt - Left */}
-        <div className="w-64 border-r border-white/10 p-3 flex flex-col">
-          <div className="text-[9px] font-mono text-white/40 mb-2">◆ CHAT PROMPT</div>
-          <div className="flex-1 flex flex-col justify-end">
-            <input
-              type="text"
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleChatSend()}
-              placeholder="Ask about your workflow..."
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs font-mono text-white placeholder-white/30 focus:border-white/30 focus:outline-none"
-              disabled={isProcessing}
-            />
-            <button
-              onClick={handleChatSend}
-              disabled={isProcessing || !chatInput.trim()}
-              className="mt-2 w-full px-3 py-2 text-[10px] font-mono bg-cyan-500/20 border border-cyan-500/30 rounded-lg text-cyan-400 hover:bg-cyan-500/30 transition-all disabled:opacity-30"
-            >
-              {isProcessing ? 'PROCESSING...' : 'SEND ▶'}
-            </button>
+        <div className="w-48 h-full border-r border-white/10 px-3 flex items-center gap-2">
+          <input
+            type="text"
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleChatSend()}
+            placeholder="Ask about your workflow..."
+            className="flex-1 bg-transparent border-none text-[10px] font-mono text-white placeholder-white/30 focus:outline-none"
+            disabled={isProcessing}
+          />
+          <button
+            onClick={handleChatSend}
+            disabled={isProcessing || !chatInput.trim()}
+            className="px-2 py-1 text-[9px] font-mono text-cyan-400 hover:bg-white/10 rounded transition-all disabled:opacity-30"
+          >
+            ▶
+          </button>
+        </div>
+
+        {/* Project Info - Left Center */}
+        <div className="w-64 h-full border-r border-white/10 px-3 flex items-center">
+          <div className="text-[9px] font-mono text-white/50">
+            <span className="text-white/30">PROJECT:</span> <span className="text-cyan-400">{buildStatus?.project_name || 'No Project'}</span>
+            <span className="mx-2 text-white/20">|</span>
+            <span className="text-white/30">STATUS:</span> <span className={buildStatus?.status === 'certified' ? 'text-green-400' : 'text-amber-400'}>{buildStatus?.status?.toUpperCase() || 'IDLE'}</span>
           </div>
         </div>
 
-        {/* Terminal - Center */}
-        <div className="flex-1 border-r border-white/10 p-3 flex flex-col">
-          <div className="text-[9px] font-mono text-white/40 mb-2">◆ TERMINAL</div>
-          <div ref={terminalRef} className="flex-1 overflow-y-auto font-mono text-[10px] space-y-1 scrollbar-thin">
-            {terminalOutput.map((line, idx) => (
-              <div key={idx} className={`${
-                line.type === 'error' ? 'text-red-400' :
-                line.type === 'success' ? 'text-green-400' :
-                line.type === 'cmd' ? 'text-cyan-400' :
-                'text-white/60'
-              }`}>
-                {line.text}
-              </div>
-            ))}
+        {/* Terminal - Center (Wide) */}
+        <div className="flex-1 h-full px-4 flex items-center overflow-hidden">
+          <div className="text-[9px] font-mono text-green-400 truncate">
+            {terminalOutput.length > 0 ? terminalOutput[terminalOutput.length - 1].text : '> System ready.'}
           </div>
         </div>
-
-        {/* AI Recommendations - Right */}
-        <div className="w-72 p-3 flex flex-col">
-          <div className="text-[9px] font-mono text-white/40 mb-2">◆ AI RECOMMENDATIONS</div>
-          <div className="flex-1 overflow-y-auto space-y-2">
-            {aiRecommendations.map(rec => (
-              <button
-                key={rec.id}
-                onClick={() => applyRecommendation(rec)}
-                className={`w-full text-left p-2 rounded-lg border transition-all text-[10px] font-mono ${
-                  rec.priority === 'high' ? 'bg-red-500/10 border-red-500/30 text-red-300 hover:bg-red-500/20' :
-                  rec.priority === 'medium' ? 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20' :
-                  'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
-                }`}
-              >
-                <span className="text-[8px] uppercase opacity-60">{rec.priority}</span>
-                <p className="mt-1">{rec.text}</p>
-              </button>
-            ))}
-            {aiRecommendations.length === 0 && (
-              <div className="text-white/30 text-[10px] text-center py-4">No pending recommendations</div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* YUR AI Branding - Bottom Right */}
-      <div className="fixed bottom-2 right-2 z-50 px-3 py-1 rounded bg-black/60 border border-green-500/30">
-        <span className="font-mono text-[10px] text-green-400 tracking-wider" style={{ fontFamily: "'Orbitron', sans-serif" }}>YUR AI</span>
       </div>
 
       {/* Chrome Pulsing Title Styles */}
