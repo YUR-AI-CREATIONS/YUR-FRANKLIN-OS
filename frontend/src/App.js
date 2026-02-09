@@ -58,34 +58,46 @@ const FolderItem = ({ name, files = [], defaultOpen = false }) => {
 // Full-Height Stacked Folder Component
 // Each folder is full height, stacks behind others with z-index, slides left to reveal folder behind
 const StackedFolder = ({ title, tabColor = 'bg-cyan-500', zIndex = 10, isOpen, onToggle, children, side = 'left', tabOffset = 0 }) => {
-  const slideDirection = side === 'left' 
-    ? (isOpen ? 'translate-x-0' : '-translate-x-[calc(100%-28px)]')
-    : (isOpen ? 'translate-x-0' : 'translate-x-[calc(100%-28px)]');
+  // When folder slides out, it moves left (for left side) or right (for right side)
+  // Only the tab remains visible after sliding
+  const slideAmount = side === 'left' 
+    ? (isOpen ? '0' : 'calc(-100% + 28px)')  
+    : (isOpen ? '0' : 'calc(100% - 28px)');
   
-  const tabStyle = side === 'left'
-    ? { right: `-${28 + tabOffset * 30}px` }
-    : { left: `-${28 + tabOffset * 30}px` };
+  // Tab is positioned absolutely relative to the folder container
+  // For left side: tabs stack on the right edge going further right
+  // For right side: tabs stack on the left edge going further left
+  const tabPositionStyle = side === 'left'
+    ? { right: '0', transform: 'translateX(100%)' }
+    : { left: '0', transform: 'translateX(-100%)' };
   
   const tabPositionClass = side === 'left' ? 'rounded-r-lg' : 'rounded-l-lg';
   
+  // Stagger tabs vertically so they don't overlap
+  const tabTopOffset = 35 + (tabOffset * 32);
+  
   return (
     <div 
-      className={`absolute inset-0 transition-all duration-500 ease-in-out ${slideDirection}`}
-      style={{ zIndex }}
+      className="absolute inset-0 transition-all duration-500 ease-in-out"
+      style={{ 
+        zIndex,
+        transform: `translateX(${slideAmount})`
+      }}
     >
       {/* The folder content */}
-      <div className="h-full w-full bg-black/95 backdrop-blur-md border-r border-white/10 flex flex-col">
+      <div className="h-full w-full bg-black/95 backdrop-blur-md border-r border-white/10 flex flex-col overflow-hidden">
         {children}
       </div>
       
-      {/* Tab on the edge - positioned based on offset for stacking */}
+      {/* Tab on the edge - staggered vertically */}
       <button
         onClick={onToggle}
-        className={`absolute ${tabPositionClass} top-1/2 -translate-y-1/2 w-7 h-28 ${tabColor} flex items-center justify-center text-black font-bold text-[9px] hover:brightness-110 transition-all shadow-lg shadow-black/50`}
+        className={`absolute ${tabPositionClass} w-7 h-24 ${tabColor} flex items-center justify-center text-black font-bold text-[9px] hover:brightness-110 transition-all shadow-lg shadow-black/50 border-2 border-black/20`}
         style={{ 
           writingMode: 'vertical-rl', 
           textOrientation: 'mixed',
-          ...tabStyle
+          top: `${tabTopOffset}%`,
+          ...tabPositionStyle
         }}
       >
         {title}
