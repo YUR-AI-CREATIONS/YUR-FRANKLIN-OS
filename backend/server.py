@@ -1822,6 +1822,10 @@ app.include_router(quality_router)
 app.include_router(marketing_content_router)
 app.include_router(deploy_router)
 
+# Payment routers
+app.include_router(payment_router)
+app.include_router(webhook_router)
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
