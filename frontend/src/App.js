@@ -789,48 +789,86 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
     setWorkflowNodes(prev => [...prev, newNode]);
   };
 
-  // Handle Genesis command
+  // Handle Genesis command - Full build orchestration
   const handleGenesis = async (mission) => {
     setIsLoading(true);
-    addOutput('GENESIS', `Starting mission: ${mission}`, 'system');
+    addOutput('GENESIS', `Initiating mission: ${mission}`, 'system');
     addWorkflowNode(`Genesis: ${mission.slice(0, 30)}...`, 'active');
     
     try {
-      const response = await axios.post(`${API}/api/grok/genesis`, {
+      // Use the new orchestrator for full agent workflow
+      const response = await axios.post(`${API}/api/build-orchestrator/build`, {
         mission: mission
       });
       
       if (response.data.output) {
+        // Display each agent's output
         response.data.output.forEach(entry => {
-          addOutput(entry.phase.toUpperCase(), entry.message, 
-            entry.phase === 'success' ? 'success' : 
-            entry.phase === 'failure' || entry.phase === 'fatal' ? 'error' : 'info');
+          const agentInfo = entry.agent ? ` [${entry.agent}]` : '';
+          addOutput(entry.phase.toUpperCase() + agentInfo, entry.message, 
+            entry.type === 'success' ? 'success' : 
+            entry.type === 'error' ? 'error' : 'info');
         });
       }
       
+      // Add workflow nodes from the build
+      if (response.data.workflow_nodes) {
+        response.data.workflow_nodes.forEach(node => {
+          addWorkflowNode(node.label, node.status);
+        });
+      }
+      
+      // Show governance log
+      if (response.data.governance_log && response.data.governance_log.length > 0) {
+        addOutput('GOVERNANCE', `${response.data.governance_log.length} governance actions logged`, 'info');
+      }
+      
+      // Show agents involved
+      if (response.data.agents_involved && response.data.agents_involved.length > 0) {
+        addOutput('AGENTS', `Build involved: ${response.data.agents_involved.join(', ')}`, 'success');
+      }
+      
       if (response.data.success) {
-        addOutput('COMPLETE', `Task completed successfully!`, 'success');
-        addWorkflowNode('Build Complete', 'completed');
+        addOutput('SIGNOFF', 'Build complete - Audited, Verified, Certified, Signed Off by Franklin', 'success');
         setFileTreeGlow(true);
         setTimeout(() => setFileTreeGlow(false), 2000);
       } else {
-        addOutput('FAILED', `Task failed after ${response.data.task?.attempts || 0} attempts`, 'error');
-        addWorkflowNode('Build Failed', 'failed');
+        addOutput('FAILED', 'Build encountered issues', 'error');
       }
     } catch (err) {
-      addOutput('ERROR', err.response?.data?.detail || err.message, 'error');
+      // Fallback to original grok endpoint
+      try {
+        const response = await axios.post(`${API}/api/grok/genesis`, {
+          mission: mission
+        });
+        
+        if (response.data.output) {
+          response.data.output.forEach(entry => {
+            addOutput(entry.phase.toUpperCase(), entry.message, 
+              entry.phase === 'success' ? 'success' : 
+              entry.phase === 'failure' || entry.phase === 'fatal' ? 'error' : 'info');
+          });
+        }
+        
+        if (response.data.success) {
+          addOutput('COMPLETE', 'Task completed successfully!', 'success');
+        }
+      } catch (fallbackErr) {
+        addOutput('ERROR', err.response?.data?.detail || err.message, 'error');
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle chat/command input
+  // Handle chat/command input - User talks to Franklin
   const handleChatSend = async () => {
     if (!chatInput.trim() || isLoading) return;
     
     const input = chatInput.trim();
     setChatInput('');
     
+    // Check for /genesis or /build commands
     if (input.toLowerCase().startsWith('/genesis ') || input.toLowerCase().startsWith('/build ')) {
       const mission = input.replace(/^\/(?:genesis|build)\s+/i, '');
       await handleGenesis(mission);
@@ -845,18 +883,40 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
     if (input.toLowerCase() === '/clear') {
       setOutputLog([]);
       setConversationHistory([]);
+      setGrokResponses([]);
       addOutput('SYSTEM', 'Conversation cleared.', 'system');
       return;
     }
     
+    if (input.toLowerCase() === '/whiteboard') {
+      // Show current whiteboard state
+      try {
+        const response = await axios.get(`${API}/api/build-orchestrator/whiteboard`);
+        if (response.data.sections && response.data.sections.length > 0) {
+          addOutput('WHITEBOARD', `Session: ${response.data.mission}`, 'info');
+          response.data.sections.forEach(section => {
+            addOutput(section.phase.toUpperCase(), `[${section.name}] ${section.verified ? '✓ Verified' : ''} ${section.certified ? '✓ Certified' : ''} ${section.signed_off ? '✓ Signed' : ''}`, 'success');
+          });
+        } else {
+          addOutput('WHITEBOARD', 'No active build session. Start with /genesis <mission>', 'info');
+        }
+      } catch (e) {
+        addOutput('WHITEBOARD', 'No active build session', 'info');
+      }
+      return;
+    }
+    
     if (input.toLowerCase() === '/help') {
-      addOutput('HELP', 'Available commands:', 'system');
-      addOutput('HELP', '/genesis <mission> - Start a build mission', 'info');
+      addOutput('HELP', 'FRANKLIN OS Commands:', 'system');
+      addOutput('HELP', '/genesis <mission> - Start a full build with all agents', 'info');
       addOutput('HELP', '/build <mission> - Same as /genesis', 'info');
-      addOutput('HELP', '/workflow - Open workflow view', 'info');
+      addOutput('HELP', '/whiteboard - View current build session', 'info');
+      addOutput('HELP', '/workflow - Open workflow visualization', 'info');
       addOutput('HELP', '/clear - Clear conversation', 'info');
       addOutput('HELP', '/help - Show this help', 'info');
+      addOutput('HELP', '', 'info');
       addOutput('HELP', 'Or just type naturally to chat with Franklin!', 'success');
+      addOutput('HELP', 'Franklin will coordinate Genesis, Architect, Implementer & Healer agents.', 'info');
       return;
     }
     
@@ -868,38 +928,34 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
     setConversationHistory(newHistory);
     
     try {
-      // Try to have a real conversation via Grok
-      const response = await axios.post(`${API}/api/grok/chat`, { 
-        message: input,
-        history: newHistory.slice(-10) // Last 10 messages for context
+      // Use orchestrator chat - Franklin perfect-prompts Grok
+      const response = await axios.post(`${API}/api/build-orchestrator/chat`, { 
+        message: input
       });
       
       if (response.data.response) {
         addOutput('FRANKLIN', response.data.response, 'system');
         setConversationHistory([...newHistory, { role: 'assistant', content: response.data.response }]);
+        
+        // If ready to build, suggest it
+        if (response.data.ready_to_build) {
+          addOutput('TIP', 'Ready to build? Type /genesis followed by your project description.', 'info');
+        }
       }
     } catch (err) {
-      // Fallback to analyze endpoint
+      // Fallback to direct Grok chat
       try {
-        const response = await axios.post(`${API}/api/analyze`, { prompt: input });
+        const response = await axios.post(`${API}/api/grok/chat`, { 
+          message: input,
+          history: newHistory.slice(-10)
+        });
         
-        if (response.data.analysis?.summary) {
-          addOutput('FRANKLIN', response.data.analysis.summary, 'system');
-        } else {
-          addOutput('FRANKLIN', `I understood your request. Confidence: ${response.data.confidence_score}%`, 'system');
+        if (response.data.response) {
+          addOutput('FRANKLIN', response.data.response, 'system');
+          setConversationHistory([...newHistory, { role: 'assistant', content: response.data.response }]);
         }
-        
-        if (response.data.analysis?.ambiguities?.length > 0) {
-          response.data.analysis.ambiguities.forEach(amb => {
-            addOutput('QUESTION', `${amb.question}`, 'warning');
-          });
-        }
-        
-        if (response.data.can_proceed) {
-          addOutput('READY', 'Ready to build. Use /genesis <description> to start.', 'success');
-        }
-      } catch (analyzeErr) {
-        addOutput('FRANKLIN', `I'm here to help you build software. Try commands like "/genesis create a todo app" or just describe what you want to create.`, 'system');
+      } catch (fallbackErr) {
+        addOutput('FRANKLIN', `I'm here to help you build software. Try "/genesis create a todo app" or describe what you want to build.`, 'system');
       }
     } finally {
       setIsLoading(false);
