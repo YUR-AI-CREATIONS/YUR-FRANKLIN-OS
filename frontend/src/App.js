@@ -688,15 +688,29 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
   const [detailInput, setDetailInput] = useState('');
   const [detailLoading, setDetailLoading] = useState(false);
   
-  // Franklin Onboard Chat
-  const [franklinChat, setFranklinChat] = useState([
-    { role: 'franklin', content: 'Welcome to FRANKLIN OS. I\'m here to help you navigate and build. What would you like to create today?' }
-  ]);
+  // Franklin Onboard Chat - Load from localStorage
+  const [franklinChat, setFranklinChat] = useState(() => {
+    const saved = localStorage.getItem('franklin_chat');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return [{ role: 'franklin', content: 'Welcome to FRANKLIN OS. I\'m here to help you navigate and build. What would you like to create today?' }];
+      }
+    }
+    return [{ role: 'franklin', content: 'Welcome to FRANKLIN OS. I\'m here to help you navigate and build. What would you like to create today?' }];
+  });
   const [franklinInput, setFranklinInput] = useState('');
   const [franklinLoading, setFranklinLoading] = useState(false);
   
-  // Grok Response Area
-  const [grokResponses, setGrokResponses] = useState([]);
+  // Grok Response Area - Load from localStorage
+  const [grokResponses, setGrokResponses] = useState(() => {
+    const saved = localStorage.getItem('grok_responses');
+    return saved ? JSON.parse(saved) : [];
+  });
+  
+  // Active Tasks for tracking background work
+  const [activeTasks, setActiveTasks] = useState([]);
   
   // Data states
   const [dashboard, setDashboard] = useState(null);
@@ -704,10 +718,16 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
   const [botTiers, setBotTiers] = useState([]);
   const [academyPrograms, setAcademyPrograms] = useState([]);
   
-  // Chat/Output states
+  // Chat/Output states - Load from localStorage
   const [chatInput, setChatInput] = useState('');
-  const [outputLog, setOutputLog] = useState([]);
-  const [conversationHistory, setConversationHistory] = useState([]);
+  const [outputLog, setOutputLog] = useState(() => {
+    const saved = localStorage.getItem('output_log');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [conversationHistory, setConversationHistory] = useState(() => {
+    const saved = localStorage.getItem('conversation_history');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [isLoading, setIsLoading] = useState(false);
   
   // File tree state
