@@ -1191,7 +1191,6 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         {/* FOLDER 4 (Back) - BUILD: Frontend/Backend/Database/Deploy */}
         <StackedFolder 
           title="BUILD" 
-          tabColor="bg-red-500" 
           zIndex={10} 
           isOpen={leftFolders.build} 
           onToggle={() => toggleLeftFolder('build')}
@@ -1285,11 +1284,9 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         {/* FOLDER 3 - PROJECTS SAVED */}
         <StackedFolder 
           title="PROJECTS" 
-          tabColor="bg-yellow-500" 
           zIndex={20} 
           isOpen={leftFolders.projects} 
           onToggle={() => toggleLeftFolder('projects')}
-          tabOffset={2}
         >
           <div className="p-3 border-b border-white/10">
             <div className="text-[10px] font-mono text-white/80 tracking-wider">◆ SAVED PROJECTS</div>
@@ -1337,11 +1334,9 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         {/* FOLDER 2 - LLM PROVIDERS */}
         <StackedFolder 
           title="LLM" 
-          tabColor="bg-cyan-500" 
           zIndex={30} 
           isOpen={leftFolders.providers} 
           onToggle={() => toggleLeftFolder('providers')}
-          tabOffset={1}
         >
           <div className="p-3 border-b border-white/10">
             <div className="text-[10px] font-mono text-white/80 tracking-wider">◆ LLM PROVIDERS</div>
@@ -1396,11 +1391,9 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         {/* FOLDER 1 (Front) - FRANKLIN ONBOARD CHAT - Full height scrolling chat */}
         <StackedFolder 
           title="FRANKLIN" 
-          tabColor="bg-emerald-500" 
           zIndex={40} 
           isOpen={leftFolders.franklin} 
           onToggle={() => toggleLeftFolder('franklin')}
-          tabOffset={0}
         >
           <div className="p-3 border-b border-white/10">
             <div className="text-[10px] font-mono text-emerald-400 tracking-wider">◈ FRANKLIN ONBOARD CHAT</div>
@@ -1524,12 +1517,10 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         {/* FOLDER 3 (Back) - ACADEMY */}
         <StackedFolder 
           title="ACADEMY" 
-          tabColor="bg-purple-500" 
           zIndex={10} 
           isOpen={rightFolders.academy} 
           onToggle={() => toggleRightFolder('academy')}
           side="right"
-          tabOffset={2}
         >
           <div className="p-3 border-b border-white/10">
             <div className="text-[10px] font-mono text-purple-400 tracking-wider">◆ TRAINING PROGRAMS</div>
@@ -1559,12 +1550,10 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         {/* FOLDER 2 - BOTS */}
         <StackedFolder 
           title="BOTS" 
-          tabColor="bg-amber-500" 
           zIndex={20} 
           isOpen={rightFolders.bots} 
           onToggle={() => toggleRightFolder('bots')}
           side="right"
-          tabOffset={1}
         >
           <div className="p-3 border-b border-white/10">
             <div className="text-[10px] font-mono text-amber-400 tracking-wider">◆ BOT TIERS</div>
@@ -1594,12 +1583,10 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         {/* FOLDER 1 (Front) - AGENTS */}
         <StackedFolder 
           title="AGENTS" 
-          tabColor="bg-green-500" 
           zIndex={30} 
           isOpen={rightFolders.agents} 
           onToggle={() => toggleRightFolder('agents')}
           side="right"
-          tabOffset={0}
         >
           <div className="p-3 border-b border-white/10">
             <div className="text-[10px] font-mono text-green-400 tracking-wider">◆ ELITE AGENTS</div>
