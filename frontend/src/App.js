@@ -1407,6 +1407,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
           zIndex={40} 
           isOpen={leftFolders.franklin} 
           onToggle={() => toggleLeftFolder('franklin')}
+          stackOffset={0}
         >
           <div className="p-3 border-b border-white/10">
             <div className="text-[10px] font-mono text-emerald-400 tracking-wider">◈ FRANKLIN ONBOARD CHAT</div>
