@@ -29,26 +29,49 @@ const nodeTypes = {
   spec: SpecNode,
 };
 
-// Folder Item Component for the left panel tree
+// Folder Item Component for nested files
 const FolderItem = ({ name, files = [], defaultOpen = false }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   
   return (
     <div className="mb-1">
       <div 
-        className="cursor-pointer py-1.5 px-1 text-[11px] font-mono tracking-wider flex items-center gap-1.5 hover:bg-white/5 rounded"
+        className="cursor-pointer py-1 px-1 text-[10px] font-mono tracking-wider flex items-center gap-1.5 hover:bg-white/5 rounded"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className={`w-3 text-white/40 transition-transform ${isOpen ? 'rotate-90' : ''}`}>▶</span>
-        <span className="text-white/80">{name}</span>
+        <span className={`w-2.5 text-white/40 transition-transform text-[8px] ${isOpen ? 'rotate-90' : ''}`}>▶</span>
+        <span className="text-white/70">{name}</span>
       </div>
       {isOpen && (
         <div className="ml-3 border-l border-white/10 pl-2">
           {files.map((file, idx) => (
-            <div key={idx} className="py-1 px-1 text-[10px] font-mono text-white/60 hover:text-white/80 hover:bg-white/5 rounded cursor-pointer">
+            <div key={idx} className="py-0.5 px-1 text-[9px] font-mono text-white/50 hover:text-white/70 hover:bg-white/5 rounded cursor-pointer">
               {file}
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Accordion Panel Component - Collapsible sections for left panel
+const AccordionPanel = ({ title, icon = '◆', color = 'text-white/80', defaultOpen = false, children }) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  
+  return (
+    <div className="border-b border-white/5">
+      <div 
+        className="cursor-pointer py-2 px-3 text-[11px] font-mono tracking-wider flex items-center gap-2 hover:bg-white/5 transition-all"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className={`w-3 text-white/40 transition-transform text-[10px] ${isOpen ? 'rotate-90' : ''}`}>▶</span>
+        <span className={color}>{icon}</span>
+        <span className="text-white/80">{title}</span>
+      </div>
+      {isOpen && (
+        <div className="px-3 pb-2 ml-5">
+          {children}
         </div>
       )}
     </div>
