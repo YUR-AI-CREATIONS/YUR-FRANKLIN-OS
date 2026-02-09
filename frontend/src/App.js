@@ -1456,36 +1456,106 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
           </div>
         )}
 
-        <div className="flex-1 flex flex-col min-h-0 p-4">
-          <div className="text-[9px] font-mono text-white/40 mb-2">◆ COMMAND_INPUT</div>
-          <div className="flex-1 flex items-end">
-            <div className="w-full flex gap-2">
-              <input
-                type="text"
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleChatSend()}
-                placeholder="Describe what you want to build or type /genesis <mission>..."
-                className="flex-1 silver-input rounded-lg px-4 py-3 text-sm font-mono text-white placeholder-white/30"
-                data-testid="command-input"
-                disabled={isLoading}
-              />
-              <button
-                onClick={handleChatSend}
-                disabled={isLoading || !chatInput.trim()}
-                data-testid="send-btn"
-                className="silver-btn px-6 py-3 rounded-lg text-sm font-mono text-white transition-all disabled:opacity-30"
-              >
-                {isLoading ? '◐' : 'SEND ▶'}
-              </button>
+        {/* Bottom Panel Content: Terminal | Grok Response | Recommendations */}
+        <div className="flex-1 flex min-h-0">
+          {/* Terminal - Left */}
+          <div className="w-1/3 border-r border-white/10 flex flex-col">
+            <div className="px-3 py-2 border-b border-white/10 text-[9px] font-mono text-white/40">◆ TERMINAL</div>
+            <div className="flex-1 p-3 overflow-y-auto font-mono text-[10px] scrollbar-thin">
+              {outputLog.slice(-15).map((entry, idx) => (
+                <div key={idx} className={`mb-1 ${getOutputColor(entry.type)}`}>
+                  <span className="text-white/30">[{entry.phase}]</span> {entry.message?.slice(0, 80)}
+                </div>
+              ))}
+              {outputLog.length === 0 && (
+                <div className="text-white/30">
+                  {'>'} FRANKLIN OS Terminal v2.0<br/>
+                  {'>'} Ready for commands...
+                </div>
+              )}
+            </div>
+            <div className="p-2 border-t border-white/10">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleChatSend()}
+                  placeholder="/genesis <mission> or describe..."
+                  className="flex-1 silver-input rounded px-3 py-2 text-[10px] font-mono text-white placeholder-white/30"
+                  data-testid="command-input"
+                  disabled={isLoading}
+                />
+                <button
+                  onClick={handleChatSend}
+                  disabled={isLoading || !chatInput.trim()}
+                  data-testid="send-btn"
+                  className="silver-btn px-3 py-2 rounded text-[10px] font-mono text-white disabled:opacity-30"
+                >
+                  {isLoading ? '◐' : '▶'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Grok Response - Center */}
+          <div className="flex-1 border-r border-white/10 flex flex-col">
+            <div className="px-3 py-2 border-b border-white/10 text-[9px] font-mono text-white/40">◆ GROK RESPONSE</div>
+            <div className="flex-1 p-3 overflow-y-auto scrollbar-thin">
+              {grokResponses.length > 0 ? (
+                grokResponses.slice(-8).map((resp, idx) => (
+                  <div key={idx} className={`mb-2 text-[10px] font-mono ${
+                    resp.type === 'success' ? 'text-green-400' :
+                    resp.type === 'error' ? 'text-red-400' :
+                    'text-white/70'
+                  }`}>
+                    <span className="text-white/30 text-[8px]">[{resp.phase}]</span>
+                    <p className="mt-0.5 leading-relaxed">{resp.message}</p>
+                  </div>
+                ))
+              ) : (
+                <div className="text-white/30 text-[10px] font-mono">
+                  Grok responses will appear here when you run /genesis commands...
+                </div>
+              )}
+              {isLoading && (
+                <div className="flex items-center gap-2 text-purple-400 text-[10px] font-mono">
+                  <div className="w-5 h-5">
+                    <NeuralBrain themeColor="#a855f7" isThinking={true} size="sm" />
+                  </div>
+                  Processing...
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Recommendations - Right */}
+          <div className="w-1/4 flex flex-col">
+            <div className="px-3 py-2 border-b border-white/10 text-[9px] font-mono text-white/40">◆ RECOMMENDATIONS</div>
+            <div className="flex-1 p-2 overflow-y-auto space-y-2 scrollbar-thin">
+              {recommendations.map(rec => (
+                <button
+                  key={rec.id}
+                  onClick={() => {
+                    setChatInput(rec.text.includes('/') ? rec.text : `/genesis ${rec.text}`);
+                    setRecommendations(prev => prev.filter(r => r.id !== rec.id));
+                  }}
+                  className="w-full text-left p-2 rounded bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-[9px] font-mono text-white/60 hover:text-white"
+                >
+                  {rec.text}
+                </button>
+              ))}
+              {recommendations.length === 0 && (
+                <div className="text-white/30 text-[9px] text-center py-2">No recommendations</div>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Neural Brain - Bottom Right Corner */}
-      <div className="fixed bottom-4 right-4 z-50 w-16 h-16 rounded-xl overflow-hidden bg-black/40 backdrop-blur-sm border border-white/10 shadow-lg" data-testid="neural-brain-widget">
-        <NeuralBrain themeColor="#00ff88" isThinking={isLoading || detailLoading} size="sm" />
+      {/* Neural Brain - Bottom Right Corner (Green) */}
+      <div className="fixed bottom-4 right-4 z-50 w-16 h-16 rounded-xl overflow-hidden bg-black/40 backdrop-blur-sm border border-green-500/30 shadow-lg shadow-green-500/10" data-testid="neural-brain-widget">
+        <NeuralBrain themeColor="#22c55e" isThinking={isLoading || detailLoading || franklinLoading} size="sm" />
       </div>
 
       <style>{`
