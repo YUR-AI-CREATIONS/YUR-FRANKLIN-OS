@@ -1263,31 +1263,9 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
           </div>
         </div>
       </div>
-              />
-            </div>
-          </div>
-          
-          {/* GOVERNANCE Folder */}
-          <FolderItem 
-            name="GOVERNANCE" 
-            files={['Audit Reports', 'Licensing', 'Certification']}
-          />
-          
-          <div className="flex-1" />
-          
-          {/* Open Workflow Button */}
-          <button
-            onClick={() => onNavigate(PAGES.WORKFLOW)}
-            className="w-full px-3 py-2 text-[10px] font-mono text-cyan-400 hover:bg-cyan-400/10 rounded border border-cyan-400/30 transition-all mt-4"
-            data-testid="open-workflow-left"
-          >
-            ◈ OPEN WORKFLOW
-          </button>
-        </div>
-      </div>
 
       {/* CENTER - Code/Chat Output Area */}
-      <div className={`absolute top-10 bottom-48 z-10 transition-all duration-300 ${franklinPanelOpen ? 'left-64' : 'left-0'} ${agentsPanelOpen ? 'right-64' : 'right-0'} ${agentChatOpen && detailPanel ? 'right-[320px]' : ''}`}>
+      <div className={`absolute top-10 bottom-36 z-10 transition-all duration-300 ${franklinPanelOpen ? 'left-72' : 'left-0'} ${agentsPanelOpen ? 'right-64' : 'right-0'} ${agentChatOpen && detailPanel ? 'right-[320px]' : ''}`}>
         {/* Chat Messages Area */}
         <div 
           ref={outputRef}
