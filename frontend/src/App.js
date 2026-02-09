@@ -893,6 +893,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
       conversation: [{ role: 'program', content: greeting }]
     });
     setDetailInput('');
+    setAgentChatOpen(true);
   };
 
   // Close detail panel
@@ -901,6 +902,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
     setSelectedAgent(null);
     setSelectedBot(null);
     setSelectedProgram(null);
+    setAgentChatOpen(false);
   };
 
   // Send message in detail panel
