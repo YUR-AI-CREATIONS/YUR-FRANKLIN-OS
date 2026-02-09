@@ -1615,30 +1615,33 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         </StackedFolder>
       </div>
 
-      {/* BOTTOM PANEL - Terminal | Grok Chat (with large context) */}
-      <div className="absolute bottom-0 left-80 right-72 h-44 z-40 bg-black/95 border-t border-white/10 backdrop-blur-md flex">
+      {/* BOTTOM PANEL - Terminal | Grok Response - Auto-snapped, clean layout */}
+      <div className="absolute bottom-0 left-0 right-0 h-40 z-50 bg-black border-t border-white/10 flex">
         
-        {/* Terminal - Left */}
-        <div className="flex-1 border-r border-white/10 flex flex-col">
-          <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between">
-            <div className="text-[10px] font-mono text-cyan-400 tracking-wider">◆ TERMINAL</div>
-            <div className="text-[8px] font-mono text-white/40">SDK Cloud • Ubuntu/Linux • PowerShell</div>
+        {/* Terminal - Left Half */}
+        <div className="flex-1 flex flex-col border-r border-white/10">
+          <div className="px-4 py-2 border-b border-white/5 flex items-center justify-between bg-black">
+            <div className="text-[10px] font-mono text-cyan-400 tracking-wider flex items-center gap-2">
+              <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></span>
+              TERMINAL
+            </div>
+            <div className="text-[8px] font-mono text-white/30">SDK Cloud • Ubuntu/Linux • PowerShell</div>
           </div>
-          <div className="flex-1 p-3 overflow-y-auto font-mono text-[10px] scrollbar-thin bg-black/50">
-            {outputLog.slice(-15).map((entry, idx) => (
-              <div key={idx} className={`mb-1 ${getOutputColor(entry.type)}`}>
-                <span className="text-white/30">&gt; [{entry.phase}]</span> {entry.message?.slice(0, 80)}
+          <div className="flex-1 p-3 overflow-y-auto font-mono text-[10px] scrollbar-thin bg-black">
+            {outputLog.slice(-12).map((entry, idx) => (
+              <div key={idx} className={`mb-0.5 ${getOutputColor(entry.type)}`}>
+                <span className="text-white/20">&gt;</span> <span className="text-white/40">[{entry.phase}]</span> {entry.message?.slice(0, 100)}
               </div>
             ))}
             {outputLog.length === 0 && (
-              <div className="text-white/30">
+              <div className="text-white/25 leading-relaxed">
                 &gt; FRANKLIN OS Terminal v2.0<br/>
                 &gt; Ready...<br/>
-                &gt; Type /genesis &lt;mission&gt; to start building
+                &gt; Type /genesis &lt;mission&gt; to start
               </div>
             )}
           </div>
-          <div className="p-2 border-t border-white/10 bg-black/80">
+          <div className="p-2 border-t border-white/5 bg-black">
             <div className="flex gap-2">
               <input
                 type="text"
@@ -1646,7 +1649,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleChatSend()}
                 placeholder="/genesis <mission>..."
-                className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-mono text-white placeholder-white/30 focus:outline-none focus:border-cyan-500/50"
+                className="flex-1 bg-white/5 border border-white/10 px-3 py-1.5 text-[10px] font-mono text-white placeholder-white/20 focus:outline-none focus:border-cyan-500/30"
                 data-testid="command-input"
                 disabled={isLoading}
               />
@@ -1654,7 +1657,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
                 onClick={handleChatSend}
                 disabled={isLoading || !chatInput.trim()}
                 data-testid="send-btn"
-                className="px-3 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/30 rounded-lg text-[10px] font-mono text-cyan-400 disabled:opacity-30 transition-all"
+                className="px-3 py-1.5 bg-cyan-500/10 border border-cyan-500/20 text-[10px] font-mono text-cyan-400 disabled:opacity-30 hover:bg-cyan-500/20 transition-all"
               >
                 {isLoading ? '◐' : '▶'}
               </button>
@@ -1662,52 +1665,45 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
           </div>
         </div>
 
-        {/* Grok Chat - Right (with 1M context) */}
+        {/* Grok Response - Right Half */}
         <div className="flex-1 flex flex-col">
-          <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between">
-            <div className="text-[10px] font-mono text-purple-400 tracking-wider">◆ GROK RESPONSE</div>
-            <div className="text-[8px] font-mono text-white/40">1M Context Window</div>
+          <div className="px-4 py-2 border-b border-white/5 flex items-center justify-between bg-black">
+            <div className="text-[10px] font-mono text-purple-400 tracking-wider flex items-center gap-2">
+              <span className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></span>
+              GROK RESPONSE
+            </div>
+            <div className="text-[8px] font-mono text-white/30">1M Context Window</div>
           </div>
-          <div className="flex-1 p-3 overflow-y-auto scrollbar-thin bg-black/50">
+          <div className="flex-1 p-3 overflow-y-auto scrollbar-thin bg-black">
             {grokResponses.length > 0 ? (
-              grokResponses.map((resp, idx) => (
-                <div key={idx} className={`mb-2 p-2 rounded ${
-                  resp.type === 'success' ? 'bg-green-500/10 border border-green-500/20' :
-                  resp.type === 'error' ? 'bg-red-500/10 border border-red-500/20' :
-                  'bg-white/5 border border-white/10'
+              grokResponses.slice(-8).map((resp, idx) => (
+                <div key={idx} className={`mb-1 text-[10px] font-mono ${
+                  resp.type === 'success' ? 'text-green-400' :
+                  resp.type === 'error' ? 'text-red-400' :
+                  'text-white/60'
                 }`}>
-                  <div className="text-[8px] text-white/40 mb-1">[{resp.phase}] {resp.timestamp?.split('T')[1]?.slice(0,8)}</div>
-                  <div className={`text-[10px] font-mono leading-relaxed ${
-                    resp.type === 'success' ? 'text-green-400' :
-                    resp.type === 'error' ? 'text-red-400' :
-                    'text-white/80'
-                  }`}>
-                    {resp.message}
-                  </div>
+                  <span className="text-white/20">[{resp.phase}]</span> {resp.message?.slice(0, 120)}
                 </div>
               ))
             ) : (
-              <div className="text-white/30 text-[10px] font-mono">
+              <div className="text-white/25 text-[10px] font-mono leading-relaxed">
                 Grok responses appear here...<br/>
-                Use the input below to ask Grok directly
+                Use the input below to ask Grok
               </div>
             )}
             {isLoading && (
-              <div className="flex items-center gap-2 text-purple-400 text-[10px] font-mono p-2">
-                <div className="w-4 h-4">
-                  <NeuralBrain themeColor="#a855f7" isThinking={true} size="sm" />
-                </div>
-                <span>Processing...</span>
+              <div className="flex items-center gap-2 text-purple-400 text-[10px] font-mono mt-1">
+                <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-ping"></span>
+                Processing...
               </div>
             )}
           </div>
-          {/* Grok's dedicated chat input */}
-          <div className="p-2 border-t border-white/10 bg-black/80">
+          <div className="p-2 border-t border-white/5 bg-black">
             <div className="flex gap-2">
               <input
                 type="text"
                 placeholder="Ask Grok anything..."
-                className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-mono text-white placeholder-white/30 focus:outline-none focus:border-purple-500/50"
+                className="flex-1 bg-white/5 border border-white/10 px-3 py-1.5 text-[10px] font-mono text-white placeholder-white/20 focus:outline-none focus:border-purple-500/30"
                 data-testid="grok-input"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && e.target.value.trim()) {
@@ -1718,6 +1714,11 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
                   }
                 }}
               />
+              <button className="px-3 py-1.5 bg-purple-500/10 border border-purple-500/20 text-[10px] font-mono text-purple-400 hover:bg-purple-500/20 transition-all">▶</button>
+            </div>
+          </div>
+        </div>
+      </div>
               <button className="px-3 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-lg text-[10px] font-mono text-purple-400 transition-all">▶</button>
             </div>
           </div>
