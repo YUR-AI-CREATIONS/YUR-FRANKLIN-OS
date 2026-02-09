@@ -823,15 +823,15 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
       <GalacticBackground />
       
       {/* FRANKLIN Chrome Branding - GHOST FORMAT, BIGGER, 1/4 DOWN */}
-      <div className="fixed inset-x-0 top-[20%] flex justify-center pointer-events-none z-[5] px-4">
+      <div className="fixed inset-x-0 top-[18%] flex justify-center pointer-events-none z-[5] overflow-hidden">
         <h1 
           className="select-none franklin-chrome-ide whitespace-nowrap"
           style={{ 
             fontFamily: "'Orbitron', sans-serif",
-            fontSize: 'clamp(5rem,16vw,14rem)',
+            fontSize: 'clamp(4rem,13vw,11rem)',
             fontWeight: 600,
-            letterSpacing: '0.5em',
-            marginLeft: '0.25em',
+            letterSpacing: '0.45em',
+            paddingLeft: '0.22em',
           }}
         >
           FRANKLIN
