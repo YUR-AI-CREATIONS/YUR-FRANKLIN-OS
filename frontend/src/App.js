@@ -635,7 +635,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
     }
   }, [outputLog]);
 
-  // Add output message
+  // Add output message and Grok response
   const addOutput = (phase, message, type = 'info') => {
     setOutputLog(prev => [...prev, {
       phase,
@@ -643,6 +643,10 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
       type,
       timestamp: new Date().toISOString()
     }]);
+    // Also add to Grok responses for the bottom panel
+    if (phase.toLowerCase().includes('grok') || phase === 'GENESIS' || phase === 'COMPLETE' || phase === 'FAILED') {
+      setGrokResponses(prev => [...prev.slice(-10), { phase, message, type, timestamp: new Date().toISOString() }]);
+    }
   };
 
   // Add node to workflow
