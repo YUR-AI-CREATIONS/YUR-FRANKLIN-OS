@@ -1101,43 +1101,145 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         </div>
       </div>
 
-      {/* LEFT SLIDE PANEL - Folder Tree */}
-      <div className={`absolute top-10 bottom-48 z-40 bg-black/90 border-r border-white/10 backdrop-blur-md transition-all duration-300 ${franklinPanelOpen ? 'left-0 w-64' : '-left-64 w-64'}`}>
+      {/* LEFT SLIDE PANEL - Nested Accordion Folders */}
+      <div className={`absolute top-10 bottom-36 z-40 bg-black/90 border-r border-white/10 backdrop-blur-md transition-all duration-300 ${franklinPanelOpen ? 'left-0 w-72' : '-left-72 w-72'}`}>
         <button
           onClick={() => setFranklinPanelOpen(!franklinPanelOpen)}
           className="absolute -right-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/80 border border-white/10 rounded-r-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
-          data-testid="toggle-franklin-panel"
+          data-testid="toggle-left-panel"
         >
           {franklinPanelOpen ? '◀' : '▶'}
         </button>
         
-        <div className="p-3 h-full flex flex-col overflow-y-auto scrollbar-thin">
-          {/* FRANKLIN Folder */}
-          <FolderItem 
-            name="FRANKLIN" 
+        <div className="h-full flex flex-col overflow-y-auto scrollbar-thin">
+          
+          {/* FRANKLIN - Chat Panel (Accordion) */}
+          <AccordionPanel 
+            title="FRANKLIN" 
+            icon="◈"
             defaultOpen={true}
-            files={['Chatport', 'System Prompt']}
-          />
-          
-          {/* LLM STACK Folder */}
-          <FolderItem 
-            name="LLM STACK" 
-            files={['OpenAI', 'Grok', 'Claude', 'Upload (250MB)']}
-          />
-          
-          {/* PROJECTS Folder */}
-          <div className="folder mb-1">
-            <div 
-              className="folder-header cursor-pointer py-1.5 px-1 text-[11px] font-mono tracking-wider flex items-center gap-1.5 hover:bg-white/5 rounded"
-              onClick={(e) => e.currentTarget.parentElement.classList.toggle('open')}
-            >
-              <span className="arrow w-3 text-white/40 transition-transform">▶</span>
-              <span className="text-white/80">PROJECTS</span>
+            color="text-cyan-400"
+          >
+            <div className="space-y-2">
+              <div ref={franklinRef} className="h-32 overflow-y-auto space-y-2 scrollbar-thin">
+                {franklinChat.map((msg, idx) => (
+                  <div key={idx} className={`text-[10px] font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/70'}`}>
+                    <span className="text-white/30 text-[8px]">[{msg.role === 'user' ? 'YOU' : 'FRANKLIN'}]</span>
+                    <p className="mt-0.5">{msg.content}</p>
+                  </div>
+                ))}
+                {franklinLoading && <div className="text-purple-400 text-[10px]">Thinking...</div>}
+              </div>
+              <div className="flex gap-1">
+                <input
+                  type="text"
+                  value={franklinInput}
+                  onChange={(e) => setFranklinInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleFranklinSend()}
+                  placeholder="Ask Franklin..."
+                  className="flex-1 bg-white/5 border border-white/10 rounded px-2 py-1 text-[10px] font-mono text-white placeholder-white/30 focus:outline-none"
+                  disabled={franklinLoading}
+                />
+                <button onClick={handleFranklinSend} disabled={franklinLoading} className="px-2 py-1 bg-white/10 rounded text-[10px] text-white">▶</button>
+              </div>
             </div>
-            <div className="folder-children hidden ml-3 border-l border-white/10 pl-2">
-              <FolderItem 
-                name="Project Alpha" 
-                files={['/src', '/schemas', '/docs']}
+          </AccordionPanel>
+
+          {/* GOVERNANCE Panel */}
+          <AccordionPanel title="GOVERNANCE" icon="◆" color="text-purple-400">
+            <div className="space-y-1">
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Audit Reports</div>
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Licensing</div>
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Certification</div>
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Compliance</div>
+            </div>
+          </AccordionPanel>
+
+          {/* LLM MODELS Panel */}
+          <AccordionPanel title="LLM MODELS" icon="◆" color="text-green-400">
+            <div className="space-y-1">
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer flex justify-between">
+                <span>OpenAI GPT-5.2</span>
+                <span className="text-green-400 text-[8px]">●</span>
+              </div>
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer flex justify-between">
+                <span>Grok 4</span>
+                <span className="text-green-400 text-[8px]">●</span>
+              </div>
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer flex justify-between">
+                <span>Claude Sonnet</span>
+                <span className="text-green-400 text-[8px]">●</span>
+              </div>
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer flex justify-between">
+                <span>Gemini 3 Pro</span>
+                <span className="text-amber-400 text-[8px]">●</span>
+              </div>
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Upload Model (250MB)</div>
+            </div>
+          </AccordionPanel>
+
+          {/* PROJECTS Panel */}
+          <AccordionPanel title="PROJECTS" icon="◆" color="text-amber-400">
+            <div className="space-y-1">
+              <FolderItem name="Project Alpha" files={['/src', '/schemas', '/docs']} />
+              <FolderItem name="Project Beta" files={['/api', '/tests']} />
+            </div>
+          </AccordionPanel>
+
+          {/* Divider */}
+          <div className="border-t border-white/10 my-2 mx-3" />
+
+          {/* DATABASE */}
+          <AccordionPanel title="DATABASE" icon="◇" color="text-blue-400">
+            <div className="space-y-1">
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">MongoDB</div>
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Supabase</div>
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Schemas</div>
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Migrations</div>
+            </div>
+          </AccordionPanel>
+
+          {/* FRONTEND */}
+          <AccordionPanel title="FRONTEND" icon="◇" color="text-pink-400">
+            <div className="space-y-1">
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">React Components</div>
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Styles</div>
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Assets</div>
+            </div>
+          </AccordionPanel>
+
+          {/* BACKEND */}
+          <AccordionPanel title="BACKEND" icon="◇" color="text-orange-400">
+            <div className="space-y-1">
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">FastAPI Routes</div>
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Models</div>
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Services</div>
+            </div>
+          </AccordionPanel>
+
+          {/* DEPLOYMENT */}
+          <AccordionPanel title="DEPLOYMENT" icon="◇" color="text-red-400">
+            <div className="space-y-1">
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Docker Config</div>
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">CI/CD Pipeline</div>
+              <div className="py-1 px-2 text-[10px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Environment</div>
+            </div>
+          </AccordionPanel>
+
+          <div className="flex-1" />
+          
+          {/* Workflow Button */}
+          <div className="p-3 border-t border-white/10">
+            <button
+              onClick={() => onNavigate(PAGES.WORKFLOW)}
+              className="w-full px-3 py-2 text-[10px] font-mono text-cyan-400 hover:bg-cyan-400/10 rounded border border-cyan-400/30 transition-all"
+              data-testid="open-workflow-left"
+            >
+              ◈ OPEN WORKFLOW
+            </button>
+          </div>
+        </div>
+      </div>
               />
             </div>
           </div>
