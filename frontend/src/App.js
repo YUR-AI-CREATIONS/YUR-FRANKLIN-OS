@@ -1615,34 +1615,38 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         </StackedFolder>
       </div>
 
-      {/* BOTTOM PANEL - Terminal | Grok Response (both with inputs) | Brain */}
-      <div className={`absolute bottom-0 h-36 z-40 bg-black/95 border-t border-white/10 backdrop-blur-md flex transition-all duration-300 ${leftPanelOpen ? 'left-72' : 'left-0'} ${agentsPanelOpen ? 'right-64' : 'right-0'}`}>
+      {/* BOTTOM PANEL - Terminal | Grok Chat (with large context) */}
+      <div className="absolute bottom-0 left-80 right-72 h-44 z-40 bg-black/95 border-t border-white/10 backdrop-blur-md flex">
         
-        {/* Terminal - Left (with input) */}
+        {/* Terminal - Left */}
         <div className="flex-1 border-r border-white/10 flex flex-col">
-          <div className="px-3 py-1.5 border-b border-white/10 text-[9px] font-mono text-white/40">◆ TERMINAL</div>
-          <div className="flex-1 p-2 overflow-y-auto font-mono text-[9px] scrollbar-thin">
-            {outputLog.slice(-10).map((entry, idx) => (
-              <div key={idx} className={`mb-0.5 ${getOutputColor(entry.type)}`}>
-                <span className="text-white/30">[{entry.phase}]</span> {entry.message?.slice(0, 60)}
+          <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between">
+            <div className="text-[10px] font-mono text-cyan-400 tracking-wider">◆ TERMINAL</div>
+            <div className="text-[8px] font-mono text-white/40">SDK Cloud • Ubuntu/Linux • PowerShell</div>
+          </div>
+          <div className="flex-1 p-3 overflow-y-auto font-mono text-[10px] scrollbar-thin bg-black/50">
+            {outputLog.slice(-15).map((entry, idx) => (
+              <div key={idx} className={`mb-1 ${getOutputColor(entry.type)}`}>
+                <span className="text-white/30">&gt; [{entry.phase}]</span> {entry.message?.slice(0, 80)}
               </div>
             ))}
             {outputLog.length === 0 && (
               <div className="text-white/30">
-                {'>'} FRANKLIN OS Terminal v2.0<br/>
-                {'>'} Ready...
+                &gt; FRANKLIN OS Terminal v2.0<br/>
+                &gt; Ready...<br/>
+                &gt; Type /genesis &lt;mission&gt; to start building
               </div>
             )}
           </div>
-          <div className="p-2 border-t border-white/10">
-            <div className="flex gap-1">
+          <div className="p-2 border-t border-white/10 bg-black/80">
+            <div className="flex gap-2">
               <input
                 type="text"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleChatSend()}
                 placeholder="/genesis <mission>..."
-                className="flex-1 bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[9px] font-mono text-white placeholder-white/30 focus:outline-none"
+                className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-mono text-white placeholder-white/30 focus:outline-none focus:border-cyan-500/50"
                 data-testid="command-input"
                 disabled={isLoading}
               />
@@ -1650,7 +1654,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
                 onClick={handleChatSend}
                 disabled={isLoading || !chatInput.trim()}
                 data-testid="send-btn"
-                className="px-2 py-1.5 bg-white/10 border border-white/10 rounded text-[9px] font-mono text-white disabled:opacity-30"
+                className="px-3 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/30 rounded-lg text-[10px] font-mono text-cyan-400 disabled:opacity-30 transition-all"
               >
                 {isLoading ? '◐' : '▶'}
               </button>
@@ -1658,61 +1662,75 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
           </div>
         </div>
 
-        {/* Grok Response - Center (with its own chat input) */}
-        <div className="flex-1 border-r border-white/10 flex flex-col">
-          <div className="px-3 py-1.5 border-b border-white/10 text-[9px] font-mono text-white/40">◆ GROK RESPONSE</div>
-          <div className="flex-1 p-2 overflow-y-auto scrollbar-thin">
+        {/* Grok Chat - Right (with 1M context) */}
+        <div className="flex-1 flex flex-col">
+          <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between">
+            <div className="text-[10px] font-mono text-purple-400 tracking-wider">◆ GROK RESPONSE</div>
+            <div className="text-[8px] font-mono text-white/40">1M Context Window</div>
+          </div>
+          <div className="flex-1 p-3 overflow-y-auto scrollbar-thin bg-black/50">
             {grokResponses.length > 0 ? (
-              grokResponses.slice(-6).map((resp, idx) => (
-                <div key={idx} className={`mb-1 text-[9px] font-mono ${
-                  resp.type === 'success' ? 'text-green-400' :
-                  resp.type === 'error' ? 'text-red-400' :
-                  'text-white/70'
+              grokResponses.map((resp, idx) => (
+                <div key={idx} className={`mb-2 p-2 rounded ${
+                  resp.type === 'success' ? 'bg-green-500/10 border border-green-500/20' :
+                  resp.type === 'error' ? 'bg-red-500/10 border border-red-500/20' :
+                  'bg-white/5 border border-white/10'
                 }`}>
-                  <span className="text-white/30 text-[8px]">[{resp.phase}]</span>
-                  <p className="mt-0.5">{resp.message?.slice(0, 100)}</p>
+                  <div className="text-[8px] text-white/40 mb-1">[{resp.phase}] {resp.timestamp?.split('T')[1]?.slice(0,8)}</div>
+                  <div className={`text-[10px] font-mono leading-relaxed ${
+                    resp.type === 'success' ? 'text-green-400' :
+                    resp.type === 'error' ? 'text-red-400' :
+                    'text-white/80'
+                  }`}>
+                    {resp.message}
+                  </div>
                 </div>
               ))
             ) : (
-              <div className="text-white/30 text-[9px] font-mono">
-                Grok responses appear here...
+              <div className="text-white/30 text-[10px] font-mono">
+                Grok responses appear here...<br/>
+                Use the input below to ask Grok directly
               </div>
             )}
             {isLoading && (
-              <div className="flex items-center gap-1 text-purple-400 text-[9px] font-mono">
-                <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-ping" />
-                Processing...
+              <div className="flex items-center gap-2 text-purple-400 text-[10px] font-mono p-2">
+                <div className="w-4 h-4">
+                  <NeuralBrain themeColor="#a855f7" isThinking={true} size="sm" />
+                </div>
+                <span>Processing...</span>
               </div>
             )}
           </div>
-          {/* Grok's own chat input */}
-          <div className="p-2 border-t border-white/10">
-            <div className="flex gap-1">
+          {/* Grok's dedicated chat input */}
+          <div className="p-2 border-t border-white/10 bg-black/80">
+            <div className="flex gap-2">
               <input
                 type="text"
-                placeholder="Ask Grok..."
-                className="flex-1 bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[9px] font-mono text-white placeholder-white/30 focus:outline-none"
+                placeholder="Ask Grok anything..."
+                className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-mono text-white placeholder-white/30 focus:outline-none focus:border-purple-500/50"
+                data-testid="grok-input"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && e.target.value.trim()) {
-                    setChatInput(`/grok ${e.target.value.trim()}`);
-                    handleChatSend();
+                    const query = e.target.value.trim();
                     e.target.value = '';
+                    setChatInput(query);
+                    setTimeout(() => handleChatSend(), 100);
                   }
                 }}
               />
-              <button className="px-2 py-1.5 bg-white/10 border border-white/10 rounded text-[9px] font-mono text-white">▶</button>
+              <button className="px-3 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-lg text-[10px] font-mono text-purple-400 transition-all">▶</button>
             </div>
           </div>
         </div>
 
-        {/* Brain + Workflow Button - Right */}
-        <div className="w-24 flex flex-col items-center justify-center gap-3 p-2">
-          <div className="w-14 h-14 rounded-lg overflow-hidden border border-green-500/30 shadow-lg shadow-green-500/10" data-testid="neural-brain-widget">
+        {/* Brain Widget - Far Right */}
+        <div className="w-20 flex flex-col items-center justify-center gap-2 p-2 border-l border-white/10">
+          <div className="w-12 h-12 rounded-lg overflow-hidden border border-green-500/30 shadow-lg shadow-green-500/10" data-testid="neural-brain-widget">
             <NeuralBrain themeColor="#22c55e" isThinking={isLoading || detailLoading} size="sm" />
           </div>
           <button
             onClick={() => onNavigate(PAGES.WORKFLOW)}
-            className="text-[8px] font-mono text-cyan-400 hover:text-cyan-300 transition-all"
+            className="text-[7px] font-mono text-cyan-400 hover:text-cyan-300 transition-all"
             data-testid="open-workflow"
           >
             ◈ WORKFLOW
