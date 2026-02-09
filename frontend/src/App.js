@@ -938,6 +938,31 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
     }
   };
 
+  // Handle Franklin onboard chat
+  const handleFranklinSend = async () => {
+    if (!franklinInput.trim() || franklinLoading) return;
+    
+    const input = franklinInput.trim();
+    setFranklinInput('');
+    setFranklinChat(prev => [...prev, { role: 'user', content: input }]);
+    setFranklinLoading(true);
+    
+    try {
+      const response = await axios.post(`${API}/api/grok/chat`, {
+        message: input,
+        context: 'You are Franklin, the main AI assistant of FRANKLIN OS. Help users navigate the platform, understand features, and guide them to the right agents or tools. Be friendly, professional, and concise.',
+        history: franklinChat.slice(-6)
+      });
+      
+      const reply = response.data.response || "I can help you with that. Would you like me to guide you through the process?";
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: reply }]);
+    } catch (err) {
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: "I'm here to help. You can start by typing /genesis followed by your project idea, or click on an agent for specialized assistance." }]);
+    } finally {
+      setFranklinLoading(false);
+    }
+  };
+
   // Auto-scroll detail panel
   useEffect(() => {
     if (detailRef.current) {
