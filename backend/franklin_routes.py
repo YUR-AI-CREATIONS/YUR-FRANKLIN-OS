@@ -1,6 +1,6 @@
 """
 FRANKLIN OS API Routes
-Integrates all FRANKLIN OS systems: Runtime, Academy, Bot Tiers, Marketplace, Grok Agent
+Integrates all FRANKLIN OS systems: Runtime, Academy, Bot Tiers, Marketplace, Grok Agent, Orchestrator
 """
 
 from fastapi import APIRouter, HTTPException
@@ -15,6 +15,7 @@ from agent_academy import agent_academy
 from bot_tiers import bot_tier_system, BotTier
 from agent_marketplace import agent_marketplace
 from grok_agent import grok_agent
+from franklin_orchestrator import franklin_orchestrator
 
 # Create routers
 franklin_router = APIRouter(prefix="/api/franklin")
@@ -22,6 +23,7 @@ academy_router = APIRouter(prefix="/api/academy")
 bots_router = APIRouter(prefix="/api/bots")
 marketplace_router = APIRouter(prefix="/api/marketplace")
 grok_router = APIRouter(prefix="/api/grok")
+orchestrator_router = APIRouter(prefix="/api/orchestrator")
 
 
 # ============================================================================
