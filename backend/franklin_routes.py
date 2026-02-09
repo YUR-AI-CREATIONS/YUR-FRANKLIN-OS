@@ -495,3 +495,110 @@ async def get_franklin_dashboard():
         "grok": grok_agent.get_status(),
         "timestamp": datetime.utcnow().isoformat()
     }
+
+
+
+# ============================================================================
+#                         ORCHESTRATOR ROUTES
+#                    USER → FRANKLIN → GROK → AGENTS → WORKSPACE
+# ============================================================================
+
+class OrchestratorChatRequest(BaseModel):
+    message: str
+    session_id: Optional[str] = None
+
+
+class BuildRequest(BaseModel):
+    mission: str
+    session_id: Optional[str] = None
+
+
+class AgentInteractRequest(BaseModel):
+    agent_role: str  # genesis, architect, implementer, healer
+    message: str
+    session_id: Optional[str] = None
+
+
+class ApproveSectionRequest(BaseModel):
+    section_id: str
+    session_id: Optional[str] = None
+
+
+@orchestrator_router.post("/chat")
+async def orchestrator_chat(request: OrchestratorChatRequest):
+    """
+    Main entry point: User talks to Franklin.
+    Franklin perfect-prompts Grok and coordinates agents.
+    """
+    result = await franklin_orchestrator.franklin_chat(
+        request.message,
+        request.session_id
+    )
+    return result
+
+
+@orchestrator_router.post("/build")
+async def orchestrator_build(request: BuildRequest):
+    """
+    Initiate a full build with all agents.
+    Genesis → Architect → Implementer → Healer → Governance
+    """
+    result = await franklin_orchestrator.initiate_build(
+        request.mission,
+        request.session_id
+    )
+    return result
+
+
+@orchestrator_router.post("/agent/interact")
+async def agent_interact(request: AgentInteractRequest):
+    """Interact with a specific Genesis agent"""
+    result = await franklin_orchestrator.agent_interact(
+        request.agent_role,
+        request.message,
+        request.session_id
+    )
+    return result
+
+
+@orchestrator_router.get("/whiteboard")
+async def get_whiteboard(session_id: Optional[str] = None):
+    """Get the current whiteboard - all sections for collaborative review"""
+    return franklin_orchestrator.get_whiteboard(session_id)
+
+
+@orchestrator_router.post("/approve")
+async def approve_section(request: ApproveSectionRequest):
+    """User approves a whiteboard section"""
+    return franklin_orchestrator.approve_section(
+        request.section_id,
+        request.session_id
+    )
+
+
+@orchestrator_router.get("/session/{session_id}")
+async def get_session(session_id: str):
+    """Get a specific build session"""
+    session = franklin_orchestrator.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return franklin_orchestrator.get_whiteboard(session_id)
+
+
+@orchestrator_router.get("/sessions")
+async def list_sessions():
+    """List all build sessions"""
+    return {
+        "sessions": [
+            {
+                "session_id": s.session_id,
+                "mission": s.mission,
+                "status": s.status,
+                "phase": s.current_phase.value,
+                "sections_count": len(s.sections),
+                "agents_involved": s.agents_involved,
+                "created_at": s.created_at
+            }
+            for s in franklin_orchestrator.sessions.values()
+        ]
+    }
