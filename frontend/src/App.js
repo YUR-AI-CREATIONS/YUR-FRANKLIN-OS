@@ -778,26 +778,56 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
     <div className="h-screen w-screen overflow-hidden bg-black text-white relative" data-testid="franklin-os">
       <GalacticBackground />
       
-      {/* FRANKLIN Chrome Branding - FIXED CENTER, Always Visible */}
+      {/* FRANKLIN Chrome Branding - GHOST FORMAT, LARGE, CENTER */}
       <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-[5]">
         <h1 
-          className="select-none whitespace-nowrap"
+          className="select-none franklin-chrome-ide"
           style={{ 
             fontFamily: "'Orbitron', sans-serif",
-            fontSize: 'clamp(3rem, 9vw, 8rem)',
-            fontWeight: 700,
-            letterSpacing: '0.4em',
-            background: 'linear-gradient(180deg, #ffffff 0%, #d0d0d0 25%, #a0a0a0 50%, #d0d0d0 75%, #ffffff 100%)',
-            WebkitBackgroundClip: 'text',
-            backgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            filter: 'drop-shadow(0 0 40px rgba(255, 255, 255, 0.25))',
-            textShadow: '0 0 60px rgba(255,255,255,0.1)'
+            fontSize: 'clamp(4rem,14vw,12rem)',
+            fontWeight: 600,
+            letterSpacing: '0.55em',
           }}
         >
           FRANKLIN
         </h1>
       </div>
+      
+      {/* Chrome shimmer styles for IDE - GHOST FORMAT */}
+      <style>{`
+        .franklin-chrome-ide {
+          background: linear-gradient(
+            135deg,
+            rgba(60, 60, 60, 0.4) 0%,
+            rgba(120, 120, 120, 0.5) 15%,
+            rgba(200, 200, 200, 0.6) 30%,
+            rgba(255, 255, 255, 0.7) 45%,
+            rgba(200, 200, 200, 0.6) 55%,
+            rgba(120, 120, 120, 0.5) 70%,
+            rgba(80, 80, 80, 0.4) 85%,
+            rgba(150, 150, 150, 0.5) 100%
+          );
+          background-size: 200% 200%;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: chromeShimmerIDE 20s ease-in-out infinite;
+          filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.1));
+          opacity: 0.35;
+        }
+        
+        @keyframes chromeShimmerIDE {
+          0% {
+            background-position: 200% 200%;
+          }
+          50% {
+            background-position: 0% 0%;
+          }
+          100% {
+            background-position: 200% 200%;
+          }
+        }
+      `}</style>
 
       {/* LEFT PANEL */}
       <div className={`absolute left-0 top-0 bottom-0 z-40 silver-glass silver-outline overflow-hidden transition-all duration-300 ${leftCollapsed ? 'w-12' : 'w-56'}`}>
