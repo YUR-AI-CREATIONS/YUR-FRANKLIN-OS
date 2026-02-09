@@ -968,10 +968,8 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
             <div className="flex justify-start max-w-2xl mx-auto mt-4">
               <div className="chat-bubble-franklin p-4">
                 <div className="flex items-center gap-3 text-white/70 text-sm font-mono">
-                  <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{animationDelay: '0ms'}} />
-                    <span className="w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{animationDelay: '150ms'}} />
-                    <span className="w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{animationDelay: '300ms'}} />
+                  <div className="w-10 h-10">
+                    <NeuralBrain themeColor="#a855f7" isThinking={true} size="sm" />
                   </div>
                   <span>Franklin is thinking...</span>
                 </div>
