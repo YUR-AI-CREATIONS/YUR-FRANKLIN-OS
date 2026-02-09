@@ -778,13 +778,13 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
     <div className="h-screen w-screen overflow-hidden bg-black text-white relative" data-testid="franklin-os">
       <GalacticBackground />
       
-      {/* FRANKLIN Chrome Branding - GHOST FORMAT, LARGE, CENTER */}
-      <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-[5] px-4">
+      {/* FRANKLIN Chrome Branding - GHOST FORMAT, BIGGER, 1/4 DOWN */}
+      <div className="fixed inset-x-0 top-[20%] flex justify-center pointer-events-none z-[5] px-4">
         <h1 
           className="select-none franklin-chrome-ide whitespace-nowrap"
           style={{ 
             fontFamily: "'Orbitron', sans-serif",
-            fontSize: 'clamp(3rem,11vw,10rem)',
+            fontSize: 'clamp(5rem,16vw,14rem)',
             fontWeight: 600,
             letterSpacing: '0.5em',
             marginLeft: '0.25em',
@@ -818,15 +818,9 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         }
         
         @keyframes chromeShimmerIDE {
-          0% {
-            background-position: 200% 200%;
-          }
-          50% {
-            background-position: 0% 0%;
-          }
-          100% {
-            background-position: 200% 200%;
-          }
+          0% { background-position: 200% 200%; }
+          50% { background-position: 0% 0%; }
+          100% { background-position: 200% 200%; }
         }
       `}</style>
 
