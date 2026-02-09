@@ -1382,72 +1382,134 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
       </div>
 
       {/* BOTTOM PANEL - Terminal | Grok Response | Recommendations */}
-      <div className={`absolute bottom-0 h-48 z-40 bg-black/95 border-t border-white/10 backdrop-blur-md flex transition-all duration-300 ${franklinPanelOpen ? 'left-72' : 'left-0'} ${agentsPanelOpen ? 'right-64' : 'right-0'}`}>
-        {/* BRANDING BAR - Category Buttons */}
-        <div className="flex border-b border-white/10 shrink-0">
-          {BUILD_CATEGORIES.map(cat => (
-            <button
-              key={cat.id}
-              onClick={() => toggleCategory(cat.id)}
-              className={`flex-1 py-3 text-[10px] font-mono uppercase tracking-wider transition-all border-r border-white/5 last:border-r-0 ${
-                expandedCategory === cat.id 
-                  ? 'text-white bg-white/10 franklin-chrome-dim' 
-                  : 'text-white/50 hover:text-white/80 hover:bg-white/5'
-              }`}
-            >
-              {cat.label}
-              <span className="ml-1 opacity-50">{expandedCategory === cat.id ? '▼' : '▶'}</span>
-            </button>
-          ))}
-          
-          {/* Workflow Button */}
-          <button
-            onClick={() => onNavigate(PAGES.WORKFLOW)}
-            className="px-4 py-2 text-[10px] font-mono uppercase tracking-wider text-cyan-400 hover:bg-cyan-400/10 transition-all border-l border-white/10"
-            data-testid="open-workflow"
-          >
-            ◈ WORKFLOW
-          </button>
+      <div className={`absolute bottom-0 h-48 z-40 bg-black/95 border-t border-white/10 backdrop-blur-md flex transition-all duration-300 ${franklinPanelOpen ? 'left-64' : 'left-0'} ${agentsPanelOpen ? 'right-64' : 'right-0'}`}>
+        
+        {/* Terminal - Left */}
+        <div className="w-1/3 border-r border-white/10 flex flex-col">
+          <div className="px-3 py-2 border-b border-white/10 text-[9px] font-mono text-white/40 flex items-center justify-between">
+            <span>◆ TERMINAL</span>
+          </div>
+          <div className="flex-1 p-3 overflow-y-auto font-mono text-[10px] scrollbar-thin">
+            {outputLog.slice(-15).map((entry, idx) => (
+              <div key={idx} className={`mb-1 ${getOutputColor(entry.type)}`}>
+                <span className="text-white/30">[{entry.phase}]</span> {entry.message?.slice(0, 80)}
+              </div>
+            ))}
+            {outputLog.length === 0 && (
+              <div className="text-white/30">
+                {'>'} FRANKLIN OS Terminal v2.0<br/>
+                {'>'} Ready for commands...
+              </div>
+            )}
+          </div>
+          <div className="p-2 border-t border-white/10">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleChatSend()}
+                placeholder="/genesis <mission> or describe..."
+                className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-[10px] font-mono text-white placeholder-white/30 focus:outline-none"
+                data-testid="command-input"
+                disabled={isLoading}
+              />
+              <button
+                onClick={handleChatSend}
+                disabled={isLoading || !chatInput.trim()}
+                data-testid="send-btn"
+                className="px-3 py-2 bg-white/10 border border-white/10 rounded text-[10px] font-mono text-white disabled:opacity-30"
+              >
+                {isLoading ? '◐' : '▶'}
+              </button>
+            </div>
+          </div>
         </div>
 
-        {expandedCategory && (
-          <div className="flex flex-wrap gap-2 p-2 border-b border-white/10 bg-white/5 shrink-0">
-            {BUILD_CATEGORIES.find(c => c.id === expandedCategory)?.subcategories.map(sub => (
-              <button
-                key={sub}
-                onClick={() => toggleSubcategory(sub)}
-                className={`px-3 py-1 text-[9px] font-mono rounded transition-all ${
-                  selectedSubcategories.includes(sub)
-                    ? 'bg-white/20 text-white border border-white/30'
-                    : 'bg-white/5 text-white/50 border border-white/10 hover:border-white/20'
-                }`}
-              >
-                {sub}
-              </button>
-            ))}
+        {/* Grok Response - Center */}
+        <div className="flex-1 border-r border-white/10 flex flex-col">
+          <div className="px-3 py-2 border-b border-white/10 text-[9px] font-mono text-white/40">◆ GROK RESPONSE</div>
+          <div className="flex-1 p-3 overflow-y-auto scrollbar-thin">
+            {grokResponses.length > 0 ? (
+              grokResponses.slice(-8).map((resp, idx) => (
+                <div key={idx} className={`mb-2 text-[10px] font-mono ${
+                  resp.type === 'success' ? 'text-green-400' :
+                  resp.type === 'error' ? 'text-red-400' :
+                  'text-white/70'
+                }`}>
+                  <span className="text-white/30 text-[8px]">[{resp.phase}]</span>
+                  <p className="mt-0.5 leading-relaxed">{resp.message}</p>
+                </div>
+              ))
+            ) : (
+              <div className="text-white/30 text-[10px] font-mono">
+                Grok responses will appear here when you run /genesis commands...
+              </div>
+            )}
+            {isLoading && (
+              <div className="flex items-center gap-2 text-purple-400 text-[10px] font-mono">
+                <span className="w-2 h-2 bg-purple-400 rounded-full animate-ping" />
+                Processing...
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
-        {dashboard && (
-          <div className="flex items-center gap-4 px-4 py-2 border-b border-white/10 bg-white/5 text-[9px] font-mono shrink-0">
-            <span className="text-green-400 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
-              SENTINEL: {dashboard.runtime?.sentinel?.status || 'ACTIVE'}
-            </span>
-            <span className="text-cyan-400">PQC: ONLINE</span>
-            <span className="text-purple-400">AUDIT: {dashboard.runtime?.audit?.total_entries || 0} entries</span>
-            <span className="text-amber-400">AGENTS: {marketplaceAgents.length}</span>
-            <span className="text-white/40">GROK: ONLINE</span>
+        {/* Recommendations - Right (with Neural Brain) */}
+        <div className="w-1/4 flex flex-col">
+          <div className="px-3 py-2 border-b border-white/10 text-[9px] font-mono text-white/40 flex items-center justify-between">
+            <span>◆ RECOMMENDATIONS</span>
+            <button
+              onClick={() => onNavigate(PAGES.WORKFLOW)}
+              className="text-cyan-400 hover:text-cyan-300 transition-all"
+              data-testid="open-workflow"
+            >
+              ◈ WORKFLOW
+            </button>
           </div>
-        )}
+          <div className="flex-1 p-2 overflow-y-auto scrollbar-thin">
+            <div className="space-y-2">
+              {recommendations.map(rec => (
+                <button
+                  key={rec.id}
+                  onClick={() => {
+                    setChatInput(rec.text.includes('/') ? rec.text : `/genesis ${rec.text}`);
+                    setRecommendations(prev => prev.filter(r => r.id !== rec.id));
+                  }}
+                  className="w-full text-left p-2 rounded bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-[9px] font-mono text-white/60 hover:text-white"
+                >
+                  {rec.text}
+                </button>
+              ))}
+            </div>
+          </div>
+          {/* Neural Brain at bottom of recommendations */}
+          <div className="p-2 border-t border-white/10 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-lg overflow-hidden border border-green-500/30 shadow-lg shadow-green-500/10" data-testid="neural-brain-widget">
+              <NeuralBrain themeColor="#22c55e" isThinking={isLoading || detailLoading} size="sm" />
+            </div>
+          </div>
+        </div>
+      </div>
 
-        {/* Bottom Panel Content: Terminal | Grok Response | Recommendations */}
-        <div className="flex-1 flex min-h-0">
-          {/* Terminal - Left */}
-          <div className="w-1/3 border-r border-white/10 flex flex-col">
-            <div className="px-3 py-2 border-b border-white/10 text-[9px] font-mono text-white/40">◆ TERMINAL</div>
-            <div className="flex-1 p-3 overflow-y-auto font-mono text-[10px] scrollbar-thin">
-              {outputLog.slice(-15).map((entry, idx) => (
+      <style>{`
+        .franklin-chrome-dim {
+          background: linear-gradient(135deg, rgba(60,60,60,1) 0%, rgba(100,100,100,1) 15%, rgba(160,160,160,1) 30%, rgba(200,200,200,1) 45%, rgba(160,160,160,1) 55%, rgba(100,100,100,1) 70%, rgba(60,60,60,1) 85%, rgba(120,120,120,1) 100%);
+          background-size: 200% 200%;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: chromeShimmer 25s ease-in-out infinite;
+          opacity: 0.35;
+        }
+        @keyframes chromeShimmer { 0% { background-position: 200% 200%; } 50% { background-position: 0% 0%; } 100% { background-position: 200% 200%; } }
+        .scrollbar-thin::-webkit-scrollbar { width: 4px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+        @keyframes fade-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fade-in 0.3s ease-out; }
+      `}</style>
+    </div>
                 <div key={idx} className={`mb-1 ${getOutputColor(entry.type)}`}>
                   <span className="text-white/30">[{entry.phase}]</span> {entry.message?.slice(0, 80)}
                 </div>
