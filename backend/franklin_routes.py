@@ -24,6 +24,8 @@ bots_router = APIRouter(prefix="/api/bots")
 marketplace_router = APIRouter(prefix="/api/marketplace")
 grok_router = APIRouter(prefix="/api/grok")
 build_orchestrator_router = APIRouter(prefix="/api/build-orchestrator")
+persistence_router = APIRouter(prefix="/api/persistence")
+tasks_router = APIRouter(prefix="/api/tasks")
 
 
 # ============================================================================
