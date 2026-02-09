@@ -1349,6 +1349,37 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
           ◈ FRANKLIN OS
         </div>
         <div className="flex-1" />
+        
+        {/* Active Tasks Indicator */}
+        {activeTasks.length > 0 && (
+          <div className="flex items-center gap-2 mr-4 px-3 py-1 bg-purple-500/20 border border-purple-500/30 rounded-lg">
+            <span className="w-2 h-2 bg-purple-400 rounded-full animate-ping"></span>
+            <span className="text-[9px] font-mono text-purple-400">
+              {activeTasks.length} TASK{activeTasks.length > 1 ? 'S' : ''} RUNNING
+            </span>
+          </div>
+        )}
+        
+        {/* Clear History Button */}
+        <button
+          onClick={() => {
+            if (window.confirm('Clear all conversation history?')) {
+              setFranklinChat([{ role: 'franklin', content: 'Welcome to FRANKLIN OS. I\'m here to help you navigate and build. What would you like to create today?' }]);
+              setOutputLog([]);
+              setConversationHistory([]);
+              setGrokResponses([]);
+              localStorage.removeItem('franklin_chat');
+              localStorage.removeItem('output_log');
+              localStorage.removeItem('conversation_history');
+              localStorage.removeItem('grok_responses');
+            }
+          }}
+          className="mr-4 px-2 py-1 text-[8px] font-mono text-white/40 hover:text-white hover:bg-white/10 border border-white/10 rounded transition-all"
+          title="Clear all conversation history"
+        >
+          🗑 CLEAR
+        </button>
+        
         <div className="flex items-center gap-4 text-[9px] font-mono">
           <span className="text-green-400 flex items-center gap-1">
             <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
