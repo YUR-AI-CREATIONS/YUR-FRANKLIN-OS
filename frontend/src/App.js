@@ -1204,6 +1204,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
           zIndex={10} 
           isOpen={leftFolders.build} 
           onToggle={() => toggleLeftFolder('build')}
+          stackOffset={3}
         >
           {/* Build Category Tabs */}
           <div className="flex border-b border-white/10">
