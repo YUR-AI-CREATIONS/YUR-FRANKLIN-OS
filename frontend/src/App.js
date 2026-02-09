@@ -591,10 +591,39 @@ const ElectricWorkflowPage = ({ onBack, workflowNodes, workflowEdges, onNodesCha
 // PAGE 2: MAIN IDE
 // ============================================================================
 const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, setWorkflowEdges }) => {
-  // Slide panel states - like workflow page
-  const [franklinPanelOpen, setFranklinPanelOpen] = useState(true);
+  // Main panel slide states
+  const [leftPanelOpen, setLeftPanelOpen] = useState(true);
   const [agentsPanelOpen, setAgentsPanelOpen] = useState(true);
   const [agentChatOpen, setAgentChatOpen] = useState(false);
+  
+  // Individual slide panel states (each section slides independently)
+  const [slidePanels, setSlidePanels] = useState({
+    franklin: true,
+    governance: true,
+    llmModels: true,
+    projects: true,
+    database: true,
+    frontend: true,
+    backend: true,
+    deployment: true
+  });
+  
+  const toggleSlidePanel = (panel) => {
+    setSlidePanels(prev => ({ ...prev, [panel]: !prev[panel] }));
+  };
+  
+  const slideAllPanels = (open) => {
+    setSlidePanels({
+      franklin: open,
+      governance: open,
+      llmModels: open,
+      projects: open,
+      database: open,
+      frontend: open,
+      backend: open,
+      deployment: open
+    });
+  };
   
   // Panel states
   const [leftPanelView, setLeftPanelView] = useState('interface');
@@ -609,26 +638,19 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
   const [selectedProgram, setSelectedProgram] = useState(null);
   
   // Detail panel state (for agent/bot engagement)
-  const [detailPanel, setDetailPanel] = useState(null); // { type: 'agent'|'bot'|'program', data: {...}, conversation: [] }
+  const [detailPanel, setDetailPanel] = useState(null);
   const [detailInput, setDetailInput] = useState('');
   const [detailLoading, setDetailLoading] = useState(false);
   
-  // Franklin Onboard Chat (Left panel)
+  // Franklin Onboard Chat
   const [franklinChat, setFranklinChat] = useState([
     { role: 'franklin', content: 'Welcome to FRANKLIN OS. I\'m here to help you navigate and build. What would you like to create today?' }
   ]);
   const [franklinInput, setFranklinInput] = useState('');
   const [franklinLoading, setFranklinLoading] = useState(false);
   
-  // Grok Response Area (Bottom center)
+  // Grok Response Area
   const [grokResponses, setGrokResponses] = useState([]);
-  
-  // AI Recommendations (Bottom right)
-  const [recommendations, setRecommendations] = useState([
-    { id: 1, text: 'Start with /genesis to create a new project', priority: 'tip' },
-    { id: 2, text: 'Click an agent to get specialized assistance', priority: 'tip' },
-    { id: 3, text: 'Use /workflow to visualize your build pipeline', priority: 'tip' }
-  ]);
   
   // Data states
   const [dashboard, setDashboard] = useState(null);
