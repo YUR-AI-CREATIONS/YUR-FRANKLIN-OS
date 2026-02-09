@@ -764,6 +764,18 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
     }
   }, [outputLog]);
 
+  // Get color class based on output type
+  const getOutputColor = (type) => {
+    switch(type) {
+      case 'success': return 'text-green-400';
+      case 'error': return 'text-red-400';
+      case 'warning': return 'text-amber-400';
+      case 'user': return 'text-cyan-400';
+      case 'system': return 'text-purple-400';
+      default: return 'text-white/60';
+    }
+  };
+
   // Add output message and Grok response
   const addOutput = (phase, message, type = 'info') => {
     setOutputLog(prev => [...prev, {
@@ -773,7 +785,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
       timestamp: new Date().toISOString()
     }]);
     // Also add to Grok responses for the bottom panel
-    if (phase.toLowerCase().includes('grok') || phase === 'GENESIS' || phase === 'COMPLETE' || phase === 'FAILED') {
+    if (phase.toLowerCase().includes('grok') || phase === 'GENESIS' || phase === 'COMPLETE' || phase === 'FAILED' || phase === 'SIGNOFF') {
       setGrokResponses(prev => [...prev.slice(-10), { phase, message, type, timestamp: new Date().toISOString() }]);
     }
   };
