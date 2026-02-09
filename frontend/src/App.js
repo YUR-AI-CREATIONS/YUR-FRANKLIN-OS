@@ -16,6 +16,7 @@ import AmbiguityNode from './components/nodes/AmbiguityNode';
 import ResolutionNode from './components/nodes/ResolutionNode';
 import SpecNode from './components/nodes/SpecNode';
 import { LandingPage } from './components/LandingPage';
+import NeuralBrain from './components/NeuralBrain';
 
 import './App.css';
 
