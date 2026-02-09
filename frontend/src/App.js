@@ -1392,7 +1392,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
             </div>
           )}
         </div>
-            </div>
+          </div>
         )}
       </div>
 
