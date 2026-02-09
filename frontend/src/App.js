@@ -1136,19 +1136,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
       </div>
 
       {/* CENTER - Code/Chat Output Area */}
-                onClick={handleFranklinSend}
-                disabled={franklinLoading || !franklinInput.trim()}
-                className="px-3 py-2 bg-white/10 border border-white/10 rounded-lg text-xs font-mono text-white hover:bg-white/20 transition-all disabled:opacity-30"
-              >
-                ▶
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* CENTER - Code/Chat Output Area */}
-      <div className={`absolute top-0 bottom-48 z-10 transition-all duration-300 ${franklinPanelOpen ? 'left-72' : 'left-0'} ${agentsPanelOpen ? 'right-64' : 'right-0'} ${agentChatOpen && detailPanel ? 'right-[320px]' : ''}`}>
+      <div className={`absolute top-10 bottom-48 z-10 transition-all duration-300 ${franklinPanelOpen ? 'left-64' : 'left-0'} ${agentsPanelOpen ? 'right-64' : 'right-0'} ${agentChatOpen && detailPanel ? 'right-[320px]' : ''}`}>
         {/* Chat Messages Area */}
         <div 
           ref={outputRef}
