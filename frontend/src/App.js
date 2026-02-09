@@ -1719,25 +1719,6 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
           </div>
         </div>
       </div>
-              <button className="px-3 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-lg text-[10px] font-mono text-purple-400 transition-all">▶</button>
-            </div>
-          </div>
-        </div>
-
-        {/* Brain Widget - Far Right */}
-        <div className="w-20 flex flex-col items-center justify-center gap-2 p-2 border-l border-white/10">
-          <div className="w-12 h-12 rounded-lg overflow-hidden border border-green-500/30 shadow-lg shadow-green-500/10" data-testid="neural-brain-widget">
-            <NeuralBrain themeColor="#22c55e" isThinking={isLoading || detailLoading} size="sm" />
-          </div>
-          <button
-            onClick={() => onNavigate(PAGES.WORKFLOW)}
-            className="text-[7px] font-mono text-cyan-400 hover:text-cyan-300 transition-all"
-            data-testid="open-workflow"
-          >
-            ◈ WORKFLOW
-          </button>
-        </div>
-      </div>
 
       <style>{`
         .franklin-chrome-dim {
