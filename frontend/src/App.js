@@ -1279,7 +1279,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
           </div>
         </div>
       </div>
-              </div>
+
       {/* CENTER - Code/Chat Output Area */}
       <div className={`absolute top-10 bottom-36 z-10 transition-all duration-300 ${leftPanelOpen ? 'left-72' : 'left-0'} ${agentsPanelOpen ? 'right-64' : 'right-0'} ${agentChatOpen && detailPanel ? 'right-[320px]' : ''}`}>
         {/* Chat Messages Area */}
