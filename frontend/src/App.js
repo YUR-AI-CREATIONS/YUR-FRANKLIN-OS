@@ -1563,6 +1563,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
           zIndex={20} 
           isOpen={rightFolders.bots} 
           onToggle={() => toggleRightFolder('bots')}
+          side="right"
         >
           <div className="p-3 border-b border-white/10">
             <div className="text-[10px] font-mono text-amber-400 tracking-wider">◆ BOT TIERS</div>
