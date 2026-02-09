@@ -848,7 +848,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
     return `${tier.name} ready for deployment. ${tier.description}`;
   };
 
-  // Handle agent click - open detail panel
+  // Handle agent click - open detail panel and agent chat
   const handleAgentClick = async (agent) => {
     setSelectedAgent(agent);
     setSelectedBot(null);
@@ -861,6 +861,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
       conversation: [{ role: 'agent', content: greeting }]
     });
     setDetailInput('');
+    setAgentChatOpen(true); // Open the agent chat slide panel
   };
 
   // Handle bot tier click - open detail panel
@@ -876,6 +877,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
       conversation: [{ role: 'bot', content: greeting }]
     });
     setDetailInput('');
+    setAgentChatOpen(true);
   };
 
   // Handle academy program click - open detail panel
