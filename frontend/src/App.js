@@ -1058,8 +1058,25 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         }
       `}</style>
 
-      {/* LEFT SLIDE PANEL - Franklin Onboard Chat */}
-      <div className={`absolute top-0 bottom-48 z-40 bg-black/90 border-r border-white/10 backdrop-blur-md transition-all duration-300 ${franklinPanelOpen ? 'left-0 w-72' : '-left-72 w-72'}`}>
+      {/* TOP HEADER BAR */}
+      <div className="absolute top-0 left-0 right-0 h-10 z-50 bg-black/90 border-b border-white/10 backdrop-blur-md flex items-center px-4">
+        <div className="text-sm font-mono text-white/90 tracking-wider" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+          ◈ FRANKLIN OS
+        </div>
+        <div className="flex-1" />
+        <div className="flex items-center gap-4 text-[9px] font-mono">
+          <span className="text-green-400 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+            SENTINEL: ACTIVE
+          </span>
+          <span className="text-cyan-400">PQC: ONLINE</span>
+          <span className="text-purple-400">AUDIT: {dashboard?.runtime?.audit?.total_entries || 0} entries</span>
+          <span className="text-amber-400">AGENTS: {marketplaceAgents.length}</span>
+        </div>
+      </div>
+
+      {/* LEFT SLIDE PANEL - Folder Tree */}
+      <div className={`absolute top-10 bottom-48 z-40 bg-black/90 border-r border-white/10 backdrop-blur-md transition-all duration-300 ${franklinPanelOpen ? 'left-0 w-64' : '-left-64 w-64'}`}>
         <button
           onClick={() => setFranklinPanelOpen(!franklinPanelOpen)}
           className="absolute -right-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/80 border border-white/10 rounded-r-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
@@ -1068,16 +1085,55 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
           {franklinPanelOpen ? '◀' : '▶'}
         </button>
         
-        <div className="p-4 h-full flex flex-col">
-          <div className="text-[10px] font-mono text-white/40 tracking-wider mb-1">◆ ONBOARD CHAT</div>
-          <div className="text-sm font-mono text-white">FRANKLIN</div>
-          <div className="text-[10px] text-white/50 mt-1 mb-4">Your AI Assistant</div>
+        <div className="p-3 h-full flex flex-col overflow-y-auto scrollbar-thin">
+          {/* FRANKLIN Folder */}
+          <FolderItem 
+            name="FRANKLIN" 
+            defaultOpen={true}
+            files={['Chatport', 'System Prompt']}
+          />
           
-          {/* Franklin Conversation */}
-          <div ref={franklinRef} className="flex-1 overflow-y-auto space-y-3 scrollbar-thin">
-            {franklinChat.map((msg, idx) => (
-              <div key={idx} className={`text-xs font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/80'}`}>
-                <span className="text-white/40 text-[9px]">[{msg.role === 'user' ? 'YOU' : 'FRANKLIN'}]</span>
+          {/* LLM STACK Folder */}
+          <FolderItem 
+            name="LLM STACK" 
+            files={['OpenAI', 'Grok', 'Claude', 'Upload (250MB)']}
+          />
+          
+          {/* PROJECTS Folder */}
+          <div className="folder mb-1">
+            <div 
+              className="folder-header cursor-pointer py-1.5 px-1 text-[11px] font-mono tracking-wider flex items-center gap-1.5 hover:bg-white/5 rounded"
+              onClick={(e) => e.currentTarget.parentElement.classList.toggle('open')}
+            >
+              <span className="arrow w-3 text-white/40 transition-transform">▶</span>
+              <span className="text-white/80">PROJECTS</span>
+            </div>
+            <div className="folder-children hidden ml-3 border-l border-white/10 pl-2">
+              <FolderItem 
+                name="Project Alpha" 
+                files={['/src', '/schemas', '/docs']}
+              />
+            </div>
+          </div>
+          
+          {/* GOVERNANCE Folder */}
+          <FolderItem 
+            name="GOVERNANCE" 
+            files={['Audit Reports', 'Licensing', 'Certification']}
+          />
+          
+          <div className="flex-1" />
+          
+          {/* Open Workflow Button */}
+          <button
+            onClick={() => onNavigate(PAGES.WORKFLOW)}
+            className="w-full px-3 py-2 text-[10px] font-mono text-cyan-400 hover:bg-cyan-400/10 rounded border border-cyan-400/30 transition-all mt-4"
+            data-testid="open-workflow-left"
+          >
+            ◈ OPEN WORKFLOW
+          </button>
+        </div>
+      </div>
                 <p className="mt-1 leading-relaxed">{msg.content}</p>
               </div>
             ))}
