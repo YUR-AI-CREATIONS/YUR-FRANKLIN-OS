@@ -56,11 +56,15 @@ const FolderItem = ({ name, files = [], defaultOpen = false }) => {
 };
 
 // Full-Height Stacked Folder Component
-// Black panels with faint line, button at top to toggle
-const StackedFolder = ({ title, zIndex = 10, isOpen, onToggle, children, side = 'left' }) => {
-  const slideAmount = side === 'left' 
-    ? (isOpen ? '0' : 'calc(-100% + 2px)')  
-    : (isOpen ? '0' : 'calc(100% - 2px)');
+// Black panels with faint line, small tab sticks out when closed for re-opening
+const StackedFolder = ({ title, zIndex = 10, isOpen, onToggle, children, side = 'left', stackOffset = 0 }) => {
+  // When closed, slide most of the way off but leave a clickable tab (24px) sticking out
+  // Stack offset ensures each closed tab is visible and doesn't overlap
+  const closedPosition = side === 'left' 
+    ? `calc(-100% + ${24 + (stackOffset * 20)}px)`
+    : `calc(100% - ${24 + (stackOffset * 20)}px)`;
+  
+  const slideAmount = isOpen ? '0' : closedPosition;
   
   return (
     <div 
@@ -86,14 +90,19 @@ const StackedFolder = ({ title, zIndex = 10, isOpen, onToggle, children, side = 
         </div>
       </div>
       
-      {/* Faint vertical line visible when closed */}
+      {/* Clickable edge when closed - the reveal tab */}
       {!isOpen && (
         <div 
-          className="absolute top-0 bottom-0 w-[2px] bg-white/10"
+          onClick={onToggle}
+          className="absolute top-0 bottom-0 w-6 cursor-pointer hover:bg-white/5 transition-all flex items-center justify-center"
           style={{ 
-            [side === 'left' ? 'right' : 'left']: 0 
+            [side === 'left' ? 'right' : 'left']: 0,
+            borderLeft: side === 'right' ? '1px solid rgba(255,255,255,0.1)' : 'none',
+            borderRight: side === 'left' ? '1px solid rgba(255,255,255,0.1)' : 'none'
           }}
-        />
+        >
+          <span className="text-white/40 text-[10px]" style={{ writingMode: 'vertical-rl' }}>{title}</span>
+        </div>
       )}
     </div>
   );
