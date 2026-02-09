@@ -23,7 +23,7 @@ academy_router = APIRouter(prefix="/api/academy")
 bots_router = APIRouter(prefix="/api/bots")
 marketplace_router = APIRouter(prefix="/api/marketplace")
 grok_router = APIRouter(prefix="/api/grok")
-orchestrator_router = APIRouter(prefix="/api/orchestrator")
+build_orchestrator_router = APIRouter(prefix="/api/build-orchestrator")
 
 
 # ============================================================================
