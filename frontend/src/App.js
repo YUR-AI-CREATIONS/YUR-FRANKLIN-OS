@@ -1024,6 +1024,15 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
               )}
             </div>
             
+            {/* Neural Brain Visualization */}
+            <div className="h-20 w-full border-b border-white/10 bg-black/30">
+              <NeuralBrain 
+                themeColor={detailPanel.type === 'agent' ? '#22c55e' : detailPanel.type === 'bot' ? '#f59e0b' : '#a855f7'} 
+                isThinking={detailLoading} 
+                size="sm" 
+              />
+            </div>
+            
             {/* Conversation */}
             <div ref={detailRef} className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-silver">
               {detailPanel.conversation.map((msg, idx) => (
@@ -1034,8 +1043,10 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
                 </div>
               ))}
               {detailLoading && (
-                <div className="text-sm text-purple-400 animate-pulse flex items-center gap-2">
-                  <span className="w-2 h-2 bg-purple-400 rounded-full animate-ping" />
+                <div className="text-sm text-purple-400 flex items-center gap-2">
+                  <div className="w-6 h-6">
+                    <NeuralBrain themeColor="#a855f7" isThinking={true} size="sm" />
+                  </div>
                   Thinking...
                 </div>
               )}
