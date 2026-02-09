@@ -277,13 +277,14 @@ const ElectricWorkflowPage = ({ onBack, workflowNodes, workflowEdges, onNodesCha
           fitView
           minZoom={0.2}
           maxZoom={2}
-          className="bg-transparent"
+          className="!bg-transparent"
+          style={{ background: 'transparent' }}
           defaultEdgeOptions={{
             style: { stroke: '#00ff88', strokeWidth: 2 },
             animated: true
           }}
         >
-          <Background color="rgba(255,255,255,0.03)" gap={30} />
+          <Background color="rgba(255,255,255,0.02)" gap={30} style={{ opacity: 0.3 }} />
           <Controls className="!bg-black/70 !border-white/20 !rounded-lg" />
           <MiniMap 
             className="!bg-black/70 !border-white/20 !rounded-lg"
