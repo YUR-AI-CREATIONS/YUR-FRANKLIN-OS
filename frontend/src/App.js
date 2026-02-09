@@ -55,28 +55,50 @@ const FolderItem = ({ name, files = [], defaultOpen = false }) => {
   );
 };
 
-// Slide Panel Component - Each section slides independently left/right
-const SlidePanel = ({ title, icon = '◆', color = 'text-white/80', isOpen, onToggle, children }) => {
+// Full-Height Stacked Folder Component
+// Each folder is full height, stacks behind others with z-index, slides left to reveal folder behind
+const StackedFolder = ({ title, tabColor = 'bg-cyan-500', zIndex = 10, isOpen, onToggle, children }) => {
   return (
-    <div className={`relative transition-all duration-300 border-b border-white/10 ${isOpen ? 'ml-0' : '-ml-56'}`}>
-      {/* Toggle button on right edge */}
+    <div 
+      className={`absolute inset-0 transition-all duration-500 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-[calc(100%-24px)]'}`}
+      style={{ zIndex }}
+    >
+      {/* The folder content */}
+      <div className="h-full w-full bg-black/95 backdrop-blur-md border-r border-white/10 flex flex-col">
+        {children}
+      </div>
+      
+      {/* Tab on the right edge - always visible */}
       <button
         onClick={onToggle}
-        className="absolute -right-6 top-1/2 -translate-y-1/2 w-6 h-8 bg-black/60 border border-white/10 rounded-r flex items-center justify-center text-white/40 hover:text-white text-[10px] z-10"
+        className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-full w-6 h-24 ${tabColor} rounded-r-lg flex items-center justify-center text-black font-bold text-[10px] hover:brightness-110 transition-all shadow-lg`}
+        style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
       >
-        {isOpen ? '◀' : '▶'}
+        {title}
       </button>
-      
-      {/* Panel Content */}
-      <div className="bg-black/80 backdrop-blur-sm">
-        <div className="py-2 px-3 text-[10px] font-mono tracking-wider flex items-center gap-2 border-b border-white/5">
-          <span className={color}>{icon}</span>
-          <span className="text-white/80">{title}</span>
-        </div>
-        <div className="px-3 py-2 max-h-32 overflow-y-auto scrollbar-thin">
+    </div>
+  );
+};
+
+// Nested Expandable Section inside folders
+const NestedSection = ({ title, icon = '◆', color = 'text-white/60', defaultOpen = false, children }) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  
+  return (
+    <div className="border-b border-white/5">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full py-2 px-3 text-[10px] font-mono tracking-wider flex items-center gap-2 hover:bg-white/5 transition-all"
+      >
+        <span className={`transition-transform ${isOpen ? 'rotate-90' : ''}`}>▶</span>
+        <span className={color}>{icon}</span>
+        <span className="text-white/80">{title}</span>
+      </button>
+      {isOpen && (
+        <div className="px-4 pb-2">
           {children}
         </div>
-      </div>
+      )}
     </div>
   );
 };
