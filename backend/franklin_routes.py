@@ -524,7 +524,7 @@ class ApproveSectionRequest(BaseModel):
     session_id: Optional[str] = None
 
 
-@orchestrator_router.post("/chat")
+@build_orchestrator_router.post("/chat")
 async def orchestrator_chat(request: OrchestratorChatRequest):
     """
     Main entry point: User talks to Franklin.
@@ -537,7 +537,7 @@ async def orchestrator_chat(request: OrchestratorChatRequest):
     return result
 
 
-@orchestrator_router.post("/build")
+@build_orchestrator_router.post("/build")
 async def orchestrator_build(request: BuildRequest):
     """
     Initiate a full build with all agents.
@@ -550,7 +550,7 @@ async def orchestrator_build(request: BuildRequest):
     return result
 
 
-@orchestrator_router.post("/agent/interact")
+@build_orchestrator_router.post("/agent/interact")
 async def agent_interact(request: AgentInteractRequest):
     """Interact with a specific Genesis agent"""
     result = await franklin_orchestrator.agent_interact(
@@ -561,13 +561,13 @@ async def agent_interact(request: AgentInteractRequest):
     return result
 
 
-@orchestrator_router.get("/whiteboard")
+@build_orchestrator_router.get("/whiteboard")
 async def get_whiteboard(session_id: Optional[str] = None):
     """Get the current whiteboard - all sections for collaborative review"""
     return franklin_orchestrator.get_whiteboard(session_id)
 
 
-@orchestrator_router.post("/approve")
+@build_orchestrator_router.post("/approve")
 async def approve_section(request: ApproveSectionRequest):
     """User approves a whiteboard section"""
     return franklin_orchestrator.approve_section(
@@ -576,7 +576,7 @@ async def approve_section(request: ApproveSectionRequest):
     )
 
 
-@orchestrator_router.get("/session/{session_id}")
+@build_orchestrator_router.get("/session/{session_id}")
 async def get_session(session_id: str):
     """Get a specific build session"""
     session = franklin_orchestrator.get_session(session_id)
@@ -585,7 +585,7 @@ async def get_session(session_id: str):
     return franklin_orchestrator.get_whiteboard(session_id)
 
 
-@orchestrator_router.get("/sessions")
+@build_orchestrator_router.get("/sessions")
 async def list_sessions():
     """List all build sessions"""
     return {
