@@ -838,33 +838,19 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         </h1>
       </div>
       
-      {/* Chrome shimmer styles for IDE - GHOST FORMAT */}
+      {/* Chrome shimmer styles for IDE - GHOST FORMAT - STATIC, NO ANIMATION */}
       <style>{`
         .franklin-chrome-ide {
           background: linear-gradient(
-            135deg,
-            rgba(80, 80, 80, 0.5) 0%,
-            rgba(140, 140, 140, 0.6) 15%,
-            rgba(220, 220, 220, 0.7) 30%,
-            rgba(255, 255, 255, 0.8) 45%,
-            rgba(220, 220, 220, 0.7) 55%,
-            rgba(140, 140, 140, 0.6) 70%,
-            rgba(100, 100, 100, 0.5) 85%,
-            rgba(170, 170, 170, 0.6) 100%
+            180deg,
+            rgba(120, 120, 120, 0.35) 0%,
+            rgba(160, 160, 160, 0.4) 50%,
+            rgba(120, 120, 120, 0.35) 100%
           );
-          background-size: 200% 200%;
           -webkit-background-clip: text;
           background-clip: text;
           -webkit-text-fill-color: transparent;
-          animation: chromeShimmerIDE 20s ease-in-out infinite;
-          filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.15));
-          opacity: 0.3;
-        }
-        
-        @keyframes chromeShimmerIDE {
-          0% { background-position: 200% 200%; }
-          50% { background-position: 0% 0%; }
-          100% { background-position: 200% 200%; }
+          filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.08));
         }
       `}</style>
 
