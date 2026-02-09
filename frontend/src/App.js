@@ -1185,7 +1185,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
 
       {/* RIGHT SLIDE PANEL - Agent Chat (when agent selected) */}
       {detailPanel && (
-        <div className={`absolute top-0 bottom-48 z-40 bg-black/90 border-l border-white/10 backdrop-blur-md transition-all duration-300 ${agentChatOpen ? 'right-64 w-56' : '-right-56 w-56'}`} style={{ right: agentsPanelOpen ? '256px' : '0' }}>
+        <div className={`absolute top-10 bottom-48 z-40 bg-black/90 border-l border-white/10 backdrop-blur-md transition-all duration-300 ${agentChatOpen ? 'right-64 w-56' : '-right-56 w-56'}`} style={{ right: agentsPanelOpen ? '256px' : '0' }}>
           <button
             onClick={() => setAgentChatOpen(!agentChatOpen)}
             className="absolute -left-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/80 border border-white/10 rounded-l-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
