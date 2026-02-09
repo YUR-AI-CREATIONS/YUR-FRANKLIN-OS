@@ -1146,37 +1146,139 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
           <span className="text-cyan-400">PQC: ONLINE</span>
           <span className="text-purple-400">AUDIT: {dashboard?.runtime?.audit?.total_entries || 0} entries</span>
           <span className="text-amber-400">AGENTS: {marketplaceAgents.length}</span>
+          {/* Slide All Buttons */}
+          <button onClick={() => slideAllPanels(true)} className="text-white/50 hover:text-white">◀◀</button>
+          <button onClick={() => slideAllPanels(false)} className="text-white/50 hover:text-white">▶▶</button>
         </div>
       </div>
 
-      {/* LEFT SLIDE PANEL - Nested Accordion Folders */}
-      <div className={`absolute top-10 bottom-36 z-40 bg-black/90 border-r border-white/10 backdrop-blur-md transition-all duration-300 ${franklinPanelOpen ? 'left-0 w-72' : '-left-72 w-72'}`}>
+      {/* LEFT PANEL CONTAINER - Contains multiple independent slide panels */}
+      <div className={`absolute top-10 bottom-36 z-40 bg-black/90 border-r border-white/10 backdrop-blur-md transition-all duration-300 overflow-hidden ${leftPanelOpen ? 'left-0 w-72' : '-left-72 w-72'}`}>
+        {/* Main panel toggle */}
         <button
-          onClick={() => setFranklinPanelOpen(!franklinPanelOpen)}
-          className="absolute -right-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/80 border border-white/10 rounded-r-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
+          onClick={() => setLeftPanelOpen(!leftPanelOpen)}
+          className="absolute -right-8 top-4 w-8 h-12 bg-black/80 border border-white/10 rounded-r-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all z-50"
           data-testid="toggle-left-panel"
         >
-          {franklinPanelOpen ? '◀' : '▶'}
+          {leftPanelOpen ? '◀' : '▶'}
         </button>
         
-        <div className="h-full flex flex-col overflow-y-auto scrollbar-thin">
+        <div className="h-full flex flex-col overflow-x-hidden overflow-y-auto scrollbar-thin pr-6">
           
-          {/* FRANKLIN - Chat Panel (Accordion) */}
-          <AccordionPanel 
-            title="FRANKLIN" 
-            icon="◈"
-            defaultOpen={true}
-            color="text-cyan-400"
-          >
-            <div className="space-y-2">
-              <div ref={franklinRef} className="h-32 overflow-y-auto space-y-2 scrollbar-thin">
-                {franklinChat.map((msg, idx) => (
-                  <div key={idx} className={`text-[10px] font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/70'}`}>
-                    <span className="text-white/30 text-[8px]">[{msg.role === 'user' ? 'YOU' : 'FRANKLIN'}]</span>
-                    <p className="mt-0.5">{msg.content}</p>
-                  </div>
-                ))}
-                {franklinLoading && <div className="text-purple-400 text-[10px]">Thinking...</div>}
+          {/* FRANKLIN - Slide Panel */}
+          <SlidePanel title="FRANKLIN" icon="◈" color="text-cyan-400" isOpen={slidePanels.franklin} onToggle={() => toggleSlidePanel('franklin')}>
+            <div ref={franklinRef} className="h-24 overflow-y-auto space-y-1 scrollbar-thin mb-2">
+              {franklinChat.map((msg, idx) => (
+                <div key={idx} className={`text-[9px] font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/60'}`}>
+                  <span className="text-white/30 text-[7px]">[{msg.role === 'user' ? 'YOU' : 'FRANKLIN'}]</span>
+                  <p className="mt-0.5">{msg.content}</p>
+                </div>
+              ))}
+              {franklinLoading && <div className="text-purple-400 text-[9px]">Thinking...</div>}
+            </div>
+            <div className="flex gap-1">
+              <input
+                type="text"
+                value={franklinInput}
+                onChange={(e) => setFranklinInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleFranklinSend()}
+                placeholder="Ask Franklin..."
+                className="flex-1 bg-white/5 border border-white/10 rounded px-2 py-1 text-[9px] font-mono text-white placeholder-white/30 focus:outline-none"
+                disabled={franklinLoading}
+              />
+              <button onClick={handleFranklinSend} disabled={franklinLoading} className="px-2 py-1 bg-white/10 rounded text-[9px] text-white">▶</button>
+            </div>
+          </SlidePanel>
+
+          {/* GOVERNANCE - Slide Panel */}
+          <SlidePanel title="GOVERNANCE" icon="◆" color="text-purple-400" isOpen={slidePanels.governance} onToggle={() => toggleSlidePanel('governance')}>
+            <div className="space-y-1">
+              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Audit Reports</div>
+              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Licensing</div>
+              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Certification</div>
+              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Compliance</div>
+            </div>
+          </SlidePanel>
+
+          {/* LLM MODELS - Slide Panel */}
+          <SlidePanel title="LLM MODELS" icon="◆" color="text-green-400" isOpen={slidePanels.llmModels} onToggle={() => toggleSlidePanel('llmModels')}>
+            <div className="space-y-1">
+              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer flex justify-between">
+                <span>OpenAI GPT-5.2</span><span className="text-green-400">●</span>
+              </div>
+              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer flex justify-between">
+                <span>Grok 4</span><span className="text-green-400">●</span>
+              </div>
+              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer flex justify-between">
+                <span>Claude Sonnet</span><span className="text-green-400">●</span>
+              </div>
+              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer flex justify-between">
+                <span>Gemini 3 Pro</span><span className="text-amber-400">●</span>
+              </div>
+            </div>
+          </SlidePanel>
+
+          {/* PROJECTS - Slide Panel */}
+          <SlidePanel title="PROJECTS" icon="◆" color="text-amber-400" isOpen={slidePanels.projects} onToggle={() => toggleSlidePanel('projects')}>
+            <div className="space-y-1">
+              <FolderItem name="Project Alpha" files={['/src', '/schemas', '/docs']} />
+              <FolderItem name="Project Beta" files={['/api', '/tests']} />
+            </div>
+          </SlidePanel>
+
+          {/* Divider */}
+          <div className="border-t border-white/20 my-1 mx-2" />
+
+          {/* DATABASE - Slide Panel */}
+          <SlidePanel title="DATABASE" icon="◇" color="text-blue-400" isOpen={slidePanels.database} onToggle={() => toggleSlidePanel('database')}>
+            <div className="space-y-1">
+              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">MongoDB</div>
+              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Supabase</div>
+              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Schemas</div>
+            </div>
+          </SlidePanel>
+
+          {/* FRONTEND - Slide Panel */}
+          <SlidePanel title="FRONTEND" icon="◇" color="text-pink-400" isOpen={slidePanels.frontend} onToggle={() => toggleSlidePanel('frontend')}>
+            <div className="space-y-1">
+              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">React Components</div>
+              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Styles</div>
+              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Assets</div>
+            </div>
+          </SlidePanel>
+
+          {/* BACKEND - Slide Panel */}
+          <SlidePanel title="BACKEND" icon="◇" color="text-orange-400" isOpen={slidePanels.backend} onToggle={() => toggleSlidePanel('backend')}>
+            <div className="space-y-1">
+              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">FastAPI Routes</div>
+              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Models</div>
+              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Services</div>
+            </div>
+          </SlidePanel>
+
+          {/* DEPLOYMENT - Slide Panel */}
+          <SlidePanel title="DEPLOYMENT" icon="◇" color="text-red-400" isOpen={slidePanels.deployment} onToggle={() => toggleSlidePanel('deployment')}>
+            <div className="space-y-1">
+              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Docker Config</div>
+              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">CI/CD Pipeline</div>
+              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Environment</div>
+            </div>
+          </SlidePanel>
+
+          <div className="flex-1" />
+          
+          {/* Workflow Button */}
+          <div className="p-2 border-t border-white/10 sticky bottom-0 bg-black/90">
+            <button
+              onClick={() => onNavigate(PAGES.WORKFLOW)}
+              className="w-full px-3 py-2 text-[9px] font-mono text-cyan-400 hover:bg-cyan-400/10 rounded border border-cyan-400/30 transition-all"
+              data-testid="open-workflow-left"
+            >
+              ◈ OPEN WORKFLOW
+            </button>
+          </div>
+        </div>
+      </div>
               </div>
               <div className="flex gap-1">
                 <input
