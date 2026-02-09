@@ -1540,6 +1540,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
           isOpen={rightFolders.academy} 
           onToggle={() => toggleRightFolder('academy')}
           side="right"
+          tabOffset={2}
         >
           <div className="p-3 border-b border-white/10">
             <div className="text-[10px] font-mono text-purple-400 tracking-wider">◆ TRAINING PROGRAMS</div>
