@@ -1392,12 +1392,12 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
             </div>
           )}
         </div>
-          </>
+            </div>
         )}
       </div>
 
-      {/* BOTTOM PANEL */}
-      <div className={`absolute bottom-0 h-64 z-40 silver-glass silver-outline flex flex-col transition-all duration-300 ${leftCollapsed ? 'left-12' : 'left-56'} ${rightCollapsed ? 'right-12' : 'right-64'}`}>
+      {/* BOTTOM PANEL - Terminal | Grok Response | Recommendations */}
+      <div className={`absolute bottom-0 h-64 z-40 silver-glass silver-outline flex flex-col transition-all duration-300 ${leftCollapsed ? 'left-12' : 'left-56'} ${rightCollapsed ? 'right-12' : detailPanel ? 'right-[420px]' : 'right-64'}`}>
         {/* BRANDING BAR - Category Buttons */}
         <div className="flex border-b border-white/10 shrink-0">
           {BUILD_CATEGORIES.map(cat => (
