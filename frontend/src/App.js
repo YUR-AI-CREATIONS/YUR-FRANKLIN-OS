@@ -1271,6 +1271,11 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         </div>
       </div>
 
+      {/* Neural Brain - Bottom Right Corner */}
+      <div className="fixed bottom-4 right-4 z-50 w-16 h-16 rounded-xl overflow-hidden bg-black/40 backdrop-blur-sm border border-white/10 shadow-lg" data-testid="neural-brain-widget">
+        <NeuralBrain themeColor="#00ff88" isThinking={isLoading || detailLoading} size="sm" />
+      </div>
+
       <style>{`
         .franklin-chrome-dim {
           background: linear-gradient(135deg, rgba(60,60,60,1) 0%, rgba(100,100,100,1) 15%, rgba(160,160,160,1) 30%, rgba(200,200,200,1) 45%, rgba(160,160,160,1) 55%, rgba(100,100,100,1) 70%, rgba(60,60,60,1) 85%, rgba(120,120,120,1) 100%);
