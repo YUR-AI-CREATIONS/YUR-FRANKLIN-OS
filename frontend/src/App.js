@@ -1300,6 +1300,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
           zIndex={20} 
           isOpen={leftFolders.projects} 
           onToggle={() => toggleLeftFolder('projects')}
+          tabOffset={2}
         >
           <div className="p-3 border-b border-white/10">
             <div className="text-[10px] font-mono text-white/80 tracking-wider">◆ SAVED PROJECTS</div>
