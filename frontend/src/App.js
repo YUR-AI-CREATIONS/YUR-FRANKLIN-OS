@@ -1891,7 +1891,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
               </div>
             )}
           </div>
-          <div className="p-2 border-t border-white/5 bg-black">
+          <div className="p-2 pr-24 border-t border-white/5 bg-black">
             <div className="flex gap-2">
               <input
                 type="text"
