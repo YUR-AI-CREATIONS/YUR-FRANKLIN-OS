@@ -1106,6 +1106,23 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
     setDetailLoading(true);
     
     try {
+      // Handle Franklin separately - use orchestrator
+      if (detailPanel.type === 'franklin') {
+        const response = await axios.post(`${API}/api/build-orchestrator/chat`, {
+          message: input
+        });
+        
+        const reply = response.data.response || "I'm here to help you build. What would you like to create?";
+        setDetailPanel(prev => ({
+          ...prev,
+          conversation: [...prev.conversation, { role: 'assistant', content: reply }]
+        }));
+        
+        // Also update the Franklin panel chat
+        setFranklinChat(prev => [...prev, { role: 'user', content: input }, { role: 'franklin', content: reply }]);
+        return;
+      }
+      
       // Build context based on panel type
       let systemContext = '';
       if (detailPanel.type === 'agent') {
@@ -1132,11 +1149,12 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
       const fallbackReplies = {
         agent: `That's a great question. Based on my expertise in ${detailPanel.data.primary_specialization}, I'd recommend we schedule a deeper dive. What's your timeline?`,
         bot: `Acknowledged. I can execute that task within my operational parameters. Shall I proceed?`,
-        program: `Excellent question! This topic is covered in week 3 of the curriculum. Would you like more details about the program structure?`
+        program: `Excellent question! This topic is covered in week 3 of the curriculum. Would you like more details about the program structure?`,
+        franklin: `I understand. Let me help you with that. Would you like me to initiate a build process? Try typing /genesis followed by your project idea.`
       };
       setDetailPanel(prev => ({
         ...prev,
-        conversation: [...prev.conversation, { role: detailPanel.type, content: fallbackReplies[detailPanel.type] }]
+        conversation: [...prev.conversation, { role: detailPanel.type === 'franklin' ? 'assistant' : detailPanel.type, content: fallbackReplies[detailPanel.type] || fallbackReplies.franklin }]
       }));
     } finally {
       setDetailLoading(false);
