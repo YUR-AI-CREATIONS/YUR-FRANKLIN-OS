@@ -1504,9 +1504,27 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
           onToggle={() => toggleLeftFolder('franklin')}
           stackOffset={0}
         >
-          <div className="p-3 border-b border-white/10">
-            <div className="text-[10px] font-mono text-emerald-400 tracking-wider">◈ FRANKLIN ONBOARD CHAT</div>
-            <div className="text-[8px] font-mono text-white/40 mt-1">1M Context Window</div>
+          <div className="p-3 border-b border-white/10 flex items-center justify-between">
+            <div>
+              <div className="text-[10px] font-mono text-emerald-400 tracking-wider">◈ FRANKLIN ONBOARD CHAT</div>
+              <div className="text-[8px] font-mono text-white/40 mt-1">1M Context Window</div>
+            </div>
+            {/* Expand to full screen button */}
+            <button
+              onClick={() => {
+                setDetailPanel({
+                  type: 'franklin',
+                  data: { name: 'FRANKLIN', primary_specialization: 'Sovereign AI Overseer' },
+                  conversation: franklinChat.length > 0 ? franklinChat : [
+                    { role: 'assistant', content: "Welcome to FRANKLIN OS. I'm here to help you navigate and build. What would you like to create today?" }
+                  ]
+                });
+              }}
+              className="px-2 py-1 text-[8px] font-mono text-emerald-400 hover:bg-emerald-400/10 border border-emerald-400/30 rounded transition-all"
+              title="Open full screen chat"
+            >
+              ⛶ EXPAND
+            </button>
           </div>
           
           {/* Scrolling chat area - takes all available space */}
