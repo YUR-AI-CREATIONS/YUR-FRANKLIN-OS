@@ -370,6 +370,11 @@ const ElectricWorkflowPage = ({ onBack, workflowNodes, workflowEdges, onNodesCha
         </div>
       </div>
 
+      {/* Neural Brain - Bottom Right Corner */}
+      <div className="fixed bottom-4 right-4 z-50 w-16 h-16 rounded-xl overflow-hidden bg-black/40 backdrop-blur-sm border border-white/10 shadow-lg" data-testid="workflow-neural-brain">
+        <NeuralBrain themeColor="#00ff88" isThinking={buildStatus?.status === 'building'} size="sm" />
+      </div>
+
       {/* Electric Grid Overlay */}
       <div className="absolute inset-0 pointer-events-none z-[5] opacity-10">
         <div 
