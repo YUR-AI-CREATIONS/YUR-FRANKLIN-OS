@@ -55,25 +55,28 @@ const FolderItem = ({ name, files = [], defaultOpen = false }) => {
   );
 };
 
-// Accordion Panel Component - Collapsible sections for left panel
-const AccordionPanel = ({ title, icon = '◆', color = 'text-white/80', defaultOpen = false, children }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-  
+// Slide Panel Component - Each section slides independently left/right
+const SlidePanel = ({ title, icon = '◆', color = 'text-white/80', isOpen, onToggle, children }) => {
   return (
-    <div className="border-b border-white/5">
-      <div 
-        className="cursor-pointer py-2 px-3 text-[11px] font-mono tracking-wider flex items-center gap-2 hover:bg-white/5 transition-all"
-        onClick={() => setIsOpen(!isOpen)}
+    <div className={`relative transition-all duration-300 border-b border-white/10 ${isOpen ? 'ml-0' : '-ml-56'}`}>
+      {/* Toggle button on right edge */}
+      <button
+        onClick={onToggle}
+        className="absolute -right-6 top-1/2 -translate-y-1/2 w-6 h-8 bg-black/60 border border-white/10 rounded-r flex items-center justify-center text-white/40 hover:text-white text-[10px] z-10"
       >
-        <span className={`w-3 text-white/40 transition-transform text-[10px] ${isOpen ? 'rotate-90' : ''}`}>▶</span>
-        <span className={color}>{icon}</span>
-        <span className="text-white/80">{title}</span>
-      </div>
-      {isOpen && (
-        <div className="px-3 pb-2 ml-5">
+        {isOpen ? '◀' : '▶'}
+      </button>
+      
+      {/* Panel Content */}
+      <div className="bg-black/80 backdrop-blur-sm">
+        <div className="py-2 px-3 text-[10px] font-mono tracking-wider flex items-center gap-2 border-b border-white/5">
+          <span className={color}>{icon}</span>
+          <span className="text-white/80">{title}</span>
+        </div>
+        <div className="px-3 py-2 max-h-32 overflow-y-auto scrollbar-thin">
           {children}
         </div>
-      )}
+      </div>
     </div>
   );
 };
