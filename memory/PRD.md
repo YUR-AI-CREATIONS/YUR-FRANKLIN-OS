@@ -158,6 +158,31 @@ Core Modules:
 - GROK RESPONSE (right) - 1M context window with dedicated chat input
 - Neural Brain widget (far right) - Visual thinking indicator
 
+### Session Update: 2025-12-XX (continued)
+
+**Fixed Issues:**
+1. **Colored Tab Design** - REMOVED
+   - Replaced funky colored tabs with clean black panels
+   - Added faint line borders (1px rgba(255,255,255,0.08))
+   - Button at top with ◀/▶ toggle and COLLAPSE/EXPAND text
+
+2. **9 Items Under Each Build Category** - RESTORED
+   - FRONTEND: React Components, Vue.js, Angular, Svelte, Next.js, TailwindCSS, Styled Components, CSS Modules, Framer Motion
+   - BACKEND: Node.js Express, Python FastAPI, Django REST, GraphQL, REST API, WebSockets, JWT Auth, OAuth 2.0, Microservices
+   - DATABASE: PostgreSQL, MongoDB, MySQL, Redis, Supabase, Firebase, SQLite, Prisma ORM, Vector DB
+   - DEPLOY: Vercel, Render, AWS, Docker, Kubernetes, CI/CD Pipeline, GitHub Actions, Governance, Testing Suite
+
+3. **Bottom Panel Auto-Snap** - FIXED
+   - Terminal and Grok Response now span full width (left-0 right-0)
+   - Clean black background with subtle borders
+   - Both have pulsing indicator dots (cyan/purple)
+   - Input fields properly aligned at bottom
+
+**Current Folder Layout:**
+- LEFT: FRANKLIN (chat) > LLM (providers) > PROJECTS > BUILD (Frontend/Backend/Database/Deploy)
+- RIGHT: AGENTS > BOTS > ACADEMY
+- Folders slide smoothly when toggled, revealing folder behind
+
 ---
 
 ## File Structure
