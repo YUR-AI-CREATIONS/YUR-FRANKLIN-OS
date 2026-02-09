@@ -1163,129 +1163,111 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
           <span className="text-cyan-400">PQC: ONLINE</span>
           <span className="text-purple-400">AUDIT: {dashboard?.runtime?.audit?.total_entries || 0} entries</span>
           <span className="text-amber-400">AGENTS: {marketplaceAgents.length}</span>
-          {/* Slide All Buttons */}
-          <button onClick={() => slideAllPanels(true)} className="text-white/50 hover:text-white">◀◀</button>
-          <button onClick={() => slideAllPanels(false)} className="text-white/50 hover:text-white">▶▶</button>
         </div>
       </div>
 
-      {/* LEFT PANEL CONTAINER - Contains multiple independent slide panels */}
-      <div className={`absolute top-10 bottom-36 z-40 bg-black/90 border-r border-white/10 backdrop-blur-md transition-all duration-300 overflow-hidden ${leftPanelOpen ? 'left-0 w-72' : '-left-72 w-72'}`}>
-        {/* Main panel toggle */}
-        <button
-          onClick={() => setLeftPanelOpen(!leftPanelOpen)}
-          className="absolute -right-8 top-4 w-8 h-12 bg-black/80 border border-white/10 rounded-r-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all z-50"
-          data-testid="toggle-left-panel"
-        >
-          {leftPanelOpen ? '◀' : '▶'}
-        </button>
+      {/* LEFT SIDE - Full Height Stacked Sliding Folders */}
+      <div className="absolute top-10 bottom-44 left-0 w-80 z-40 overflow-visible" data-testid="left-folders">
         
-        <div className="h-full flex flex-col overflow-x-hidden overflow-y-auto scrollbar-thin pr-6">
+        {/* FOLDER 4 (Back) - BUILD: Frontend/Backend/Database/Deploy */}
+        <StackedFolder 
+          title="BUILD" 
+          tabColor="bg-red-500" 
+          zIndex={10} 
+          isOpen={leftFolders.build} 
+          onToggle={() => toggleLeftFolder('build')}
+        >
+          {/* Build Category Tabs */}
+          <div className="flex border-b border-white/10">
+            {['FRONTEND', 'BACKEND', 'DATABASE', 'DEPLOY'].map((tab, i) => (
+              <button 
+                key={tab}
+                onClick={() => setExpandedCategory(tab.toLowerCase())}
+                className={`flex-1 py-2 text-[8px] font-mono tracking-wider transition-all ${expandedCategory === tab.toLowerCase() ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'}`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
           
-          {/* FRANKLIN - Slide Panel */}
-          <SlidePanel title="FRANKLIN" icon="◈" color="text-cyan-400" isOpen={slidePanels.franklin} onToggle={() => toggleSlidePanel('franklin')}>
-            <div ref={franklinRef} className="h-24 overflow-y-auto space-y-1 scrollbar-thin mb-2">
-              {franklinChat.map((msg, idx) => (
-                <div key={idx} className={`text-[9px] font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/60'}`}>
-                  <span className="text-white/30 text-[7px]">[{msg.role === 'user' ? 'YOU' : 'FRANKLIN'}]</span>
-                  <p className="mt-0.5">{msg.content}</p>
-                </div>
-              ))}
-              {franklinLoading && <div className="text-purple-400 text-[9px]">Thinking...</div>}
-            </div>
-            <div className="flex gap-1">
-              <input
-                type="text"
-                value={franklinInput}
-                onChange={(e) => setFranklinInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleFranklinSend()}
-                placeholder="Ask Franklin..."
-                className="flex-1 bg-white/5 border border-white/10 rounded px-2 py-1 text-[9px] font-mono text-white placeholder-white/30 focus:outline-none"
-                disabled={franklinLoading}
-              />
-              <button onClick={handleFranklinSend} disabled={franklinLoading} className="px-2 py-1 bg-white/10 rounded text-[9px] text-white">▶</button>
-            </div>
-          </SlidePanel>
-
-          {/* GOVERNANCE - Slide Panel */}
-          <SlidePanel title="GOVERNANCE" icon="◆" color="text-purple-400" isOpen={slidePanels.governance} onToggle={() => toggleSlidePanel('governance')}>
-            <div className="space-y-1">
-              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Audit Reports</div>
-              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Licensing</div>
-              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Certification</div>
-              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Compliance</div>
-            </div>
-          </SlidePanel>
-
-          {/* LLM MODELS - Slide Panel */}
-          <SlidePanel title="LLM MODELS" icon="◆" color="text-green-400" isOpen={slidePanels.llmModels} onToggle={() => toggleSlidePanel('llmModels')}>
-            <div className="space-y-1">
-              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer flex justify-between">
-                <span>OpenAI GPT-5.2</span><span className="text-green-400">●</span>
+          {/* Nested content based on selected tab */}
+          <div className="flex-1 overflow-y-auto p-3 scrollbar-thin">
+            {expandedCategory === 'frontend' && (
+              <div className="space-y-1">
+                <NestedSection title="React" icon="◆" color="text-cyan-400" defaultOpen>
+                  <div className="space-y-1 text-[9px] font-mono text-white/60">
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Components</div>
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Hooks</div>
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Context</div>
+                  </div>
+                </NestedSection>
+                <NestedSection title="Styling" icon="◆" color="text-pink-400">
+                  <div className="space-y-1 text-[9px] font-mono text-white/60">
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Tailwind</div>
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">CSS Modules</div>
+                  </div>
+                </NestedSection>
               </div>
-              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer flex justify-between">
-                <span>Grok 4</span><span className="text-green-400">●</span>
+            )}
+            {expandedCategory === 'backend' && (
+              <div className="space-y-1">
+                <NestedSection title="FastAPI" icon="◆" color="text-green-400" defaultOpen>
+                  <div className="space-y-1 text-[9px] font-mono text-white/60">
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Routes</div>
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Models</div>
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Services</div>
+                  </div>
+                </NestedSection>
+                <NestedSection title="Auth" icon="◆" color="text-amber-400">
+                  <div className="space-y-1 text-[9px] font-mono text-white/60">
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">JWT</div>
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">OAuth</div>
+                  </div>
+                </NestedSection>
               </div>
-              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer flex justify-between">
-                <span>Claude Sonnet</span><span className="text-green-400">●</span>
+            )}
+            {expandedCategory === 'database' && (
+              <div className="space-y-1">
+                <NestedSection title="MongoDB" icon="◆" color="text-green-400" defaultOpen>
+                  <div className="space-y-1 text-[9px] font-mono text-white/60">
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Collections</div>
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Schemas</div>
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Indexes</div>
+                  </div>
+                </NestedSection>
+                <NestedSection title="Supabase" icon="◆" color="text-cyan-400">
+                  <div className="space-y-1 text-[9px] font-mono text-white/60">
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Tables</div>
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Functions</div>
+                  </div>
+                </NestedSection>
               </div>
-              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer flex justify-between">
-                <span>Gemini 3 Pro</span><span className="text-amber-400">●</span>
+            )}
+            {expandedCategory === 'deploy' && (
+              <div className="space-y-1">
+                <NestedSection title="Docker" icon="◆" color="text-blue-400" defaultOpen>
+                  <div className="space-y-1 text-[9px] font-mono text-white/60">
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Dockerfile</div>
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Compose</div>
+                  </div>
+                </NestedSection>
+                <NestedSection title="CI/CD" icon="◆" color="text-purple-400">
+                  <div className="space-y-1 text-[9px] font-mono text-white/60">
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">GitHub Actions</div>
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Vercel</div>
+                  </div>
+                </NestedSection>
               </div>
-            </div>
-          </SlidePanel>
-
-          {/* PROJECTS - Slide Panel */}
-          <SlidePanel title="PROJECTS" icon="◆" color="text-amber-400" isOpen={slidePanels.projects} onToggle={() => toggleSlidePanel('projects')}>
-            <div className="space-y-1">
-              <FolderItem name="Project Alpha" files={['/src', '/schemas', '/docs']} />
-              <FolderItem name="Project Beta" files={['/api', '/tests']} />
-            </div>
-          </SlidePanel>
-
-          {/* Divider */}
-          <div className="border-t border-white/20 my-1 mx-2" />
-
-          {/* DATABASE - Slide Panel */}
-          <SlidePanel title="DATABASE" icon="◇" color="text-blue-400" isOpen={slidePanels.database} onToggle={() => toggleSlidePanel('database')}>
-            <div className="space-y-1">
-              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">MongoDB</div>
-              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Supabase</div>
-              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Schemas</div>
-            </div>
-          </SlidePanel>
-
-          {/* FRONTEND - Slide Panel */}
-          <SlidePanel title="FRONTEND" icon="◇" color="text-pink-400" isOpen={slidePanels.frontend} onToggle={() => toggleSlidePanel('frontend')}>
-            <div className="space-y-1">
-              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">React Components</div>
-              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Styles</div>
-              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Assets</div>
-            </div>
-          </SlidePanel>
-
-          {/* BACKEND - Slide Panel */}
-          <SlidePanel title="BACKEND" icon="◇" color="text-orange-400" isOpen={slidePanels.backend} onToggle={() => toggleSlidePanel('backend')}>
-            <div className="space-y-1">
-              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">FastAPI Routes</div>
-              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Models</div>
-              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Services</div>
-            </div>
-          </SlidePanel>
-
-          {/* DEPLOYMENT - Slide Panel */}
-          <SlidePanel title="DEPLOYMENT" icon="◇" color="text-red-400" isOpen={slidePanels.deployment} onToggle={() => toggleSlidePanel('deployment')}>
-            <div className="space-y-1">
-              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Docker Config</div>
-              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">CI/CD Pipeline</div>
-              <div className="py-1 px-2 text-[9px] font-mono text-white/60 hover:bg-white/5 rounded cursor-pointer">Environment</div>
-            </div>
-          </SlidePanel>
-
-          <div className="flex-1" />
+            )}
+            {!expandedCategory && (
+              <div className="text-[10px] text-white/40 font-mono text-center mt-8">
+                Select a category above
+              </div>
+            )}
+          </div>
           
-          {/* Workflow Button */}
-          <div className="p-2 border-t border-white/10 sticky bottom-0 bg-black/90">
+          {/* Workflow button at bottom */}
+          <div className="p-3 border-t border-white/10">
             <button
               onClick={() => onNavigate(PAGES.WORKFLOW)}
               className="w-full px-3 py-2 text-[9px] font-mono text-cyan-400 hover:bg-cyan-400/10 rounded border border-cyan-400/30 transition-all"
@@ -1294,10 +1276,194 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
               ◈ OPEN WORKFLOW
             </button>
           </div>
-        </div>
+        </StackedFolder>
+
+        {/* FOLDER 3 - PROJECTS SAVED */}
+        <StackedFolder 
+          title="PROJECTS" 
+          tabColor="bg-yellow-500" 
+          zIndex={20} 
+          isOpen={leftFolders.projects} 
+          onToggle={() => toggleLeftFolder('projects')}
+        >
+          <div className="p-3 border-b border-white/10">
+            <div className="text-[10px] font-mono text-white/80 tracking-wider">◆ SAVED PROJECTS</div>
+          </div>
+          <div className="flex-1 overflow-y-auto p-3 scrollbar-thin">
+            <NestedSection title="Project Alpha" icon="📁" color="text-amber-400" defaultOpen>
+              <div className="space-y-1 text-[9px] font-mono text-white/60">
+                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer flex items-center gap-2">
+                  <span className="text-white/30">▶</span> src/
+                </div>
+                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer flex items-center gap-2">
+                  <span className="text-white/30">▶</span> schemas/
+                </div>
+                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer flex items-center gap-2">
+                  <span className="text-white/30">○</span> README.md
+                </div>
+              </div>
+            </NestedSection>
+            <NestedSection title="Project Beta" icon="📁" color="text-amber-400">
+              <div className="space-y-1 text-[9px] font-mono text-white/60">
+                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer flex items-center gap-2">
+                  <span className="text-white/30">▶</span> api/
+                </div>
+                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer flex items-center gap-2">
+                  <span className="text-white/30">▶</span> tests/
+                </div>
+              </div>
+            </NestedSection>
+            <NestedSection title="Franklin OS" icon="📁" color="text-cyan-400">
+              <div className="space-y-1 text-[9px] font-mono text-white/60">
+                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer flex items-center gap-2">
+                  <span className="text-white/30">▶</span> frontend/
+                </div>
+                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer flex items-center gap-2">
+                  <span className="text-white/30">▶</span> backend/
+                </div>
+                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer flex items-center gap-2">
+                  <span className="text-white/30">▶</span> services/
+                </div>
+              </div>
+            </NestedSection>
+          </div>
+        </StackedFolder>
+
+        {/* FOLDER 2 - LLM PROVIDERS */}
+        <StackedFolder 
+          title="LLM" 
+          tabColor="bg-cyan-500" 
+          zIndex={30} 
+          isOpen={leftFolders.providers} 
+          onToggle={() => toggleLeftFolder('providers')}
+        >
+          <div className="p-3 border-b border-white/10">
+            <div className="text-[10px] font-mono text-white/80 tracking-wider">◆ LLM PROVIDERS</div>
+          </div>
+          <div className="flex-1 overflow-y-auto p-3 scrollbar-thin">
+            <NestedSection title="OpenAI" icon="◆" color="text-green-400" defaultOpen>
+              <div className="space-y-1 text-[9px] font-mono text-white/60">
+                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer flex justify-between">
+                  <span>GPT-5.2</span><span className="text-green-400">●</span>
+                </div>
+                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer flex justify-between">
+                  <span>GPT-4o</span><span className="text-green-400">●</span>
+                </div>
+                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer flex justify-between">
+                  <span>GPT-4o-mini</span><span className="text-green-400">●</span>
+                </div>
+              </div>
+            </NestedSection>
+            <NestedSection title="xAI" icon="◆" color="text-purple-400" defaultOpen>
+              <div className="space-y-1 text-[9px] font-mono text-white/60">
+                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer flex justify-between">
+                  <span>Grok 4</span><span className="text-green-400">●</span>
+                </div>
+                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer flex justify-between">
+                  <span>Grok 3</span><span className="text-amber-400">●</span>
+                </div>
+              </div>
+            </NestedSection>
+            <NestedSection title="Anthropic" icon="◆" color="text-orange-400">
+              <div className="space-y-1 text-[9px] font-mono text-white/60">
+                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer flex justify-between">
+                  <span>Claude Sonnet 4</span><span className="text-green-400">●</span>
+                </div>
+                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer flex justify-between">
+                  <span>Claude Opus 4</span><span className="text-amber-400">●</span>
+                </div>
+              </div>
+            </NestedSection>
+            <NestedSection title="Google" icon="◆" color="text-blue-400">
+              <div className="space-y-1 text-[9px] font-mono text-white/60">
+                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer flex justify-between">
+                  <span>Gemini 3 Pro</span><span className="text-green-400">●</span>
+                </div>
+                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer flex justify-between">
+                  <span>Gemini 3 Flash</span><span className="text-green-400">●</span>
+                </div>
+              </div>
+            </NestedSection>
+          </div>
+        </StackedFolder>
+
+        {/* FOLDER 1 (Front) - FRANKLIN ONBOARD CHAT - Full height scrolling chat */}
+        <StackedFolder 
+          title="FRANKLIN" 
+          tabColor="bg-emerald-500" 
+          zIndex={40} 
+          isOpen={leftFolders.franklin} 
+          onToggle={() => toggleLeftFolder('franklin')}
+        >
+          <div className="p-3 border-b border-white/10">
+            <div className="text-[10px] font-mono text-emerald-400 tracking-wider">◈ FRANKLIN ONBOARD CHAT</div>
+            <div className="text-[8px] font-mono text-white/40 mt-1">1M Context Window</div>
+          </div>
+          
+          {/* Scrolling chat area - takes all available space */}
+          <div 
+            ref={franklinRef} 
+            className="flex-1 overflow-y-auto p-3 scrollbar-thin space-y-3"
+            data-testid="franklin-chat-scroll"
+          >
+            {franklinChat.map((msg, idx) => (
+              <div 
+                key={idx} 
+                className={`${msg.role === 'user' ? 'ml-4' : 'mr-4'}`}
+              >
+                <div className={`p-2 rounded-lg text-[10px] font-mono ${
+                  msg.role === 'user' 
+                    ? 'bg-cyan-500/20 border border-cyan-500/30 text-cyan-100' 
+                    : 'bg-white/5 border border-white/10 text-white/80'
+                }`}>
+                  <div className="text-[8px] text-white/40 mb-1">
+                    {msg.role === 'user' ? '◆ YOU' : '◈ FRANKLIN'}
+                  </div>
+                  <div className="leading-relaxed">{msg.content}</div>
+                </div>
+              </div>
+            ))}
+            {franklinLoading && (
+              <div className="mr-4">
+                <div className="p-2 rounded-lg bg-white/5 border border-white/10">
+                  <div className="flex items-center gap-2 text-purple-400 text-[10px]">
+                    <div className="w-4 h-4">
+                      <NeuralBrain themeColor="#a855f7" isThinking={true} size="sm" />
+                    </div>
+                    <span>Thinking...</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Input at bottom - fixed */}
+          <div className="p-3 border-t border-white/10 bg-black/50">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={franklinInput}
+                onChange={(e) => setFranklinInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleFranklinSend()}
+                placeholder="Ask Franklin anything..."
+                className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-mono text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/50"
+                disabled={franklinLoading}
+                data-testid="franklin-input"
+              />
+              <button 
+                onClick={handleFranklinSend} 
+                disabled={franklinLoading} 
+                className="px-3 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-lg text-[10px] text-emerald-400 transition-all"
+                data-testid="franklin-send"
+              >
+                ▶
+              </button>
+            </div>
+          </div>
+        </StackedFolder>
       </div>
 
-      {/* CENTER - Code/Chat Output Area */}
+      {/* CENTER - Main Content Area */}
       <div className={`absolute top-10 bottom-36 z-10 transition-all duration-300 ${leftPanelOpen ? 'left-72' : 'left-0'} ${agentsPanelOpen ? 'right-64' : 'right-0'} ${agentChatOpen && detailPanel ? 'right-[320px]' : ''}`}>
         {/* Chat Messages Area */}
         <div 
