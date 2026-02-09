@@ -362,12 +362,12 @@
   -webkit-text-fill-color: transparent;
 }
 
-/* Silver Glass Panel */
+/* Silver Glass Panel - More transparent to show galactic background */
 .silver-glass {
   background: linear-gradient(
     135deg,
-    rgba(30, 30, 35, 0.95) 0%,
-    rgba(20, 20, 25, 0.98) 100%
+    rgba(15, 15, 20, 0.85) 0%,
+    rgba(10, 10, 15, 0.88) 100%
   );
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.1);
