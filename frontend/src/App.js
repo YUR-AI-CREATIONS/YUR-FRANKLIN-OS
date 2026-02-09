@@ -539,9 +539,10 @@ const ElectricWorkflowPage = ({ onBack, workflowNodes, workflowEdges, onNodesCha
 // PAGE 2: MAIN IDE
 // ============================================================================
 const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, setWorkflowEdges }) => {
-  // Panel collapse states
-  const [leftCollapsed, setLeftCollapsed] = useState(false);
-  const [rightCollapsed, setRightCollapsed] = useState(false);
+  // Slide panel states - like workflow page
+  const [franklinPanelOpen, setFranklinPanelOpen] = useState(true);
+  const [agentsPanelOpen, setAgentsPanelOpen] = useState(true);
+  const [agentChatOpen, setAgentChatOpen] = useState(false);
   
   // Panel states
   const [leftPanelView, setLeftPanelView] = useState('interface');
@@ -555,7 +556,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
   const [selectedBot, setSelectedBot] = useState(null);
   const [selectedProgram, setSelectedProgram] = useState(null);
   
-  // Detail panel state (for agent/bot engagement) - NOW ON RIGHT SIDE
+  // Detail panel state (for agent/bot engagement)
   const [detailPanel, setDetailPanel] = useState(null); // { type: 'agent'|'bot'|'program', data: {...}, conversation: [] }
   const [detailInput, setDetailInput] = useState('');
   const [detailLoading, setDetailLoading] = useState(false);
