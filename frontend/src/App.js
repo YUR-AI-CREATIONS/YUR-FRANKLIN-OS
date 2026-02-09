@@ -1379,7 +1379,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
       )}
 
       {/* RIGHT SLIDE PANEL - Agents/Bots/Academy List */}
-      <div className={`absolute top-10 bottom-48 z-40 bg-black/90 border-l border-white/10 backdrop-blur-md transition-all duration-300 ${agentsPanelOpen ? 'right-0 w-64' : '-right-64 w-64'}`}>
+      <div className={`absolute top-10 bottom-36 z-40 bg-black/90 border-l border-white/10 backdrop-blur-md transition-all duration-300 ${agentsPanelOpen ? 'right-0 w-64' : '-right-64 w-64'}`}>
         <button
           onClick={() => setAgentsPanelOpen(!agentsPanelOpen)}
           className="absolute -left-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/80 border border-white/10 rounded-l-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
