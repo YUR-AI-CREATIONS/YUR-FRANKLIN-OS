@@ -135,12 +135,28 @@ Core Modules:
    - Build now compiles successfully
    - Application fully functional again
 
+2. **Stacked Folder UI System (P0)** - IMPLEMENTED
+   - Replaced accordion-style slide panels with full-height stacked folders
+   - Created `StackedFolder` component with vertical tab staggering
+   - Each folder is full height, slides left/right to reveal folder behind
+   - Tabs positioned on folder edges, staggered vertically to remain visible
+
 ### Current UI State
-- IDE page features independent slide panels (10 slide buttons)
-- Left panel: FRANKLIN chat, GOVERNANCE, LLM MODELS, PROJECTS sections
-- Right panel: AGENTS/BOTS/ACADEMY tabs
-- Bottom panel: TERMINAL, GROK RESPONSE, NeuralBrain visualization
-- Galactic black theme with twinkling stars throughout
+**LEFT SIDE - 4 Stacked Full-Height Folders:**
+1. FRANKLIN (emerald tab) - Full-height onboard chat with 1M context window
+2. LLM (cyan tab) - LLM Providers with nested sections (OpenAI, xAI, Anthropic, Google)
+3. PROJECTS (yellow tab) - Saved projects with nested file structure
+4. BUILD (red tab) - Frontend/Backend/Database/Deploy tabs with nested content
+
+**RIGHT SIDE - 3 Stacked Full-Height Folders:**
+1. AGENTS (green tab) - Elite agents marketplace
+2. BOTS (amber tab) - Bot tiers listing
+3. ACADEMY (purple tab) - Training programs
+
+**BOTTOM PANEL:**
+- TERMINAL (left) - SDK Cloud, Ubuntu/Linux, PowerShell with command input
+- GROK RESPONSE (right) - 1M context window with dedicated chat input
+- Neural Brain widget (far right) - Visual thinking indicator
 
 ---
 
