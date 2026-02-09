@@ -775,7 +775,39 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
       }
     };
     loadData();
+    
+    // Poll for active tasks every 5 seconds
+    const pollTasks = setInterval(async () => {
+      try {
+        const res = await axios.get(`${API}/api/tasks/active`);
+        setActiveTasks(res.data.tasks || []);
+      } catch (e) {
+        // Ignore errors
+      }
+    }, 5000);
+    
+    return () => clearInterval(pollTasks);
   }, []);
+
+  // Save Franklin chat to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('franklin_chat', JSON.stringify(franklinChat));
+  }, [franklinChat]);
+  
+  // Save output log to localStorage
+  useEffect(() => {
+    localStorage.setItem('output_log', JSON.stringify(outputLog.slice(-100))); // Keep last 100
+  }, [outputLog]);
+  
+  // Save conversation history to localStorage
+  useEffect(() => {
+    localStorage.setItem('conversation_history', JSON.stringify(conversationHistory.slice(-50)));
+  }, [conversationHistory]);
+  
+  // Save grok responses to localStorage
+  useEffect(() => {
+    localStorage.setItem('grok_responses', JSON.stringify(grokResponses.slice(-20)));
+  }, [grokResponses]);
 
   // Auto-scroll output
   useEffect(() => {
