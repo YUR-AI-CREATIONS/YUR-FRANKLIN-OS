@@ -1510,44 +1510,8 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         .animate-fade-in { animation: fade-in 0.3s ease-out; }
       `}</style>
     </div>
-                <div key={idx} className={`mb-1 ${getOutputColor(entry.type)}`}>
-                  <span className="text-white/30">[{entry.phase}]</span> {entry.message?.slice(0, 80)}
-                </div>
-              ))}
-              {outputLog.length === 0 && (
-                <div className="text-white/30">
-                  {'>'} FRANKLIN OS Terminal v2.0<br/>
-                  {'>'} Ready for commands...
-                </div>
-              )}
-            </div>
-            <div className="p-2 border-t border-white/10">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleChatSend()}
-                  placeholder="/genesis <mission> or describe..."
-                  className="flex-1 silver-input rounded px-3 py-2 text-[10px] font-mono text-white placeholder-white/30"
-                  data-testid="command-input"
-                  disabled={isLoading}
-                />
-                <button
-                  onClick={handleChatSend}
-                  disabled={isLoading || !chatInput.trim()}
-                  data-testid="send-btn"
-                  className="silver-btn px-3 py-2 rounded text-[10px] font-mono text-white disabled:opacity-30"
-                >
-                  {isLoading ? '◐' : '▶'}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Grok Response - Center */}
-          <div className="flex-1 border-r border-white/10 flex flex-col">
-            <div className="px-3 py-2 border-b border-white/10 text-[9px] font-mono text-white/40">◆ GROK RESPONSE</div>
+  );
+}
             <div className="flex-1 p-3 overflow-y-auto scrollbar-thin">
               {grokResponses.length > 0 ? (
                 grokResponses.slice(-8).map((resp, idx) => (
