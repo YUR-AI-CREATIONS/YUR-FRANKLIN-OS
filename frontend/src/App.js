@@ -1349,6 +1349,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
           zIndex={30} 
           isOpen={leftFolders.providers} 
           onToggle={() => toggleLeftFolder('providers')}
+          stackOffset={1}
         >
           <div className="p-3 border-b border-white/10">
             <div className="text-[10px] font-mono text-white/80 tracking-wider">◆ LLM PROVIDERS</div>
