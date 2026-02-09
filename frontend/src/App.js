@@ -619,32 +619,27 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
   const [agentChatOpen, setAgentChatOpen] = useState(false);
   
   // Individual slide panel states (each section slides independently)
-  const [slidePanels, setSlidePanels] = useState({
-    franklin: true,
-    governance: true,
-    llmModels: true,
-    projects: true,
-    database: true,
-    frontend: true,
-    backend: true,
-    deployment: true
+  // Stacked folder states (left side) - which folders are slid open
+  const [leftFolders, setLeftFolders] = useState({
+    franklin: true,      // Front - Franklin chat
+    providers: false,    // Behind franklin - LLM providers
+    projects: false,     // Behind providers - Projects
+    build: false         // Back - Frontend/Backend/DB/Deploy
   });
   
-  const toggleSlidePanel = (panel) => {
-    setSlidePanels(prev => ({ ...prev, [panel]: !prev[panel] }));
+  const toggleLeftFolder = (folder) => {
+    setLeftFolders(prev => ({ ...prev, [folder]: !prev[folder] }));
   };
   
-  const slideAllPanels = (open) => {
-    setSlidePanels({
-      franklin: open,
-      governance: open,
-      llmModels: open,
-      projects: open,
-      database: open,
-      frontend: open,
-      backend: open,
-      deployment: open
-    });
+  // Stacked folder states (right side)
+  const [rightFolders, setRightFolders] = useState({
+    agents: true,
+    bots: false,
+    academy: false
+  });
+  
+  const toggleRightFolder = (folder) => {
+    setRightFolders(prev => ({ ...prev, [folder]: !prev[folder] }));
   };
   
   // Panel states
