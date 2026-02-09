@@ -604,3 +604,254 @@ async def list_sessions():
             for s in franklin_orchestrator.sessions.values()
         ]
     }
+
+
+
+# ============================================================================
+#                         PERSISTENCE ROUTES
+#                    Save/Load Conversations & Sessions
+# ============================================================================
+
+# In-memory storage (will be replaced with MongoDB in server.py)
+conversations_store: Dict[str, Dict] = {}
+tasks_store: Dict[str, Dict] = {}
+
+
+class SaveConversationRequest(BaseModel):
+    user_id: str = "default"
+    conversation_type: str  # 'franklin', 'agent', 'bot', 'academy'
+    entity_name: str
+    messages: List[Dict[str, Any]]
+
+
+class UpdateConversationRequest(BaseModel):
+    messages: List[Dict[str, Any]]
+
+
+@persistence_router.post("/conversation/save")
+async def save_conversation(request: SaveConversationRequest):
+    """Save a conversation"""
+    import uuid
+    conv_id = str(uuid.uuid4())
+    conversations_store[conv_id] = {
+        "id": conv_id,
+        "user_id": request.user_id,
+        "type": request.conversation_type,
+        "entity_name": request.entity_name,
+        "messages": request.messages,
+        "created_at": datetime.utcnow().isoformat(),
+        "updated_at": datetime.utcnow().isoformat()
+    }
+    return {"success": True, "conversation_id": conv_id}
+
+
+@persistence_router.put("/conversation/{conversation_id}")
+async def update_conversation(conversation_id: str, request: UpdateConversationRequest):
+    """Update a conversation"""
+    if conversation_id not in conversations_store:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    conversations_store[conversation_id]["messages"] = request.messages
+    conversations_store[conversation_id]["updated_at"] = datetime.utcnow().isoformat()
+    return {"success": True}
+
+
+@persistence_router.get("/conversation/{conversation_id}")
+async def get_conversation(conversation_id: str):
+    """Get a specific conversation"""
+    if conversation_id not in conversations_store:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    return conversations_store[conversation_id]
+
+
+@persistence_router.get("/conversations/{user_id}")
+async def get_user_conversations(user_id: str, conversation_type: Optional[str] = None):
+    """Get all conversations for a user"""
+    convs = [c for c in conversations_store.values() if c["user_id"] == user_id]
+    if conversation_type:
+        convs = [c for c in convs if c["type"] == conversation_type]
+    return {"conversations": sorted(convs, key=lambda x: x["updated_at"], reverse=True)}
+
+
+@persistence_router.get("/conversation/find/{user_id}/{conversation_type}/{entity_name}")
+async def find_or_create_conversation(user_id: str, conversation_type: str, entity_name: str):
+    """Find existing conversation or create new one"""
+    for conv in conversations_store.values():
+        if (conv["user_id"] == user_id and 
+            conv["type"] == conversation_type and 
+            conv["entity_name"] == entity_name):
+            return conv
+    
+    # Create new
+    import uuid
+    conv_id = str(uuid.uuid4())
+    conversations_store[conv_id] = {
+        "id": conv_id,
+        "user_id": user_id,
+        "type": conversation_type,
+        "entity_name": entity_name,
+        "messages": [],
+        "created_at": datetime.utcnow().isoformat(),
+        "updated_at": datetime.utcnow().isoformat()
+    }
+    return conversations_store[conv_id]
+
+
+# ============================================================================
+#                         TASK TRACKING ROUTES
+#                    Real-time status & proof of work
+# ============================================================================
+
+class CreateTaskRequest(BaseModel):
+    task_type: str
+    description: str
+    user_id: str = "default"
+    params: Optional[Dict[str, Any]] = None
+    steps: Optional[List[str]] = None
+
+
+class UpdateTaskProgressRequest(BaseModel):
+    progress: int
+    step_completed: Optional[str] = None
+    current_action: Optional[str] = None
+
+
+@tasks_router.post("/create")
+async def create_task(request: CreateTaskRequest):
+    """Create a new tracked task"""
+    import uuid
+    task_id = str(uuid.uuid4())
+    task = {
+        "task_id": task_id,
+        "type": request.task_type,
+        "description": request.description,
+        "user_id": request.user_id,
+        "params": request.params or {},
+        "status": "pending",
+        "progress": 0,
+        "steps": request.steps or [],
+        "steps_completed": [],
+        "logs": [
+            {"event": "created", "message": f"Task created: {request.description}", "timestamp": datetime.utcnow().isoformat()}
+        ],
+        "created_at": datetime.utcnow().isoformat(),
+        "started_at": None,
+        "completed_at": None,
+        "last_update": datetime.utcnow().isoformat(),
+        "result": None,
+        "error": None
+    }
+    tasks_store[task_id] = task
+    return {"success": True, "task_id": task_id, "task": task}
+
+
+@tasks_router.post("/{task_id}/start")
+async def start_task(task_id: str):
+    """Start a task"""
+    if task_id not in tasks_store:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    task = tasks_store[task_id]
+    task["status"] = "running"
+    task["started_at"] = datetime.utcnow().isoformat()
+    task["last_update"] = datetime.utcnow().isoformat()
+    task["logs"].append({
+        "event": "started",
+        "message": "Task execution started",
+        "timestamp": datetime.utcnow().isoformat()
+    })
+    return {"success": True, "task": task}
+
+
+@tasks_router.post("/{task_id}/progress")
+async def update_task_progress(task_id: str, request: UpdateTaskProgressRequest):
+    """Update task progress - proof of work"""
+    if task_id not in tasks_store:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    task = tasks_store[task_id]
+    task["progress"] = request.progress
+    task["last_update"] = datetime.utcnow().isoformat()
+    
+    log_msg = f"Progress: {request.progress}%"
+    if request.step_completed:
+        task["steps_completed"].append({
+            "step": request.step_completed,
+            "completed_at": datetime.utcnow().isoformat()
+        })
+        log_msg += f" - Completed: {request.step_completed}"
+    if request.current_action:
+        log_msg += f" - Current: {request.current_action}"
+    
+    task["logs"].append({
+        "event": "progress",
+        "message": log_msg,
+        "timestamp": datetime.utcnow().isoformat()
+    })
+    
+    return {"success": True, "task": task}
+
+
+@tasks_router.post("/{task_id}/complete")
+async def complete_task(task_id: str, result: Optional[Dict[str, Any]] = None):
+    """Mark task as completed"""
+    if task_id not in tasks_store:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    task = tasks_store[task_id]
+    task["status"] = "completed"
+    task["progress"] = 100
+    task["completed_at"] = datetime.utcnow().isoformat()
+    task["last_update"] = datetime.utcnow().isoformat()
+    task["result"] = result
+    task["logs"].append({
+        "event": "completed",
+        "message": "Task completed successfully",
+        "timestamp": datetime.utcnow().isoformat()
+    })
+    return {"success": True, "task": task}
+
+
+@tasks_router.post("/{task_id}/fail")
+async def fail_task(task_id: str, error: str = "Unknown error"):
+    """Mark task as failed"""
+    if task_id not in tasks_store:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    task = tasks_store[task_id]
+    task["status"] = "failed"
+    task["completed_at"] = datetime.utcnow().isoformat()
+    task["last_update"] = datetime.utcnow().isoformat()
+    task["error"] = error
+    task["logs"].append({
+        "event": "failed",
+        "message": f"Task failed: {error}",
+        "timestamp": datetime.utcnow().isoformat()
+    })
+    return {"success": True, "task": task}
+
+
+@tasks_router.get("/{task_id}")
+async def get_task(task_id: str):
+    """Get task status with proof of work logs"""
+    if task_id not in tasks_store:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return tasks_store[task_id]
+
+
+@tasks_router.get("/user/{user_id}")
+async def get_user_tasks(user_id: str, status: Optional[str] = None):
+    """Get all tasks for a user"""
+    tasks = [t for t in tasks_store.values() if t["user_id"] == user_id]
+    if status:
+        tasks = [t for t in tasks if t["status"] == status]
+    return {"tasks": sorted(tasks, key=lambda x: x["created_at"], reverse=True)}
+
+
+@tasks_router.get("/active")
+async def get_active_tasks(user_id: Optional[str] = None):
+    """Get all running tasks"""
+    tasks = [t for t in tasks_store.values() if t["status"] == "running"]
+    if user_id:
+        tasks = [t for t in tasks if t["user_id"] == user_id]
+    return {"tasks": tasks}
