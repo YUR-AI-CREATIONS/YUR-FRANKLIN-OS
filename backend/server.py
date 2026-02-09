@@ -50,6 +50,7 @@ from franklin_routes import (
 from quality_routes import quality_router
 from marketing_routes import marketing_router as marketing_content_router
 from deployment_routes import deploy_router
+from payment_routes import payment_router, webhook_router
 
 
 ROOT_DIR = Path(__file__).parent
