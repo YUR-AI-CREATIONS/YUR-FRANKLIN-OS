@@ -1727,6 +1727,87 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         </StackedFolder>
       </div>
 
+      {/* AGENT/BOT/ACADEMY CHAT MODAL - appears when clicking on an agent, bot, or program */}
+      {detailPanel && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={() => setDetailPanel(null)}>
+          <div 
+            className="w-[500px] max-h-[600px] bg-black border border-white/20 rounded-lg shadow-2xl flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+              <div>
+                <div className="text-[10px] font-mono text-white/40 uppercase tracking-wider">
+                  {detailPanel.type === 'agent' ? '◆ AGENT CHAT' : detailPanel.type === 'bot' ? '◆ BOT CHAT' : '◆ ACADEMY'}
+                </div>
+                <div className="text-sm font-mono text-white mt-1">{detailPanel.data.name}</div>
+                {detailPanel.type === 'agent' && (
+                  <div className="text-[9px] text-white/50 mt-0.5">{detailPanel.data.primary_specialization}</div>
+                )}
+              </div>
+              <button 
+                onClick={() => setDetailPanel(null)}
+                className="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded transition-all"
+              >
+                ✕
+              </button>
+            </div>
+            
+            {/* Chat Messages */}
+            <div ref={detailRef} className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin max-h-[400px]">
+              {detailPanel.conversation.map((msg, idx) => (
+                <div key={idx} className={`${msg.role === 'user' ? 'ml-8' : 'mr-8'}`}>
+                  <div className={`p-3 rounded-lg text-[11px] font-mono ${
+                    msg.role === 'user' 
+                      ? 'bg-cyan-500/20 border border-cyan-500/30 text-cyan-100' 
+                      : 'bg-white/5 border border-white/10 text-white/80'
+                  }`}>
+                    <div className="text-[8px] text-white/40 mb-1 uppercase">
+                      {msg.role === 'user' ? '◆ YOU' : `◆ ${detailPanel.data.name?.split(' ')[0]}`}
+                    </div>
+                    <div className="leading-relaxed">{msg.content}</div>
+                  </div>
+                </div>
+              ))}
+              {detailLoading && (
+                <div className="mr-8">
+                  <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                    <div className="flex items-center gap-2 text-purple-400 text-[10px]">
+                      <span className="w-2 h-2 bg-purple-400 rounded-full animate-ping"></span>
+                      Thinking...
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Chat Input */}
+            <div className="p-4 border-t border-white/10">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={detailInput}
+                  onChange={(e) => setDetailInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleDetailSend()}
+                  placeholder={`Ask ${detailPanel.data.name?.split(' ')[0]}...`}
+                  className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-[11px] font-mono text-white placeholder-white/30 focus:outline-none focus:border-cyan-500/50"
+                  disabled={detailLoading}
+                  data-testid="detail-chat-input"
+                />
+                <button
+                  onClick={handleDetailSend}
+                  disabled={detailLoading || !detailInput.trim()}
+                  className="px-4 py-3 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/30 rounded-lg text-[11px] font-mono text-cyan-400 disabled:opacity-30 transition-all"
+                  data-testid="detail-chat-send"
+                >
+                  {detailLoading ? '◐' : '▶ SEND'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* BOTTOM PANEL - Terminal | Grok Response - Auto-snapped, clean layout */}
       <div className="absolute bottom-0 left-0 right-0 h-40 z-50 bg-black border-t border-white/10 flex">
         
