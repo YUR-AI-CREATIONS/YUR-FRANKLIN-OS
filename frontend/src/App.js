@@ -35,7 +35,7 @@ const PAGES = {
   WORKFLOW: 'workflow'
 };
 
-// Stars & Galactic Background Component
+// Stars & Galactic Background Component - SPARKLY STARS
 const GalacticBackground = ({ opacity = 1 }) => {
   const canvasRef = useRef(null);
   const starsRef = useRef(null);
@@ -56,24 +56,37 @@ const GalacticBackground = ({ opacity = 1 }) => {
     
     const generateStars = (w, h) => {
       const stars = [];
-      for (let i = 0; i < 120; i++) {
+      // Regular twinkling stars
+      for (let i = 0; i < 200; i++) {
         stars.push({
           x: Math.random() * w,
           y: Math.random() * h,
-          size: Math.random() * 1.5 + 0.5,
-          speed: Math.random() * 0.5 + 0.2,
+          size: Math.random() * 1.2 + 0.3,
+          speed: Math.random() * 2 + 1,
           phase: Math.random() * Math.PI * 2,
           type: 'regular'
         });
       }
-      for (let i = 0; i < 15; i++) {
+      // Bright sparkle stars
+      for (let i = 0; i < 30; i++) {
         stars.push({
           x: Math.random() * w,
           y: Math.random() * h,
-          size: Math.random() * 1.5 + 1.5,
-          speed: Math.random() * 0.3 + 0.1,
+          size: Math.random() * 2 + 1.5,
+          speed: Math.random() * 3 + 2,
           phase: Math.random() * Math.PI * 2,
-          type: 'bright'
+          type: 'sparkle'
+        });
+      }
+      // Super bright sparkle stars
+      for (let i = 0; i < 10; i++) {
+        stars.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          size: Math.random() * 2.5 + 2,
+          speed: Math.random() * 4 + 3,
+          phase: Math.random() * Math.PI * 2,
+          type: 'super'
         });
       }
       return stars;
@@ -84,20 +97,51 @@ const GalacticBackground = ({ opacity = 1 }) => {
       
       if (starsRef.current) {
         starsRef.current.forEach(star => {
-          const twinkle = Math.sin(time * star.speed * 0.05 + star.phase) * 0.5 + 0.5;
+          // Sparkle effect - rapid twinkling
+          const twinkle = Math.sin(time * star.speed * 0.08 + star.phase) * 0.5 + 0.5;
+          const sparkle = Math.sin(time * star.speed * 0.15 + star.phase * 2) * 0.3 + 0.7;
           
-          if (star.type === 'bright') {
-            ctx.shadowBlur = 12;
-            ctx.shadowColor = `rgba(255, 255, 255, ${twinkle * 0.6 * opacity})`;
+          if (star.type === 'super') {
+            // Super bright with cross sparkle
+            const intensity = twinkle * sparkle;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = `rgba(255, 255, 255, ${intensity * 0.8 * opacity})`;
+            
+            // Draw cross sparkle
+            ctx.strokeStyle = `rgba(255, 255, 255, ${intensity * 0.6 * opacity})`;
+            ctx.lineWidth = 1;
+            const len = star.size * 3 * intensity;
             ctx.beginPath();
-            ctx.arc(star.x, star.y, star.size * twinkle + 0.5, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255, 255, 255, ${(twinkle * 0.9 + 0.1) * opacity})`;
+            ctx.moveTo(star.x - len, star.y);
+            ctx.lineTo(star.x + len, star.y);
+            ctx.moveTo(star.x, star.y - len);
+            ctx.lineTo(star.x, star.y + len);
+            ctx.stroke();
+            
+            // Core
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.size * intensity + 0.5, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 255, ${intensity * opacity})`;
             ctx.fill();
             ctx.shadowBlur = 0;
-          } else {
+            
+          } else if (star.type === 'sparkle') {
+            // Bright sparkle star with glow
+            const intensity = twinkle * sparkle;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = `rgba(255, 255, 255, ${intensity * 0.7 * opacity})`;
             ctx.beginPath();
-            ctx.arc(star.x, star.y, star.size * (twinkle * 0.3 + 0.7), 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255, 255, 255, ${(twinkle * 0.6 + 0.2) * opacity})`;
+            ctx.arc(star.x, star.y, star.size * intensity + 0.5, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 255, ${(intensity * 0.95 + 0.05) * opacity})`;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            
+          } else {
+            // Regular twinkling star
+            const intensity = twinkle * 0.7 + 0.3;
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.size * (intensity * 0.4 + 0.6), 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 255, ${intensity * 0.8 * opacity})`;
             ctx.fill();
           }
         });
