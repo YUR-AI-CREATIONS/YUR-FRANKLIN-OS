@@ -1195,7 +1195,6 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
           zIndex={10} 
           isOpen={leftFolders.build} 
           onToggle={() => toggleLeftFolder('build')}
-          tabOffset={3}
         >
           {/* Build Category Tabs */}
           <div className="flex border-b border-white/10">
@@ -1203,80 +1202,65 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
               <button 
                 key={tab}
                 onClick={() => setExpandedCategory(tab.toLowerCase())}
-                className={`flex-1 py-2 text-[8px] font-mono tracking-wider transition-all ${expandedCategory === tab.toLowerCase() ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'}`}
+                className={`flex-1 py-2 text-[8px] font-mono tracking-wider transition-all ${expandedCategory === tab.toLowerCase() ? 'bg-white/10 text-white border-b border-cyan-400' : 'text-white/40 hover:text-white/70'}`}
               >
                 {tab}
               </button>
             ))}
           </div>
           
-          {/* Nested content based on selected tab */}
-          <div className="flex-1 overflow-y-auto p-3 scrollbar-thin">
+          {/* Nested content based on selected tab - 9 items each */}
+          <div className="flex-1 overflow-y-auto p-2 scrollbar-thin">
             {expandedCategory === 'frontend' && (
-              <div className="space-y-1">
-                <NestedSection title="React" icon="◆" color="text-cyan-400" defaultOpen>
-                  <div className="space-y-1 text-[9px] font-mono text-white/60">
-                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Components</div>
-                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Hooks</div>
-                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Context</div>
-                  </div>
-                </NestedSection>
-                <NestedSection title="Styling" icon="◆" color="text-pink-400">
-                  <div className="space-y-1 text-[9px] font-mono text-white/60">
-                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Tailwind</div>
-                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">CSS Modules</div>
-                  </div>
-                </NestedSection>
+              <div className="space-y-0.5 text-[9px] font-mono">
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-cyan-400">React Components</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-cyan-400">Vue.js</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-cyan-400">Angular</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-cyan-400">Svelte</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-cyan-400">Next.js</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-cyan-400">TailwindCSS</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-cyan-400">Styled Components</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-cyan-400">CSS Modules</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-cyan-400">Framer Motion</div>
               </div>
             )}
             {expandedCategory === 'backend' && (
-              <div className="space-y-1">
-                <NestedSection title="FastAPI" icon="◆" color="text-green-400" defaultOpen>
-                  <div className="space-y-1 text-[9px] font-mono text-white/60">
-                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Routes</div>
-                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Models</div>
-                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Services</div>
-                  </div>
-                </NestedSection>
-                <NestedSection title="Auth" icon="◆" color="text-amber-400">
-                  <div className="space-y-1 text-[9px] font-mono text-white/60">
-                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">JWT</div>
-                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">OAuth</div>
-                  </div>
-                </NestedSection>
+              <div className="space-y-0.5 text-[9px] font-mono">
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-green-400">Node.js Express</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-green-400">Python FastAPI</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-green-400">Django REST</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-green-400">GraphQL</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-green-400">REST API</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-green-400">WebSockets</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-green-400">JWT Auth</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-green-400">OAuth 2.0</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-green-400">Microservices</div>
               </div>
             )}
             {expandedCategory === 'database' && (
-              <div className="space-y-1">
-                <NestedSection title="MongoDB" icon="◆" color="text-green-400" defaultOpen>
-                  <div className="space-y-1 text-[9px] font-mono text-white/60">
-                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Collections</div>
-                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Schemas</div>
-                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Indexes</div>
-                  </div>
-                </NestedSection>
-                <NestedSection title="Supabase" icon="◆" color="text-cyan-400">
-                  <div className="space-y-1 text-[9px] font-mono text-white/60">
-                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Tables</div>
-                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Functions</div>
-                  </div>
-                </NestedSection>
+              <div className="space-y-0.5 text-[9px] font-mono">
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-blue-400">PostgreSQL</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-blue-400">MongoDB</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-blue-400">MySQL</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-blue-400">Redis</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-blue-400">Supabase</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-blue-400">Firebase</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-blue-400">SQLite</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-blue-400">Prisma ORM</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-blue-400">Vector DB</div>
               </div>
             )}
             {expandedCategory === 'deploy' && (
-              <div className="space-y-1">
-                <NestedSection title="Docker" icon="◆" color="text-blue-400" defaultOpen>
-                  <div className="space-y-1 text-[9px] font-mono text-white/60">
-                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Dockerfile</div>
-                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Compose</div>
-                  </div>
-                </NestedSection>
-                <NestedSection title="CI/CD" icon="◆" color="text-purple-400">
-                  <div className="space-y-1 text-[9px] font-mono text-white/60">
-                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">GitHub Actions</div>
-                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">Vercel</div>
-                  </div>
-                </NestedSection>
+              <div className="space-y-0.5 text-[9px] font-mono">
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-purple-400">Vercel</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-purple-400">Render</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-purple-400">AWS</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-purple-400">Docker</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-purple-400">Kubernetes</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-purple-400">CI/CD Pipeline</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-purple-400">GitHub Actions</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-purple-400">Governance</div>
+                <div className="py-1.5 px-2 text-white/70 hover:bg-white/5 rounded cursor-pointer border-l-2 border-transparent hover:border-purple-400">Testing Suite</div>
               </div>
             )}
             {!expandedCategory && (
