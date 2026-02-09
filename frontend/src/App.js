@@ -200,6 +200,30 @@ const BUILD_CATEGORIES = [
 const ElectricWorkflowPage = ({ onBack, workflowNodes, workflowEdges, onNodesChange, onEdgesChange }) => {
   const [selectedNode, setSelectedNode] = useState(null);
   const [buildStatus, setBuildStatus] = useState(null);
+  
+  // Panel collapse states
+  const [leftPanelOpen, setLeftPanelOpen] = useState(true);
+  const [rightPanelOpen, setRightPanelOpen] = useState(true);
+  
+  // Chat/Terminal states
+  const [chatInput, setChatInput] = useState('');
+  const [chatHistory, setChatHistory] = useState([
+    { role: 'system', content: 'Workflow initialized. Ready to build your project.' }
+  ]);
+  const [terminalOutput, setTerminalOutput] = useState([
+    { type: 'info', text: '> FRANKLIN OS Workflow Terminal v2.0' },
+    { type: 'info', text: '> Type commands or use natural language' },
+    { type: 'success', text: '> System ready.' }
+  ]);
+  const [aiRecommendations, setAiRecommendations] = useState([
+    { id: 1, text: 'Add authentication module', priority: 'high' },
+    { id: 2, text: 'Configure database schema', priority: 'medium' },
+    { id: 3, text: 'Set up CI/CD pipeline', priority: 'low' }
+  ]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const chatRef = useRef(null);
+  const terminalRef = useRef(null);
 
   // Load build status
   useEffect(() => {
@@ -214,9 +238,16 @@ const ElectricWorkflowPage = ({ onBack, workflowNodes, workflowEdges, onNodesCha
       }
     };
     loadStatus();
-    const interval = setInterval(loadStatus, 5000); // Poll every 5s
+    const interval = setInterval(loadStatus, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  // Auto-scroll chat
+  useEffect(() => {
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }
+  }, [chatHistory]);
 
   const onConnect = useCallback((params) => {
     onEdgesChange((eds) => addEdge({ 
@@ -231,42 +262,178 @@ const ElectricWorkflowPage = ({ onBack, workflowNodes, workflowEdges, onNodesCha
     setSelectedNode(node);
   }, []);
 
+  // Handle chat send
+  const handleChatSend = async () => {
+    if (!chatInput.trim() || isProcessing) return;
+    
+    const input = chatInput.trim();
+    setChatInput('');
+    setChatHistory(prev => [...prev, { role: 'user', content: input }]);
+    setIsProcessing(true);
+    
+    // Add terminal output
+    setTerminalOutput(prev => [...prev, { type: 'cmd', text: `> ${input}` }]);
+    
+    try {
+      const response = await axios.post(`${API}/api/grok/chat`, { 
+        message: input,
+        history: chatHistory.slice(-6)
+      });
+      
+      if (response.data.response) {
+        setChatHistory(prev => [...prev, { role: 'assistant', content: response.data.response }]);
+        setTerminalOutput(prev => [...prev, { type: 'success', text: '> Response received' }]);
+      }
+    } catch (err) {
+      setChatHistory(prev => [...prev, { role: 'assistant', content: 'I can help you with that. What specific aspect would you like to explore?' }]);
+      setTerminalOutput(prev => [...prev, { type: 'error', text: `> Error: ${err.message}` }]);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Apply AI recommendation
+  const applyRecommendation = (rec) => {
+    setChatHistory(prev => [...prev, { role: 'user', content: `Apply: ${rec.text}` }]);
+    setTerminalOutput(prev => [...prev, { type: 'cmd', text: `> Applying: ${rec.text}` }]);
+    setAiRecommendations(prev => prev.filter(r => r.id !== rec.id));
+  };
+
   return (
     <div className="h-screen w-screen overflow-hidden bg-black text-white relative" data-testid="workflow-page">
       <GalacticBackground opacity={1} />
       
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 h-14 z-50 bg-black/80 backdrop-blur-md border-b border-white/10 flex items-center px-6">
+      {/* Pulsing Chrome Header */}
+      <div className="absolute top-0 left-0 right-0 h-16 z-50 bg-black/80 backdrop-blur-md border-b border-white/10 flex items-center justify-center">
         <button
           onClick={onBack}
-          className="px-4 py-2 text-xs font-mono text-white/70 hover:text-white hover:bg-white/10 rounded transition-all flex items-center gap-2"
+          className="absolute left-4 px-4 py-2 text-xs font-mono text-white/70 hover:text-white hover:bg-white/10 rounded transition-all flex items-center gap-2"
           data-testid="back-to-ide"
         >
           ◀ BACK TO IDE
         </button>
         
-        <div className="flex-1 text-center">
-          <h1 className="text-lg font-mono tracking-widest text-white/90">
+        <div className="text-center">
+          <h1 className="workflow-chrome-title text-2xl font-mono tracking-[0.3em]" style={{ fontFamily: "'Orbitron', sans-serif" }}>
             ◈ ELECTRIC WORKFLOW
           </h1>
-          <p className="text-[10px] text-white/40 tracking-wider">VISUAL BUILD PIPELINE</p>
+          <p className="text-[10px] text-white/40 tracking-wider mt-1">VISUAL BUILD PIPELINE</p>
         </div>
         
-        <div className="flex items-center gap-4">
-          {buildStatus && (
-            <div className="text-[10px] font-mono text-white/50">
-              BUILD: <span className="text-cyan-400">{buildStatus.build_id}</span>
-              <span className="ml-2 text-white/30">|</span>
-              <span className={`ml-2 ${buildStatus.status === 'certified' ? 'text-green-400' : 'text-amber-400'}`}>
-                {buildStatus.status?.toUpperCase()}
-              </span>
-            </div>
-          )}
+        {buildStatus && (
+          <div className="absolute right-4 text-[10px] font-mono text-white/50">
+            BUILD: <span className="text-cyan-400">{buildStatus.build_id}</span>
+            <span className={`ml-2 ${buildStatus.status === 'certified' ? 'text-green-400' : 'text-amber-400'}`}>
+              {buildStatus.status?.toUpperCase()}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* LEFT SLIDE PANEL - Chat Response */}
+      <div className={`absolute top-16 bottom-48 z-40 bg-black/90 border-r border-white/10 backdrop-blur-md transition-all duration-300 ${leftPanelOpen ? 'left-0 w-72' : '-left-72 w-72'}`}>
+        <button
+          onClick={() => setLeftPanelOpen(!leftPanelOpen)}
+          className="absolute -right-8 top-4 w-8 h-16 bg-black/80 border border-white/10 rounded-r-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
+        >
+          {leftPanelOpen ? '◀' : '▶'}
+        </button>
+        
+        <div className="p-4 h-full flex flex-col">
+          <div className="text-[10px] font-mono text-white/40 tracking-wider mb-3">◆ CHAT RESPONSE</div>
+          
+          {/* Chat Messages */}
+          <div ref={chatRef} className="flex-1 overflow-y-auto space-y-3 scrollbar-thin">
+            {chatHistory.map((msg, idx) => (
+              <div key={idx} className={`text-xs font-mono ${msg.role === 'user' ? 'text-cyan-400' : msg.role === 'system' ? 'text-amber-400' : 'text-white/80'}`}>
+                <span className="text-white/30 text-[9px]">[{msg.role.toUpperCase()}]</span>
+                <p className="mt-1 leading-relaxed">{msg.content}</p>
+              </div>
+            ))}
+            {isProcessing && (
+              <div className="flex items-center gap-2 text-purple-400 text-xs">
+                <div className="w-5 h-5">
+                  <NeuralBrain themeColor="#a855f7" isThinking={true} size="sm" />
+                </div>
+                Processing...
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Main Workflow Canvas */}
-      <div className="absolute top-14 left-0 right-72 bottom-0 z-10">
+      {/* RIGHT SLIDE PANEL - Workflow Controls */}
+      <div className={`absolute top-16 bottom-48 z-40 bg-black/90 border-l border-white/10 backdrop-blur-md transition-all duration-300 ${rightPanelOpen ? 'right-0 w-72' : '-right-72 w-72'}`}>
+        <button
+          onClick={() => setRightPanelOpen(!rightPanelOpen)}
+          className="absolute -left-8 top-4 w-8 h-16 bg-black/80 border border-white/10 rounded-l-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
+        >
+          {rightPanelOpen ? '▶' : '◀'}
+        </button>
+        
+        <div className="p-4 h-full flex flex-col overflow-y-auto">
+          <div className="text-[10px] font-mono text-white/40 tracking-wider mb-4">◆ WORKFLOW CONTROLS</div>
+          
+          {/* Stage Progress */}
+          <div className="mb-6">
+            <div className="text-xs font-mono text-white/60 mb-2">STAGE PROGRESS</div>
+            <div className="space-y-2">
+              {['Specification', 'Architecture', 'Implementation', 'Integration', 'Quality', 'Certification'].map((stage, idx) => (
+                <div key={stage} className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${
+                    buildStatus?.stages_completed > idx ? 'bg-green-400' :
+                    buildStatus?.stages_completed === idx ? 'bg-cyan-400 animate-pulse' :
+                    'bg-white/20'
+                  }`} />
+                  <span className="text-[10px] font-mono text-white/60">{stage}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Selected Node */}
+          {selectedNode && (
+            <div className="mb-6 p-3 bg-white/5 rounded-lg border border-white/10">
+              <div className="text-xs font-mono text-white/60 mb-2">SELECTED NODE</div>
+              <div className="text-sm font-mono text-white/90">{selectedNode.data?.label || selectedNode.id}</div>
+              <div className={`text-[10px] mt-2 ${
+                selectedNode.data?.status === 'completed' ? 'text-green-400' :
+                selectedNode.data?.status === 'active' ? 'text-cyan-400' : 'text-white/40'
+              }`}>
+                {selectedNode.data?.status?.toUpperCase() || 'PENDING'}
+              </div>
+            </div>
+          )}
+
+          {/* Add Node */}
+          <div className="mb-6">
+            <div className="text-xs font-mono text-white/60 mb-2">ADD NODE</div>
+            <div className="grid grid-cols-2 gap-2">
+              {['Stage', 'Decision', 'Action', 'Check'].map(type => (
+                <button key={type} className="px-3 py-2 text-[10px] font-mono bg-white/5 border border-white/10 rounded hover:bg-white/10 transition-all">
+                  + {type}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="space-y-2 mt-auto">
+            <button className="w-full px-4 py-3 text-xs font-mono bg-green-500/20 border border-green-500/30 rounded-lg text-green-400 hover:bg-green-500/30 transition-all">
+              ▶ RUN WORKFLOW
+            </button>
+            <button className="w-full px-4 py-3 text-xs font-mono bg-white/5 border border-white/10 rounded-lg text-white/60 hover:bg-white/10 transition-all">
+              ⟳ RESET
+            </button>
+            <button className="w-full px-4 py-3 text-xs font-mono bg-white/5 border border-white/10 rounded-lg text-white/60 hover:bg-white/10 transition-all">
+              ↓ EXPORT
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Workflow Canvas - Center */}
+      <div className={`absolute top-16 bottom-48 z-10 transition-all duration-300 ${leftPanelOpen ? 'left-72' : 'left-0'} ${rightPanelOpen ? 'right-72' : 'right-0'}`}>
         <ReactFlow
           nodes={workflowNodes}
           edges={workflowEdges}
@@ -287,93 +454,108 @@ const ElectricWorkflowPage = ({ onBack, workflowNodes, workflowEdges, onNodesCha
         >
           <Background color="rgba(255,255,255,0.02)" gap={30} style={{ opacity: 0.3 }} />
           <Controls className="!bg-black/70 !border-white/20 !rounded-lg" />
-          <MiniMap 
-            className="!bg-black/70 !border-white/20 !rounded-lg"
-            nodeColor={(node) => {
-              if (node.data?.status === 'completed') return '#00ff88';
-              if (node.data?.status === 'active') return '#00aaff';
-              if (node.data?.status === 'failed') return '#ff4444';
-              return '#666666';
-            }}
-            maskColor="rgba(0, 0, 0, 0.8)"
-          />
         </ReactFlow>
       </div>
 
-      {/* Right Panel - Node Details & Controls */}
-      <div className="absolute top-14 right-0 bottom-0 w-72 z-40 bg-black/90 border-l border-white/10 backdrop-blur-md overflow-y-auto">
-        <div className="p-4">
-          <div className="text-[10px] font-mono text-white/40 tracking-wider mb-4">◆ WORKFLOW CONTROLS</div>
-          
-          {/* Stage Progress */}
-          <div className="mb-6">
-            <div className="text-xs font-mono text-white/60 mb-2">STAGE PROGRESS</div>
-            <div className="space-y-2">
-              {['Specification', 'Architecture', 'Implementation', 'Integration', 'Quality', 'Certification'].map((stage, idx) => (
-                <div key={stage} className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${
-                    buildStatus?.stages_completed > idx ? 'bg-green-400' :
-                    buildStatus?.stages_completed === idx ? 'bg-cyan-400 animate-pulse' :
-                    'bg-white/20'
-                  }`} />
-                  <span className="text-[10px] font-mono text-white/60">{stage}</span>
-                </div>
-              ))}
-            </div>
+      {/* BOTTOM PANEL - Chat Prompt, Terminal, AI Recommendations */}
+      <div className="absolute bottom-0 left-0 right-0 h-48 z-40 bg-black/95 border-t border-white/10 backdrop-blur-md flex">
+        
+        {/* Chat Prompt - Left */}
+        <div className="w-64 border-r border-white/10 p-3 flex flex-col">
+          <div className="text-[9px] font-mono text-white/40 mb-2">◆ CHAT PROMPT</div>
+          <div className="flex-1 flex flex-col justify-end">
+            <input
+              type="text"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleChatSend()}
+              placeholder="Ask about your workflow..."
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs font-mono text-white placeholder-white/30 focus:border-white/30 focus:outline-none"
+              disabled={isProcessing}
+            />
+            <button
+              onClick={handleChatSend}
+              disabled={isProcessing || !chatInput.trim()}
+              className="mt-2 w-full px-3 py-2 text-[10px] font-mono bg-cyan-500/20 border border-cyan-500/30 rounded-lg text-cyan-400 hover:bg-cyan-500/30 transition-all disabled:opacity-30"
+            >
+              {isProcessing ? 'PROCESSING...' : 'SEND ▶'}
+            </button>
           </div>
+        </div>
 
-          {/* Selected Node Details */}
-          {selectedNode && (
-            <div className="mb-6 p-3 bg-white/5 rounded-lg border border-white/10">
-              <div className="text-xs font-mono text-white/60 mb-2">SELECTED NODE</div>
-              <div className="text-sm font-mono text-white/90">{selectedNode.data?.label || selectedNode.id}</div>
-              <div className="text-[10px] text-white/50 mt-1">{selectedNode.data?.type || 'stage'}</div>
-              {selectedNode.data?.status && (
-                <div className={`text-[10px] mt-2 ${
-                  selectedNode.data.status === 'completed' ? 'text-green-400' :
-                  selectedNode.data.status === 'active' ? 'text-cyan-400' :
-                  'text-white/40'
-                }`}>
-                  Status: {selectedNode.data.status.toUpperCase()}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Add Node Controls */}
-          <div className="mb-6">
-            <div className="text-xs font-mono text-white/60 mb-2">ADD NODE</div>
-            <div className="grid grid-cols-2 gap-2">
-              {['Stage', 'Decision', 'Action', 'Check'].map(type => (
-                <button
-                  key={type}
-                  className="px-3 py-2 text-[10px] font-mono bg-white/5 border border-white/10 rounded hover:bg-white/10 hover:border-white/20 transition-all"
-                >
-                  + {type}
-                </button>
-              ))}
-            </div>
+        {/* Terminal - Center */}
+        <div className="flex-1 border-r border-white/10 p-3 flex flex-col">
+          <div className="text-[9px] font-mono text-white/40 mb-2">◆ TERMINAL</div>
+          <div ref={terminalRef} className="flex-1 overflow-y-auto font-mono text-[10px] space-y-1 scrollbar-thin">
+            {terminalOutput.map((line, idx) => (
+              <div key={idx} className={`${
+                line.type === 'error' ? 'text-red-400' :
+                line.type === 'success' ? 'text-green-400' :
+                line.type === 'cmd' ? 'text-cyan-400' :
+                'text-white/60'
+              }`}>
+                {line.text}
+              </div>
+            ))}
           </div>
+        </div>
 
-          {/* Workflow Actions */}
-          <div className="space-y-2">
-            <button className="w-full px-4 py-3 text-xs font-mono bg-green-500/20 border border-green-500/30 rounded-lg text-green-400 hover:bg-green-500/30 transition-all">
-              ▶ RUN WORKFLOW
-            </button>
-            <button className="w-full px-4 py-3 text-xs font-mono bg-white/5 border border-white/10 rounded-lg text-white/60 hover:bg-white/10 transition-all">
-              ⟳ RESET
-            </button>
-            <button className="w-full px-4 py-3 text-xs font-mono bg-white/5 border border-white/10 rounded-lg text-white/60 hover:bg-white/10 transition-all">
-              ↓ EXPORT
-            </button>
+        {/* AI Recommendations - Right */}
+        <div className="w-72 p-3 flex flex-col">
+          <div className="text-[9px] font-mono text-white/40 mb-2">◆ AI RECOMMENDATIONS</div>
+          <div className="flex-1 overflow-y-auto space-y-2">
+            {aiRecommendations.map(rec => (
+              <button
+                key={rec.id}
+                onClick={() => applyRecommendation(rec)}
+                className={`w-full text-left p-2 rounded-lg border transition-all text-[10px] font-mono ${
+                  rec.priority === 'high' ? 'bg-red-500/10 border-red-500/30 text-red-300 hover:bg-red-500/20' :
+                  rec.priority === 'medium' ? 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20' :
+                  'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
+                }`}
+              >
+                <span className="text-[8px] uppercase opacity-60">{rec.priority}</span>
+                <p className="mt-1">{rec.text}</p>
+              </button>
+            ))}
+            {aiRecommendations.length === 0 && (
+              <div className="text-white/30 text-[10px] text-center py-4">No pending recommendations</div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Neural Brain - Bottom Right Corner */}
-      <div className="fixed bottom-4 right-4 z-50 w-16 h-16 rounded-xl overflow-hidden bg-black/40 backdrop-blur-sm border border-white/10 shadow-lg" data-testid="workflow-neural-brain">
-        <NeuralBrain themeColor="#00ff88" isThinking={buildStatus?.status === 'building'} size="sm" />
+      {/* YUR AI Branding - Bottom Right */}
+      <div className="fixed bottom-2 right-2 z-50 px-3 py-1 rounded bg-black/60 border border-green-500/30">
+        <span className="font-mono text-[10px] text-green-400 tracking-wider" style={{ fontFamily: "'Orbitron', sans-serif" }}>YUR AI</span>
       </div>
+
+      {/* Chrome Pulsing Title Styles */}
+      <style>{`
+        .workflow-chrome-title {
+          background: linear-gradient(
+            90deg,
+            rgba(100, 100, 100, 0.8) 0%,
+            rgba(180, 180, 180, 1) 25%,
+            rgba(255, 255, 255, 1) 50%,
+            rgba(180, 180, 180, 1) 75%,
+            rgba(100, 100, 100, 0.8) 100%
+          );
+          background-size: 200% 100%;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: chromePulse 3s ease-in-out infinite;
+          filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+        }
+        @keyframes chromePulse {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        .scrollbar-thin::-webkit-scrollbar { width: 4px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+      `}</style>
 
       {/* Electric Grid Overlay */}
       <div className="absolute inset-0 pointer-events-none z-[5] opacity-10">
