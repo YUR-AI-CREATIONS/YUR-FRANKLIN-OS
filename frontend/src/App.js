@@ -29,6 +29,32 @@ const nodeTypes = {
   spec: SpecNode,
 };
 
+// Folder Item Component for the left panel tree
+const FolderItem = ({ name, files = [], defaultOpen = false }) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  
+  return (
+    <div className="mb-1">
+      <div 
+        className="cursor-pointer py-1.5 px-1 text-[11px] font-mono tracking-wider flex items-center gap-1.5 hover:bg-white/5 rounded"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className={`w-3 text-white/40 transition-transform ${isOpen ? 'rotate-90' : ''}`}>▶</span>
+        <span className="text-white/80">{name}</span>
+      </div>
+      {isOpen && (
+        <div className="ml-3 border-l border-white/10 pl-2">
+          {files.map((file, idx) => (
+            <div key={idx} className="py-1 px-1 text-[10px] font-mono text-white/60 hover:text-white/80 hover:bg-white/5 rounded cursor-pointer">
+              {file}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Page Navigation
 const PAGES = {
   LANDING: 'landing',
