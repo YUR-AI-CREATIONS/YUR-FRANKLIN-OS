@@ -56,25 +56,11 @@ const FolderItem = ({ name, files = [], defaultOpen = false }) => {
 };
 
 // Full-Height Stacked Folder Component
-// Each folder is full height, stacks behind others with z-index, slides left to reveal folder behind
-const StackedFolder = ({ title, tabColor = 'bg-cyan-500', zIndex = 10, isOpen, onToggle, children, side = 'left', tabOffset = 0 }) => {
-  // When folder slides out, it moves left (for left side) or right (for right side)
-  // Only the tab remains visible after sliding
+// Black panels with faint line, button at top to toggle
+const StackedFolder = ({ title, zIndex = 10, isOpen, onToggle, children, side = 'left' }) => {
   const slideAmount = side === 'left' 
-    ? (isOpen ? '0' : 'calc(-100% + 28px)')  
-    : (isOpen ? '0' : 'calc(100% - 28px)');
-  
-  // Tab is positioned absolutely relative to the folder container
-  // For left side: tabs stack on the right edge going further right
-  // For right side: tabs stack on the left edge going further left
-  const tabPositionStyle = side === 'left'
-    ? { right: '0', transform: 'translateX(100%)' }
-    : { left: '0', transform: 'translateX(-100%)' };
-  
-  const tabPositionClass = side === 'left' ? 'rounded-r-lg' : 'rounded-l-lg';
-  
-  // Stagger tabs vertically so they don't overlap
-  const tabTopOffset = 35 + (tabOffset * 32);
+    ? (isOpen ? '0' : 'calc(-100% + 2px)')  
+    : (isOpen ? '0' : 'calc(100% - 2px)');
   
   return (
     <div 
@@ -84,24 +70,31 @@ const StackedFolder = ({ title, tabColor = 'bg-cyan-500', zIndex = 10, isOpen, o
         transform: `translateX(${slideAmount})`
       }}
     >
-      {/* The folder content */}
-      <div className="h-full w-full bg-black/95 backdrop-blur-md border-r border-white/10 flex flex-col overflow-hidden">
-        {children}
+      {/* The folder content - black with faint border */}
+      <div className="h-full w-full bg-black/98 backdrop-blur-md flex flex-col" style={{ borderRight: side === 'left' ? '1px solid rgba(255,255,255,0.08)' : 'none', borderLeft: side === 'right' ? '1px solid rgba(255,255,255,0.08)' : 'none' }}>
+        {/* Button at top to toggle */}
+        <button
+          onClick={onToggle}
+          className="w-full py-2 px-3 text-[10px] font-mono tracking-wider flex items-center justify-between hover:bg-white/5 transition-all border-b border-white/5"
+        >
+          <span className="text-white/60">{isOpen ? '◀' : '▶'} {title}</span>
+          <span className="text-white/30 text-[8px]">{isOpen ? 'COLLAPSE' : 'EXPAND'}</span>
+        </button>
+        {/* Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {children}
+        </div>
       </div>
       
-      {/* Tab on the edge - staggered vertically */}
-      <button
-        onClick={onToggle}
-        className={`absolute ${tabPositionClass} w-7 h-24 ${tabColor} flex items-center justify-center text-black font-bold text-[9px] hover:brightness-110 transition-all shadow-lg shadow-black/50 border-2 border-black/20`}
-        style={{ 
-          writingMode: 'vertical-rl', 
-          textOrientation: 'mixed',
-          top: `${tabTopOffset}%`,
-          ...tabPositionStyle
-        }}
-      >
-        {title}
-      </button>
+      {/* Faint vertical line visible when closed */}
+      {!isOpen && (
+        <div 
+          className="absolute top-0 bottom-0 w-[2px] bg-white/10"
+          style={{ 
+            [side === 'left' ? 'right' : 'left']: 0 
+          }}
+        />
+      )}
     </div>
   );
 };
