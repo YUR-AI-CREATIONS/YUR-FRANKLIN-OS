@@ -1134,30 +1134,8 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
           </button>
         </div>
       </div>
-                <p className="mt-1 leading-relaxed">{msg.content}</p>
-              </div>
-            ))}
-            {franklinLoading && (
-              <div className="text-xs text-purple-400 flex items-center gap-2">
-                <span className="w-2 h-2 bg-purple-400 rounded-full animate-ping" />
-                Thinking...
-              </div>
-            )}
-          </div>
-          
-          {/* Franklin Input */}
-          <div className="pt-3 border-t border-white/10 mt-3">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={franklinInput}
-                onChange={(e) => setFranklinInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleFranklinSend()}
-                placeholder="Ask Franklin..."
-                className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs font-mono text-white placeholder-white/30 focus:outline-none focus:border-white/30"
-                disabled={franklinLoading}
-              />
-              <button
+
+      {/* CENTER - Code/Chat Output Area */}
                 onClick={handleFranklinSend}
                 disabled={franklinLoading || !franklinInput.trim()}
                 className="px-3 py-2 bg-white/10 border border-white/10 rounded-lg text-xs font-mono text-white hover:bg-white/20 transition-all disabled:opacity-30"
