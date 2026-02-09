@@ -1180,107 +1180,58 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
           )}
         </div>
 
-        {/* Detail Panel - Shows when agent/bot/program selected */}
-        {detailPanel && (
-          <div className="absolute left-0 top-0 bottom-0 w-80 silver-glass flex flex-col z-20" data-testid="detail-panel">
-            {/* Header */}
-            <div className="p-4 border-b border-white/10 flex items-start justify-between">
-              <div>
-                <div className="text-[10px] font-mono text-white/40 tracking-wider mb-1">
-                  {detailPanel.type === 'agent' ? '◆ AGENT' : detailPanel.type === 'bot' ? '◆ BOT' : '◆ PROGRAM'}
-                </div>
-                <div className="text-sm font-mono text-white">{detailPanel.data.name}</div>
-                <div className="text-[10px] text-white/50 mt-1">
-                  {detailPanel.type === 'agent' && detailPanel.data.primary_specialization}
-                  {detailPanel.type === 'bot' && `${detailPanel.data.autonomy_level?.toUpperCase()} AUTONOMY`}
-                  {detailPanel.type === 'program' && `${detailPanel.data.field} • ${detailPanel.data.level}`}
-                </div>
+        {/* Detail Panel - Shows when agent/bot/program selected - NOW MOVED TO RIGHT */}
+        {/* Franklin Onboard Chat - Always visible on left */}
+        <div className="absolute left-0 top-0 bottom-0 w-72 silver-glass flex flex-col z-20" data-testid="franklin-onboard-panel">
+          {/* Header */}
+          <div className="p-4 border-b border-white/10">
+            <div className="text-[10px] font-mono text-white/40 tracking-wider mb-1">◆ ONBOARD CHAT</div>
+            <div className="text-sm font-mono text-white">FRANKLIN</div>
+            <div className="text-[10px] text-white/50 mt-1">Your AI Assistant</div>
+          </div>
+          
+          {/* Franklin Conversation */}
+          <div ref={franklinRef} className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-silver">
+            {franklinChat.map((msg, idx) => (
+              <div key={idx} className={`text-xs font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/80'}`}>
+                <span className="text-white/40 text-[9px]">[{msg.role === 'user' ? 'YOU' : 'FRANKLIN'}]</span>
+                <p className="mt-1 leading-relaxed">{msg.content}</p>
               </div>
-              <button 
-                onClick={closeDetailPanel}
-                className="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+            ))}
+            {franklinLoading && (
+              <div className="text-xs text-purple-400 flex items-center gap-2">
+                <span className="w-2 h-2 bg-purple-400 rounded-full animate-ping" />
+                Thinking...
+              </div>
+            )}
+          </div>
+          
+          {/* Franklin Input */}
+          <div className="p-3 border-t border-white/10">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={franklinInput}
+                onChange={(e) => setFranklinInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleFranklinSend()}
+                placeholder="Ask Franklin..."
+                className="flex-1 silver-input rounded-lg px-3 py-2 text-xs font-mono text-white placeholder-white/30"
+                disabled={franklinLoading}
+              />
+              <button
+                onClick={handleFranklinSend}
+                disabled={franklinLoading || !franklinInput.trim()}
+                className="silver-btn px-3 py-2 rounded-lg text-xs font-mono text-white disabled:opacity-30"
               >
-                ✕
+                ▶
               </button>
             </div>
-            
-            {/* Stats */}
-            <div className="px-4 py-3 border-b border-white/10 bg-white/5">
-              {detailPanel.type === 'agent' && (
-                <div className="flex justify-between text-[10px] font-mono">
-                  <span className="text-green-400">★ {detailPanel.data.client_satisfaction}</span>
-                  <span className="text-cyan-400">${detailPanel.data.starter_price}/mo</span>
-                </div>
-              )}
-              {detailPanel.type === 'bot' && (
-                <div className="flex justify-between text-[10px] font-mono">
-                  <span className="text-amber-400">TIER {detailPanel.data.tier_level || '?'}</span>
-                  <span className="text-cyan-400">${detailPanel.data.min_usd?.toLocaleString()} - ${detailPanel.data.max_usd?.toLocaleString()}</span>
-                </div>
-              )}
-              {detailPanel.type === 'program' && (
-                <div className="flex justify-between text-[10px] font-mono">
-                  <span className="text-purple-400">{detailPanel.data.duration_weeks} WEEKS</span>
-                  <span className="text-cyan-400">${detailPanel.data.cost?.toLocaleString()}</span>
-                </div>
-              )}
-            </div>
-            
-            {/* Neural Brain Visualization */}
-            <div className="h-20 w-full border-b border-white/10 bg-black/30">
-              <NeuralBrain 
-                themeColor={detailPanel.type === 'agent' ? '#22c55e' : detailPanel.type === 'bot' ? '#f59e0b' : '#a855f7'} 
-                isThinking={detailLoading} 
-                size="sm" 
-              />
-            </div>
-            
-            {/* Conversation */}
-            <div ref={detailRef} className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-silver">
-              {detailPanel.conversation.map((msg, idx) => (
-                <div key={idx} className={`text-sm font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/80'}`}>
-                  {msg.role === 'user' && <span className="text-white/40 text-[10px]">[YOU] </span>}
-                  {msg.role !== 'user' && <span className="text-white/40 text-[10px]">[{detailPanel.data.name?.split(' ')[0]?.toUpperCase()}] </span>}
-                  <span className="leading-relaxed">{msg.content}</span>
-                </div>
-              ))}
-              {detailLoading && (
-                <div className="text-sm text-purple-400 flex items-center gap-2">
-                  <div className="w-6 h-6">
-                    <NeuralBrain themeColor="#a855f7" isThinking={true} size="sm" />
-                  </div>
-                  Thinking...
-                </div>
-              )}
-            </div>
-            
-            {/* Input */}
-            <div className="p-3 border-t border-white/10">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={detailInput}
-                  onChange={(e) => setDetailInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleDetailSend()}
-                  placeholder={`Ask ${detailPanel.data.name?.split(' ')[0]}...`}
-                  className="flex-1 silver-input rounded-lg px-3 py-2 text-xs font-mono text-white placeholder-white/30"
-                  disabled={detailLoading}
-                />
-                <button
-                  onClick={handleDetailSend}
-                  disabled={detailLoading || !detailInput.trim()}
-                  className="silver-btn px-4 py-2 rounded-lg text-xs font-mono text-white disabled:opacity-30"
-                >
-                  ▶
-                </button>
-              </div>
-            </div>
           </div>
-        )}
+        </div>
       </div>
 
-      {/* RIGHT PANEL */}
-      <div className={`absolute right-0 top-0 bottom-64 z-40 silver-glass silver-outline transition-all duration-300 ${rightCollapsed ? 'w-12' : 'w-64'}`}>
+      {/* RIGHT PANEL - Agents/Bots/Academy + Agent Chat */}
+      <div className={`absolute right-0 top-0 bottom-64 z-40 silver-glass silver-outline transition-all duration-300 ${rightCollapsed ? 'w-12' : detailPanel ? 'w-[420px]' : 'w-64'}`}>
         {/* Collapse Toggle */}
         <button
           onClick={() => setRightCollapsed(!rightCollapsed)}
@@ -1291,7 +1242,66 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
         </button>
         
         {!rightCollapsed && (
-          <>
+          <div className="flex h-full">
+            {/* Agent Chat Box - Shows when agent selected */}
+            {detailPanel && (
+              <div className="w-56 h-full border-r border-white/10 flex flex-col" data-testid="agent-chat-panel">
+                {/* Agent Header */}
+                <div className="p-3 border-b border-white/10 flex items-center justify-between">
+                  <div>
+                    <div className="text-[9px] font-mono text-white/40">{detailPanel.type === 'agent' ? '◆ AGENT CHAT' : '◆ CHAT'}</div>
+                    <div className="text-xs font-mono text-white">{detailPanel.data.name}</div>
+                  </div>
+                  <button 
+                    onClick={closeDetailPanel}
+                    className="w-6 h-6 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded transition-all text-xs"
+                  >
+                    ✕
+                  </button>
+                </div>
+                
+                {/* Agent Conversation */}
+                <div ref={detailRef} className="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-silver">
+                  {detailPanel.conversation.map((msg, idx) => (
+                    <div key={idx} className={`text-[10px] font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/80'}`}>
+                      <span className="text-white/40 text-[8px]">[{msg.role === 'user' ? 'YOU' : detailPanel.data.name?.split(' ')[0]?.toUpperCase()}]</span>
+                      <p className="mt-0.5 leading-relaxed">{msg.content}</p>
+                    </div>
+                  ))}
+                  {detailLoading && (
+                    <div className="text-[10px] text-purple-400 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-ping" />
+                      Thinking...
+                    </div>
+                  )}
+                </div>
+                
+                {/* Agent Input */}
+                <div className="p-2 border-t border-white/10">
+                  <div className="flex gap-1">
+                    <input
+                      type="text"
+                      value={detailInput}
+                      onChange={(e) => setDetailInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleDetailSend()}
+                      placeholder={`Ask ${detailPanel.data.name?.split(' ')[0]}...`}
+                      className="flex-1 silver-input rounded px-2 py-1.5 text-[10px] font-mono text-white placeholder-white/30"
+                      disabled={detailLoading}
+                    />
+                    <button
+                      onClick={handleDetailSend}
+                      disabled={detailLoading || !detailInput.trim()}
+                      className="silver-btn px-2 py-1.5 rounded text-[10px] font-mono text-white disabled:opacity-30"
+                    >
+                      ▶
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Agents/Bots/Academy Tabs */}
+            <div className="flex-1 flex flex-col">
         <div className="flex border-b border-white/10 mt-8">
           {['agents', 'bots', 'academy'].map(tab => (
             <button
