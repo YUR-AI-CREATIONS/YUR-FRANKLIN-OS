@@ -158,7 +158,37 @@ Core Modules:
 - GROK RESPONSE (right) - 1M context window with dedicated chat input
 - Neural Brain widget (far right) - Visual thinking indicator
 
-### Session Update: 2025-12-XX (continued)
+### Session Update: Orchestration Wired Up
+
+**Implemented Full Agent Orchestration:**
+The complete FRANKLIN → GROK → AGENTS workflow is now functional:
+
+1. **USER talks to FRANKLIN** (left panel chat or terminal)
+2. **FRANKLIN perfect-prompts GROK** via the orchestrator
+3. **AGENTS involved in build:**
+   - Genesis (The Creator) - Initiates builds, creates specifications
+   - Architect (The Designer) - Designs system architecture
+   - Implementer (The Builder) - Writes production code
+   - Healer (The Fixer) - Reviews and fixes issues
+4. **WHITEBOARD** - Collaborative review of sections
+5. **WORKSPACE** - Code output appears in terminal
+6. **WORKFLOW** - Auto-populated with build nodes
+7. **GOVERNANCE** - Audit, Verify, Certify, Sign-off by Franklin
+
+**API Endpoints Created:**
+- `POST /api/build-orchestrator/chat` - User talks to Franklin
+- `POST /api/build-orchestrator/build` - Full genesis build with all agents
+- `POST /api/build-orchestrator/agent/interact` - Talk to specific agent
+- `GET /api/build-orchestrator/whiteboard` - View current build session
+- `POST /api/build-orchestrator/approve` - User approves sections
+- `GET /api/build-orchestrator/sessions` - List all sessions
+
+**Commands:**
+- `/genesis <mission>` or `/build <mission>` - Start full agent build
+- `/whiteboard` - View current build session
+- `/workflow` - Open workflow visualization
+- `/help` - Show available commands
+- Or just type naturally to chat with Franklin
 
 **Fixed Issues:**
 1. **Colored Tab Design** - REMOVED
