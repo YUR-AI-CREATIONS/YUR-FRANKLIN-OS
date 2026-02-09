@@ -1501,7 +1501,7 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
       </div>
 
       {/* BOTTOM PANEL - Terminal | Grok Response (both with inputs) | Brain */}
-      <div className={`absolute bottom-0 h-36 z-40 bg-black/95 border-t border-white/10 backdrop-blur-md flex transition-all duration-300 ${franklinPanelOpen ? 'left-72' : 'left-0'} ${agentsPanelOpen ? 'right-64' : 'right-0'}`}>
+      <div className={`absolute bottom-0 h-36 z-40 bg-black/95 border-t border-white/10 backdrop-blur-md flex transition-all duration-300 ${leftPanelOpen ? 'left-72' : 'left-0'} ${agentsPanelOpen ? 'right-64' : 'right-0'}`}>
         
         {/* Terminal - Left (with input) */}
         <div className="flex-1 border-r border-white/10 flex flex-col">
