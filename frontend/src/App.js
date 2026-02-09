@@ -606,6 +606,14 @@ const IDEPage = ({ onNavigate, workflowNodes, setWorkflowNodes, workflowEdges, s
   
   const outputRef = useRef(null);
   const detailRef = useRef(null);
+  const franklinRef = useRef(null);
+
+  // Auto-scroll Franklin chat
+  useEffect(() => {
+    if (franklinRef.current) {
+      franklinRef.current.scrollTop = franklinRef.current.scrollHeight;
+    }
+  }, [franklinChat]);
 
   // Load initial data
   useEffect(() => {
