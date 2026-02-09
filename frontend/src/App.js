@@ -73,9 +73,7 @@ const GalacticBackground = () => {
 const GhostLines = () => {
   return (
     <div className="absolute inset-0 pointer-events-none z-[2] overflow-hidden">
-      {/* Horizontal ghost lines */}
       <svg className="absolute inset-0 w-full h-full">
-        {/* Left line - Franklin to Code */}
         <line 
           x1="20%" y1="50%" 
           x2="40%" y2="50%" 
@@ -86,7 +84,6 @@ const GhostLines = () => {
           <animate attributeName="stroke-dashoffset" from="0" to="-24" dur="2s" repeatCount="indefinite"/>
         </line>
         
-        {/* Right line - Code to Grok */}
         <line 
           x1="60%" y1="50%" 
           x2="80%" y2="50%" 
@@ -96,12 +93,77 @@ const GhostLines = () => {
         >
           <animate attributeName="stroke-dashoffset" from="-24" to="0" dur="2s" repeatCount="indefinite"/>
         </line>
-        
-        {/* Arrowheads */}
-        <polygon points="0,0 -8,4 -8,-4" fill="rgba(0, 255, 255, 0.3)" transform="translate(calc(40% - 5), 50%)">
-          <animateTransform attributeName="transform" type="translate" from="38%,50%" to="40%,50%" dur="2s" repeatCount="indefinite"/>
-        </polygon>
       </svg>
+    </div>
+  );
+};
+
+// ============================================================================
+// RESIZABLE PANEL COMPONENT
+// ============================================================================
+const ResizablePanel = ({ children, side, defaultWidth = 288, minWidth = 200, maxWidth = 500 }) => {
+  const [width, setWidth] = useState(defaultWidth);
+  const [isResizing, setIsResizing] = useState(false);
+  const panelRef = useRef(null);
+  
+  const handleMouseDown = (e) => {
+    e.preventDefault();
+    setIsResizing(true);
+  };
+  
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isResizing) return;
+      
+      if (side === 'left') {
+        const newWidth = e.clientX;
+        setWidth(Math.min(maxWidth, Math.max(minWidth, newWidth)));
+      } else {
+        const newWidth = window.innerWidth - e.clientX;
+        setWidth(Math.min(maxWidth, Math.max(minWidth, newWidth)));
+      }
+    };
+    
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+    
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+    
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing, side, minWidth, maxWidth]);
+  
+  return (
+    <div 
+      ref={panelRef}
+      className="relative h-full flex flex-col"
+      style={{ width: `${width}px` }}
+    >
+      {children}
+      
+      {/* Resize Handle */}
+      <div
+        onMouseDown={handleMouseDown}
+        className={`absolute top-0 bottom-0 w-1 cursor-col-resize z-50 hover:bg-cyan-500/30 transition-colors ${
+          side === 'left' ? 'right-0' : 'left-0'
+        } ${isResizing ? 'bg-cyan-500/50' : 'bg-transparent'}`}
+        style={{ 
+          cursor: 'col-resize'
+        }}
+      >
+        {/* Visual drag indicator */}
+        <div className={`absolute top-1/2 -translate-y-1/2 ${side === 'left' ? '-right-1' : '-left-1'} w-3 h-8 flex flex-col justify-center items-center gap-0.5 opacity-30 hover:opacity-70 transition-opacity`}>
+          <div className="w-0.5 h-0.5 bg-white rounded-full"></div>
+          <div className="w-0.5 h-0.5 bg-white rounded-full"></div>
+          <div className="w-0.5 h-0.5 bg-white rounded-full"></div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -216,7 +278,6 @@ function App() {
         if (response.data.output) {
           response.data.output.forEach(entry => {
             addTerminal(`[${entry.phase}] ${entry.message}`, entry.type || 'info');
-            // Also add to Grok responses
             if (entry.phase.toLowerCase().includes('grok') || entry.agent) {
               setGrokChat(prev => [...prev, { 
                 role: 'grok', 
@@ -289,7 +350,6 @@ function App() {
         }]);
       }
     } catch (err) {
-      // Fallback
       setFranklinChat(prev => [...prev, { 
         role: 'franklin', 
         content: "I'm here to help. Describe what you want to build, or use /genesis <description> to start the agent workflow." 
@@ -331,7 +391,6 @@ function App() {
     setTerminalInput('');
     addTerminal(input, 'cmd');
     
-    // Process terminal commands
     if (input.toLowerCase() === 'clear') {
       setTerminalOutput([{ type: 'system', text: '> Terminal cleared' }]);
     } else if (input.toLowerCase() === 'help') {
@@ -386,7 +445,7 @@ function App() {
       </div>
       
       {/* TOP HEADER BAR */}
-      <div className="absolute top-0 left-0 right-0 h-10 z-50 bg-black/90 border-b border-white/10 backdrop-blur-md flex items-center px-4">
+      <div className="absolute top-0 left-0 right-0 h-10 z-50 bg-black/70 backdrop-blur-md border-b border-white/10 flex items-center px-4">
         <div className="text-sm font-mono text-white/90 tracking-wider" style={{ fontFamily: "'Orbitron', sans-serif" }}>
           ◈ FRANKLIN OS
         </div>
@@ -398,244 +457,246 @@ function App() {
           </span>
           <span className="text-cyan-400">PQC: ONLINE</span>
           <span className="text-purple-400">AUDIT: 1 entries</span>
-          <span className="text-amber-400">AGENTS: 5</span>
+          <span className="text-green-400">AGENTS: 5</span>
         </div>
       </div>
       
       {/* ============================================================ */}
       {/* MAIN 3-COLUMN LAYOUT */}
       {/* ============================================================ */}
-      
-      {/* LEFT PANEL - FRANKLIN (1 million context) */}
-      <div className="absolute top-10 left-0 w-72 bottom-40 z-30 bg-black/95 border-r border-white/10 flex flex-col" data-testid="franklin-panel">
-        {/* Header */}
-        <div className="p-3 border-b border-white/10">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-mono text-cyan-400 tracking-wider">◆ FRANKLIN</span>
-            <span className="text-[8px] font-mono text-white/30">COLLAPSE</span>
-          </div>
-        </div>
+      <div className="absolute top-10 left-0 right-0 bottom-28 flex">
         
-        {/* Expandable Section - Franklin Onboard Chat */}
-        <div className="border-b border-white/5">
-          <div className="px-3 py-2 text-[10px] font-mono text-white/60 flex items-center gap-2">
-            <span className="text-cyan-400">⚡</span>
-            FRANKLIN ONBOARD CHAT
-            <button className="ml-auto text-[8px] text-white/30 hover:text-white/60 border border-white/10 px-2 py-0.5 rounded">
-              ⊞ EXPAND
+        {/* LEFT PANEL - FRANKLIN (Resizable & Transparent) */}
+        <ResizablePanel side="left" defaultWidth={320} minWidth={250} maxWidth={500}>
+          <div className="h-full bg-black/40 backdrop-blur-sm border-r border-white/10 flex flex-col" data-testid="franklin-panel">
+            {/* Header */}
+            <div className="p-3 border-b border-white/10">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono text-cyan-400 tracking-wider">◆ FRANKLIN</span>
+                <span className="text-[8px] font-mono text-white/30">COLLAPSE</span>
+              </div>
+            </div>
+            
+            {/* Expandable Section - Franklin Onboard Chat */}
+            <div className="border-b border-white/5">
+              <div className="px-3 py-2 text-[10px] font-mono text-white/60 flex items-center gap-2">
+                <span className="text-cyan-400">⚡</span>
+                FRANKLIN ONBOARD CHAT
+                <button className="ml-auto text-[8px] text-white/30 hover:text-white/60 border border-white/10 px-2 py-0.5 rounded">
+                  ⊞ EXPAND
+                </button>
+              </div>
+            </div>
+            
+            {/* Context Window Label */}
+            <div className="px-3 py-1 text-[8px] font-mono text-white/20">
+              Context Window
+            </div>
+            
+            {/* Chat Messages */}
+            <div ref={franklinRef} className="flex-1 overflow-y-auto p-3 space-y-3 scrollbar-thin">
+              {franklinChat.map((msg, idx) => (
+                <div key={idx} className={`text-xs font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/70'}`}>
+                  <span className="text-white/30 text-[9px]">◈ {msg.role.toUpperCase()}</span>
+                  <p className="mt-1 leading-relaxed">{msg.content}</p>
+                </div>
+              ))}
+              {franklinLoading && (
+                <div className="flex items-center gap-2 text-purple-400 text-xs">
+                  <span className="animate-spin">◈</span> Processing...
+                </div>
+              )}
+            </div>
+            
+            {/* 1 million context label */}
+            <div className="px-3 py-2 text-[10px] font-mono text-cyan-400/50 text-center border-t border-white/5">
+              1 million context
+            </div>
+          </div>
+        </ResizablePanel>
+        
+        {/* CENTER - CODE AREA (1 million context) */}
+        <div className="flex-1 flex flex-col" data-testid="code-area">
+          {/* Code Area Header */}
+          <div className="h-8 bg-black/50 backdrop-blur-sm border-b border-white/10 flex items-center px-4 text-[10px] font-mono text-white/50">
+            <span className="text-cyan-400">code area</span>
+            <span className="mx-2 text-white/20">|</span>
+            <span>1 million context</span>
+            <span className="ml-auto text-white/30">{activeFile}</span>
+          </div>
+          
+          {/* Code Content */}
+          <div className="flex-1 bg-black/30 backdrop-blur-sm p-4 overflow-auto">
+            <pre className="text-xs font-mono text-white/60 whitespace-pre-wrap">
+              {codeContent}
+            </pre>
+          </div>
+          
+          {/* Ghost lines indicator */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
+            <div className="flex items-center gap-4 text-[10px] font-mono text-cyan-400/40">
+              <span>◄───</span>
+              <span>ghost lines</span>
+              <span>───►</span>
+            </div>
+          </div>
+          
+          {/* Folder Tabs */}
+          <div className="h-8 bg-black/50 border-t border-white/10 flex items-center justify-center gap-4">
+            <button 
+              onClick={() => setProjectsOpen(!projectsOpen)}
+              className={`px-4 py-1 text-[9px] font-mono border rounded transition-all ${projectsOpen ? 'bg-purple-500/20 border-purple-500/50 text-purple-400' : 'bg-transparent border-white/10 text-white/40 hover:text-white/70'}`}
+            >
+              ▼ PROJECTS
+            </button>
+            <button 
+              onClick={() => setFoldersOpen(!foldersOpen)}
+              className={`px-4 py-1 text-[9px] font-mono border rounded transition-all ${foldersOpen ? 'bg-green-500/20 border-green-500/50 text-green-400' : 'bg-transparent border-white/10 text-white/40 hover:text-white/70'}`}
+            >
+              ▼ FOLDERS
             </button>
           </div>
-        </div>
-        
-        {/* Context Window Label */}
-        <div className="px-3 py-1 text-[8px] font-mono text-white/20">
-          Context Window
-        </div>
-        
-        {/* Chat Messages */}
-        <div ref={franklinRef} className="flex-1 overflow-y-auto p-3 space-y-3 scrollbar-thin">
-          {franklinChat.map((msg, idx) => (
-            <div key={idx} className={`text-xs font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/70'}`}>
-              <span className="text-white/30 text-[9px]">◈ {msg.role.toUpperCase()}</span>
-              <p className="mt-1 leading-relaxed">{msg.content}</p>
-            </div>
-          ))}
-          {franklinLoading && (
-            <div className="flex items-center gap-2 text-purple-400 text-xs">
-              <span className="animate-spin">◈</span> Processing...
+          
+          {/* Expandable Folders Panel */}
+          {(projectsOpen || foldersOpen) && (
+            <div className="h-32 bg-black/50 backdrop-blur-sm border-t border-white/10 flex">
+              {projectsOpen && (
+                <div className="flex-1 border-r border-white/10 p-3 overflow-y-auto">
+                  <div className="text-[10px] font-mono text-purple-400 mb-2">PROJECTS</div>
+                  <div className="space-y-1 text-[9px] font-mono text-white/50">
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">📁 Project Alpha</div>
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">📁 Franklin Demo</div>
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">📁 Genesis Test</div>
+                  </div>
+                </div>
+              )}
+              {foldersOpen && (
+                <div className="flex-1 p-3 overflow-y-auto">
+                  <div className="text-[10px] font-mono text-green-400 mb-2">FOLDERS</div>
+                  <div className="space-y-1 text-[9px] font-mono text-white/50">
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">📂 src/</div>
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer pl-4">📄 App.js</div>
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer pl-4">📄 index.js</div>
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">📂 backend/</div>
+                    <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer pl-4">📄 server.py</div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
         
-        {/* 1 million context label */}
-        <div className="px-3 py-2 text-[10px] font-mono text-cyan-400/50 text-center border-t border-white/5">
-          1 million context
-        </div>
+        {/* RIGHT PANEL - GROK (Resizable & Transparent) */}
+        <ResizablePanel side="right" defaultWidth={320} minWidth={250} maxWidth={500}>
+          <div className="h-full bg-black/40 backdrop-blur-sm border-l border-white/10 flex flex-col" data-testid="grok-panel">
+            {/* Header with collapse */}
+            <div className="p-3 border-b border-white/10 flex items-center justify-between">
+              <span className="text-xs font-mono text-green-400 tracking-wider">◆ GROK</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[8px] font-mono text-white/30">▶</span>
+              </div>
+            </div>
+            
+            {/* Grok Responses */}
+            <div ref={grokRef} className="flex-1 overflow-y-auto p-3 space-y-3 scrollbar-thin">
+              {grokChat.length === 0 ? (
+                <div className="text-[10px] font-mono text-white/30 text-center py-8">
+                  <p>Grok responses appear here...</p>
+                  <p className="mt-2">Use the input below to ask Grok</p>
+                </div>
+              ) : (
+                grokChat.map((msg, idx) => (
+                  <div key={idx} className={`text-xs font-mono ${msg.role === 'user' ? 'text-green-400' : 'text-white/70'}`}>
+                    <span className="text-white/30 text-[9px]">◈ {msg.role.toUpperCase()}</span>
+                    <p className="mt-1 leading-relaxed">{msg.content}</p>
+                  </div>
+                ))
+              )}
+              {grokLoading && (
+                <div className="flex items-center gap-2 text-green-400 text-xs">
+                  <span className="animate-spin">◈</span> Grok thinking...
+                </div>
+              )}
+            </div>
+            
+            {/* 1 million context label */}
+            <div className="px-3 py-2 text-[10px] font-mono text-green-400/50 text-center border-t border-white/5">
+              1 million context
+            </div>
+            
+            {/* Saved Chats Section */}
+            <div className="border-t border-white/10">
+              <div className="px-3 py-2 text-[10px] font-mono text-white/40">
+                saved chats
+              </div>
+              <div className="max-h-32 overflow-y-auto px-2 pb-2">
+                {savedChats.length === 0 ? (
+                  <div className="text-[9px] font-mono text-white/20 text-center py-2">
+                    No saved chats. Use /save to save.
+                  </div>
+                ) : (
+                  savedChats.map(chat => (
+                    <div key={chat.id} className="flex items-center justify-between py-1 px-2 text-[9px] font-mono text-white/50 hover:bg-white/5 rounded cursor-pointer group">
+                      <span onClick={() => loadSavedChat(chat)} className="flex-1 truncate">{chat.title}</span>
+                      <button 
+                        onClick={() => deleteSavedChat(chat.id)}
+                        className="opacity-0 group-hover:opacity-100 text-red-400/50 hover:text-red-400 ml-2"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </ResizablePanel>
       </div>
       
-      {/* FRANKLIN PROMPT - Bottom Left */}
-      <div className="absolute bottom-28 left-0 w-72 h-12 z-40 bg-cyan-900/20 border border-cyan-500/30 flex items-center px-3" data-testid="franklin-prompt">
-        <span className="text-cyan-400 text-xs mr-2">franklin prompt</span>
-        <span className="text-cyan-400">▶</span>
+      {/* ============================================================ */}
+      {/* PROMPT BARS - Clean, no colored backgrounds */}
+      {/* ============================================================ */}
+      
+      {/* Franklin Prompt - Bottom Left */}
+      <div className="absolute bottom-28 left-0 w-80 h-10 z-40 bg-black/60 backdrop-blur-sm border-t border-r border-white/10 flex items-center px-3" data-testid="franklin-prompt">
+        <span className="text-white/50 text-[10px] font-mono mr-2">Franklin Prompt</span>
+        <span className="text-cyan-400 mr-2">▶</span>
         <input
           type="text"
           value={franklinInput}
           onChange={(e) => setFranklinInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleFranklinSend()}
           placeholder="Type here..."
-          className="flex-1 bg-transparent border-none text-xs font-mono text-white placeholder-white/30 focus:outline-none ml-2"
+          className="flex-1 bg-transparent border-none text-xs font-mono text-white placeholder-white/30 focus:outline-none"
           disabled={franklinLoading}
         />
       </div>
       
-      {/* CENTER - CODE AREA (1 million context) */}
-      <div className="absolute top-10 left-72 right-72 bottom-40 z-20 flex flex-col" data-testid="code-area">
-        {/* Code Area Header */}
-        <div className="h-8 bg-black/80 border-b border-white/10 flex items-center px-4 text-[10px] font-mono text-white/50">
-          <span className="text-cyan-400">code area</span>
-          <span className="mx-2 text-white/20">|</span>
-          <span>1 million context</span>
-          <span className="ml-auto text-white/30">{activeFile}</span>
-        </div>
-        
-        {/* Code Content */}
-        <div className="flex-1 bg-black/50 p-4 overflow-auto">
-          <pre className="text-xs font-mono text-white/60 whitespace-pre-wrap">
-            {codeContent}
-          </pre>
-        </div>
-        
-        {/* Ghost lines indicator */}
-        <div className="absolute left-0 right-0 top-1/2 flex items-center justify-center pointer-events-none">
-          <div className="flex items-center gap-4 text-[10px] font-mono text-cyan-400/40">
-            <span>◄───</span>
-            <span>ghost lines</span>
-            <span>───►</span>
-          </div>
-        </div>
-      </div>
-      
-      {/* RIGHT PANEL - GROK (1 million context) */}
-      <div className="absolute top-10 right-0 w-72 bottom-40 z-30 bg-black/95 border-l border-white/10 flex flex-col" data-testid="grok-panel">
-        {/* Header with collapse */}
-        <div className="p-3 border-b border-white/10 flex items-center justify-between">
-          <span className="text-xs font-mono text-amber-400 tracking-wider">◆ GROK</span>
-          <div className="flex items-center gap-2">
-            <span className="text-[8px] font-mono text-white/30">▶</span>
-            <span className="text-[8px] font-mono text-white/30" style={{ writingMode: 'vertical-rl' }}>ACADEMY</span>
-          </div>
-        </div>
-        
-        {/* Vertical tabs for collapsed panels */}
-        <div className="absolute right-0 top-16 flex flex-col gap-1 text-[8px] font-mono text-white/30" style={{ writingMode: 'vertical-rl' }}>
-          <span className="py-2 px-1 hover:bg-white/5 cursor-pointer">▶ BOTS</span>
-        </div>
-        
-        {/* Grok Responses */}
-        <div ref={grokRef} className="flex-1 overflow-y-auto p-3 space-y-3 scrollbar-thin">
-          {grokChat.length === 0 ? (
-            <div className="text-[10px] font-mono text-white/30 text-center py-8">
-              <p>Grok responses appear here...</p>
-              <p className="mt-2">Use the input below to ask Grok</p>
-            </div>
-          ) : (
-            grokChat.map((msg, idx) => (
-              <div key={idx} className={`text-xs font-mono ${msg.role === 'user' ? 'text-amber-400' : 'text-white/70'}`}>
-                <span className="text-white/30 text-[9px]">◈ {msg.role.toUpperCase()}</span>
-                <p className="mt-1 leading-relaxed">{msg.content}</p>
-              </div>
-            ))
-          )}
-          {grokLoading && (
-            <div className="flex items-center gap-2 text-amber-400 text-xs">
-              <span className="animate-spin">◈</span> Grok thinking...
-            </div>
-          )}
-        </div>
-        
-        {/* 1 million context label */}
-        <div className="px-3 py-2 text-[10px] font-mono text-amber-400/50 text-center border-t border-white/5">
-          1 million context
-        </div>
-        
-        {/* Saved Chats Section */}
-        <div className="border-t border-white/10">
-          <div className="px-3 py-2 text-[10px] font-mono text-white/40">
-            saved chats
-          </div>
-          <div className="max-h-32 overflow-y-auto px-2 pb-2">
-            {savedChats.length === 0 ? (
-              <div className="text-[9px] font-mono text-white/20 text-center py-2">
-                No saved chats. Use /save to save.
-              </div>
-            ) : (
-              savedChats.map(chat => (
-                <div key={chat.id} className="flex items-center justify-between py-1 px-2 text-[9px] font-mono text-white/50 hover:bg-white/5 rounded cursor-pointer group">
-                  <span onClick={() => loadSavedChat(chat)} className="flex-1 truncate">{chat.title}</span>
-                  <button 
-                    onClick={() => deleteSavedChat(chat.id)}
-                    className="opacity-0 group-hover:opacity-100 text-red-400/50 hover:text-red-400 ml-2"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
-      
-      {/* GROK PROMPT - Bottom Right */}
-      <div className="absolute bottom-28 right-0 w-72 h-12 z-40 bg-amber-900/20 border border-amber-500/30 flex items-center px-3" data-testid="grok-prompt">
-        <span className="text-amber-400 text-xs mr-2">grok prompt</span>
-        <span className="text-amber-400">▶</span>
+      {/* Grok Prompt - Bottom Right */}
+      <div className="absolute bottom-28 right-0 w-80 h-10 z-40 bg-black/60 backdrop-blur-sm border-t border-l border-white/10 flex items-center px-3" data-testid="grok-prompt">
+        <span className="text-white/50 text-[10px] font-mono mr-2">Grok Prompt</span>
+        <span className="text-green-400 mr-2">▶</span>
         <input
           type="text"
           value={grokInput}
           onChange={(e) => setGrokInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleGrokSend()}
           placeholder="Ask Grok anything..."
-          className="flex-1 bg-transparent border-none text-xs font-mono text-white placeholder-white/30 focus:outline-none ml-2"
+          className="flex-1 bg-transparent border-none text-xs font-mono text-white placeholder-white/30 focus:outline-none"
           disabled={grokLoading}
         />
       </div>
       
       {/* ============================================================ */}
-      {/* BOTTOM SECTION - FOLDERS + TERMINAL */}
-      {/* ============================================================ */}
-      
-      {/* Folder Tabs (Red, Yellow, Cyan arrows pointing down) */}
-      <div className="absolute bottom-28 left-72 right-72 h-6 z-30 flex items-end justify-center gap-4">
-        <button 
-          onClick={() => setProjectsOpen(!projectsOpen)}
-          className={`px-4 py-1 text-[9px] font-mono border-t border-x rounded-t transition-all ${projectsOpen ? 'bg-red-900/30 border-red-500/50 text-red-400' : 'bg-black/50 border-white/10 text-white/40 hover:text-white/70'}`}
-        >
-          ▼ PROJECTS
-        </button>
-        <button 
-          onClick={() => setFoldersOpen(!foldersOpen)}
-          className={`px-4 py-1 text-[9px] font-mono border-t border-x rounded-t transition-all ${foldersOpen ? 'bg-yellow-900/30 border-yellow-500/50 text-yellow-400' : 'bg-black/50 border-white/10 text-white/40 hover:text-white/70'}`}
-        >
-          ▼ FOLDERS
-        </button>
-      </div>
-      
-      {/* Expandable Folders Panel */}
-      {(projectsOpen || foldersOpen) && (
-        <div className="absolute bottom-28 left-72 right-72 h-40 z-25 bg-black/90 border-t border-white/10 flex">
-          {projectsOpen && (
-            <div className="flex-1 border-r border-white/10 p-3 overflow-y-auto">
-              <div className="text-[10px] font-mono text-red-400 mb-2">PROJECTS</div>
-              <div className="space-y-1 text-[9px] font-mono text-white/50">
-                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">📁 Project Alpha</div>
-                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">📁 Franklin Demo</div>
-                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">📁 Genesis Test</div>
-              </div>
-            </div>
-          )}
-          {foldersOpen && (
-            <div className="flex-1 p-3 overflow-y-auto">
-              <div className="text-[10px] font-mono text-yellow-400 mb-2">FOLDERS</div>
-              <div className="space-y-1 text-[9px] font-mono text-white/50">
-                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">📂 src/</div>
-                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer pl-4">📄 App.js</div>
-                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer pl-4">📄 index.js</div>
-                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer">📂 backend/</div>
-                <div className="py-1 px-2 hover:bg-white/5 rounded cursor-pointer pl-4">📄 server.py</div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-      
       {/* BOTTOM TERMINAL BAR */}
-      <div className="absolute bottom-0 left-0 right-0 h-28 z-40 bg-black/95 border-t border-white/10 flex flex-col" data-testid="terminal">
+      {/* ============================================================ */}
+      <div className="absolute bottom-0 left-0 right-0 h-28 z-40 bg-black/70 backdrop-blur-sm border-t border-white/10 flex flex-col" data-testid="terminal">
         {/* Terminal Header */}
         <div className="h-6 border-b border-white/5 flex items-center px-4 text-[9px] font-mono">
-          <span className="text-green-400">◆ TERMINAL</span>
+          <span className="text-purple-400">◆ TERMINAL</span>
           <span className="mx-4 text-white/20">|</span>
           <span className="text-white/40">SDK Cloud → Ubuntu/Linux → PowerShell</span>
-          <span className="ml-auto text-amber-400">◈ GROK RESPONSE</span>
+          <span className="ml-auto text-green-400">◈ GROK RESPONSE</span>
         </div>
         
         {/* Terminal Split View */}
@@ -656,7 +717,7 @@ function App() {
               ))}
             </div>
             <div className="h-6 border-t border-white/5 flex items-center px-2">
-              <span className="text-green-400 text-[10px] mr-2">/genesis mission...</span>
+              <span className="text-purple-400 text-[10px] mr-2">/genesis mission...</span>
               <input
                 type="text"
                 value={terminalInput}
@@ -671,7 +732,7 @@ function App() {
           {/* Right - Grok Response Summary */}
           <div className="w-80 flex flex-col">
             <div className="flex-1 overflow-y-auto p-2 text-[10px] font-mono text-white/50">
-              <div className="text-amber-400/70 mb-1">Grok responses appear here...</div>
+              <div className="text-green-400/70 mb-1">Grok responses appear here...</div>
               {grokChat.slice(-3).map((msg, idx) => (
                 <div key={idx} className="text-white/40 truncate py-0.5">
                   {msg.content.slice(0, 60)}...
@@ -679,7 +740,7 @@ function App() {
               ))}
             </div>
             <div className="h-6 border-t border-white/5 flex items-center px-2">
-              <span className="text-amber-400 text-[10px] mr-2">▶</span>
+              <span className="text-green-400 text-[10px] mr-2">▶</span>
               <span className="text-[9px] text-white/30">Ask Grok anything...</span>
             </div>
           </div>
@@ -692,7 +753,7 @@ function App() {
       </div>
       
       {/* Made with Emergent Badge */}
-      <div className="fixed bottom-2 right-4 z-50 text-[9px] font-mono text-white/30 flex items-center gap-1">
+      <div className="fixed bottom-2 right-96 z-50 text-[9px] font-mono text-white/30 flex items-center gap-1">
         <span className="text-cyan-400">◎</span> Made with Emergent
       </div>
       
