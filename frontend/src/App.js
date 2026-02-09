@@ -57,14 +57,16 @@ const FolderItem = ({ name, files = [], defaultOpen = false }) => {
 
 // Full-Height Stacked Folder Component
 // Each folder is full height, stacks behind others with z-index, slides left to reveal folder behind
-const StackedFolder = ({ title, tabColor = 'bg-cyan-500', zIndex = 10, isOpen, onToggle, children, side = 'left' }) => {
+const StackedFolder = ({ title, tabColor = 'bg-cyan-500', zIndex = 10, isOpen, onToggle, children, side = 'left', tabOffset = 0 }) => {
   const slideDirection = side === 'left' 
     ? (isOpen ? 'translate-x-0' : '-translate-x-[calc(100%-28px)]')
     : (isOpen ? 'translate-x-0' : 'translate-x-[calc(100%-28px)]');
   
-  const tabPosition = side === 'left'
-    ? 'right-0 translate-x-full rounded-r-lg'
-    : 'left-0 -translate-x-full rounded-l-lg';
+  const tabStyle = side === 'left'
+    ? { right: `-${28 + tabOffset * 30}px` }
+    : { left: `-${28 + tabOffset * 30}px` };
+  
+  const tabPositionClass = side === 'left' ? 'rounded-r-lg' : 'rounded-l-lg';
   
   return (
     <div 
@@ -76,11 +78,15 @@ const StackedFolder = ({ title, tabColor = 'bg-cyan-500', zIndex = 10, isOpen, o
         {children}
       </div>
       
-      {/* Tab on the edge - always visible */}
+      {/* Tab on the edge - positioned based on offset for stacking */}
       <button
         onClick={onToggle}
-        className={`absolute ${tabPosition} top-1/2 -translate-y-1/2 w-7 h-28 ${tabColor} flex items-center justify-center text-black font-bold text-[9px] hover:brightness-110 transition-all shadow-lg shadow-black/50`}
-        style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
+        className={`absolute ${tabPositionClass} top-1/2 -translate-y-1/2 w-7 h-28 ${tabColor} flex items-center justify-center text-black font-bold text-[9px] hover:brightness-110 transition-all shadow-lg shadow-black/50`}
+        style={{ 
+          writingMode: 'vertical-rl', 
+          textOrientation: 'mixed',
+          ...tabStyle
+        }}
       >
         {title}
       </button>
