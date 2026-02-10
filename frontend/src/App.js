@@ -334,137 +334,174 @@ const ElectricWorkflowPage = ({ onBack }) => {
     <div className="h-screen w-screen overflow-hidden bg-black text-white relative" data-testid="workflow-page">
       <GalacticBackground />
       
+      {/* GHOST FRANKLIN - Same as IDE page */}
+      <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-[1]">
+        <h1 className="select-none" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '12vw', fontWeight: 600, letterSpacing: '0.3em', color: 'rgba(80,80,80,0.12)' }}>FRANKLIN</h1>
+      </div>
+      
       {/* HEADER */}
-      <div className="absolute top-0 left-0 right-0 h-14 z-50 bg-black/90 border-b border-white/20 flex items-center justify-between px-6">
-        <button onClick={onBack} className="px-4 py-2 text-sm font-mono text-white/70 hover:text-white hover:bg-white/10 rounded flex items-center gap-2" data-testid="back-to-ide">
+      <div className="absolute top-0 left-0 right-0 h-12 z-50 bg-black/80 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6">
+        <button onClick={onBack} className="px-4 py-2 text-sm font-mono text-white/70 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition-all" data-testid="back-to-ide">
           ◀ BACK TO IDE
         </button>
         <div className="text-center">
-          <h1 className="text-xl font-mono tracking-[0.2em] text-white" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-            ◈ ELECTRIC WORKFLOW
+          <h1 className="text-lg font-mono tracking-[0.2em] text-white" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+            ◈ GENESIS PIPELINE
           </h1>
-          <p className="text-xs text-white/50">GENESIS PIPELINE • OUROBOROS LOOP • QUALITY GATES</p>
+          <p className="text-[10px] text-white/40">OUROBOROS LOOP • 8 QUALITY GATES • FROZEN SPINE</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-sm font-mono">
-            <span className="text-white/50">Convergence:</span>
-            <span className={`ml-2 ${convergence >= 99 ? 'text-green-400' : 'text-yellow-400'}`}>{convergence.toFixed(1)}%</span>
+            <span className="text-white/40">Convergence:</span>
+            <span className={`ml-2 font-semibold ${convergence >= 99 ? 'text-green-400' : convergence >= 50 ? 'text-yellow-400' : 'text-white/60'}`}>{convergence.toFixed(1)}%</span>
           </div>
-          <div className={`w-3 h-3 rounded-full ${ouroborosActive ? 'bg-green-400 animate-pulse' : 'bg-white/30'}`} />
+          <div className={`w-2.5 h-2.5 rounded-full ${ouroborosActive ? 'bg-green-400 animate-pulse shadow-lg shadow-green-400/50' : 'bg-white/20'}`} />
         </div>
       </div>
 
-      {/* LEFT PANEL - Chat & Terminal */}
-      <div className={`absolute top-14 bottom-0 z-40 bg-black/90 border-r border-white/20 transition-all duration-300 flex flex-col ${leftPanelOpen ? 'left-0 w-96' : '-left-96 w-96'}`}>
-        <button onClick={() => setLeftPanelOpen(!leftPanelOpen)} className="absolute -right-10 top-1/2 -translate-y-1/2 w-10 h-20 bg-black/90 border border-white/20 rounded-r-lg flex items-center justify-center text-white/60 hover:text-white text-lg">
+      {/* LEFT PANEL - Franklin Chat */}
+      <div className={`absolute top-12 bottom-0 z-40 bg-black/70 backdrop-blur-sm border-r border-white/10 transition-all duration-300 flex flex-col ${leftPanelOpen ? 'left-0 w-80' : '-left-80 w-80'}`}>
+        <button onClick={() => setLeftPanelOpen(!leftPanelOpen)} className="absolute -right-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/70 backdrop-blur-sm border border-white/10 rounded-r flex items-center justify-center text-white/50 hover:text-white text-sm transition-all">
           {leftPanelOpen ? '◀' : '▶'}
         </button>
         
-        {/* Chat Section */}
-        <div className="flex-1 flex flex-col border-b border-white/20">
-          <div className="h-10 px-4 border-b border-white/10 flex items-center">
-            <span className="text-sm font-mono text-cyan-400">◆ GROK RESPONSE</span>
-          </div>
-          <div ref={chatRef} className="flex-1 overflow-y-auto p-4 space-y-3">
-            {chatHistory.map((msg, idx) => (
-              <div key={idx} className={`text-sm font-mono ${msg.role === 'user' ? 'text-cyan-400' : msg.role === 'grok' ? 'text-green-400' : 'text-white/70'}`}>
-                <span className="text-white/40 text-xs">[{msg.role.toUpperCase()}]</span>
-                <p className="mt-1 whitespace-pre-wrap">{msg.content}</p>
-              </div>
-            ))}
-            {isProcessing && <div className="text-purple-400 text-sm flex items-center gap-2"><span className="animate-spin">◈</span> Processing...</div>}
-          </div>
+        {/* Franklin Header */}
+        <div className="h-10 px-4 border-b border-white/10 flex items-center justify-between bg-black/50">
+          <span className="text-sm font-mono text-cyan-400 font-semibold">◆ FRANKLIN</span>
+          <span className="text-[10px] font-mono text-white/30">Pipeline Guide</span>
+        </div>
+        
+        {/* Franklin Chat */}
+        <div ref={franklinRef} className="flex-1 overflow-y-auto p-3 space-y-3">
+          {franklinChat.map((msg, idx) => (
+            <div key={idx} className={`text-sm font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/70'}`}>
+              <span className="text-[10px] text-white/30 uppercase">{msg.role === 'user' ? '◈ YOU' : '◈ FRANKLIN'}</span>
+              <p className="mt-1 whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+            </div>
+          ))}
+          {isProcessing && <div className="text-purple-400 text-sm flex items-center gap-2"><span className="animate-spin">◈</span> Processing...</div>}
+        </div>
+        
+        {/* Franklin Prompt */}
+        <div className="h-12 px-3 border-t border-cyan-500/30 bg-black/60 flex items-center gap-2">
+          <span className="text-sm font-mono text-cyan-400">Franklin ▶</span>
+          <input 
+            type="text" 
+            value={chatInput} 
+            onChange={(e) => setChatInput(e.target.value)} 
+            onKeyDown={(e) => e.key === 'Enter' && handleChatSend()} 
+            placeholder="Ask or command..." 
+            className="flex-1 bg-transparent text-sm font-mono text-white placeholder-white/30 focus:outline-none" 
+            data-testid="workflow-franklin-prompt"
+          />
         </div>
         
         {/* Terminal Section */}
-        <div className="h-48 flex flex-col">
-          <div className="h-8 px-4 border-b border-white/10 flex items-center">
-            <span className="text-sm font-mono text-purple-400">◆ TERMINAL</span>
+        <div className="h-36 flex flex-col border-t border-white/10">
+          <div className="h-7 px-3 border-b border-white/10 flex items-center bg-black/50">
+            <span className="text-xs font-mono text-purple-400">◆ TERMINAL</span>
           </div>
-          <div ref={terminalRef} className="flex-1 overflow-y-auto p-3">
+          <div ref={terminalRef} className="flex-1 overflow-y-auto p-2">
             {terminalOutput.map((line, idx) => (
-              <div key={idx} className={`text-xs font-mono ${line.type === 'error' ? 'text-red-400' : line.type === 'success' ? 'text-green-400' : line.type === 'system' ? 'text-purple-400' : 'text-white/60'}`}>{line.text}</div>
+              <div key={idx} className={`text-[11px] font-mono ${line.type === 'error' ? 'text-red-400' : line.type === 'success' ? 'text-green-400' : line.type === 'system' ? 'text-purple-400' : 'text-white/50'}`}>{line.text}</div>
             ))}
-          </div>
-          <div className="h-10 px-4 border-t border-white/10 flex items-center gap-2">
-            <span className="text-purple-400">▶</span>
-            <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleChatSend()} placeholder="/genesis <project> or ask Grok..." className="flex-1 bg-transparent text-sm font-mono text-white placeholder-white/40 focus:outline-none" />
           </div>
         </div>
       </div>
 
       {/* RIGHT PANEL - Controls & Quality */}
-      <div className={`absolute top-14 bottom-0 z-40 bg-black/90 border-l border-white/20 transition-all duration-300 flex flex-col ${rightPanelOpen ? 'right-0 w-80' : '-right-80 w-80'}`}>
-        <button onClick={() => setRightPanelOpen(!rightPanelOpen)} className="absolute -left-10 top-1/2 -translate-y-1/2 w-10 h-20 bg-black/90 border border-white/20 rounded-l-lg flex items-center justify-center text-white/60 hover:text-white text-lg">
+      <div className={`absolute top-12 bottom-0 z-40 bg-black/70 backdrop-blur-sm border-l border-white/10 transition-all duration-300 flex flex-col ${rightPanelOpen ? 'right-0 w-72' : '-right-72 w-72'}`}>
+        <button onClick={() => setRightPanelOpen(!rightPanelOpen)} className="absolute -left-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/70 backdrop-blur-sm border border-white/10 rounded-l flex items-center justify-center text-white/50 hover:text-white text-sm transition-all">
           {rightPanelOpen ? '▶' : '◀'}
         </button>
         
         {/* Stage Progress */}
-        <div className="p-4 border-b border-white/20">
-          <div className="text-sm font-mono text-white/60 mb-3">GENESIS PIPELINE STAGES</div>
-          <div className="space-y-2">
+        <div className="p-3 border-b border-white/10">
+          <div className="text-xs font-mono text-white/50 mb-2">GENESIS STAGES</div>
+          <div className="space-y-1.5">
             {GENESIS_STAGES.map((stage, idx) => (
-              <div key={stage.id} className="flex items-center gap-3">
-                <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${idx < currentStage ? 'bg-green-400 text-black' : idx === currentStage ? 'bg-cyan-400 animate-pulse text-black' : 'bg-white/20 text-white/40'}`}>
+              <div 
+                key={stage.id} 
+                className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer transition-all ${idx === currentStage ? 'bg-cyan-500/20' : 'hover:bg-white/5'}`}
+                onClick={() => { setCurrentStage(idx); highlightStage(idx); addTerminal(`JUMPED TO: ${stage.name}`, 'system'); }}
+              >
+                <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] ${idx < currentStage ? 'bg-green-400 text-black' : idx === currentStage ? 'bg-cyan-400 animate-pulse text-black' : 'bg-white/15 text-white/30'}`}>
                   {idx < currentStage ? '✓' : idx + 1}
                 </div>
-                <span className={`text-sm font-mono ${idx <= currentStage ? 'text-white' : 'text-white/40'}`}>{stage.name}</span>
+                <span className={`text-xs font-mono ${idx <= currentStage ? 'text-white' : 'text-white/35'}`}>{stage.name}</span>
               </div>
             ))}
           </div>
         </div>
         
         {/* Quality Gates */}
-        <div className="flex-1 p-4 overflow-y-auto">
-          <div className="text-sm font-mono text-white/60 mb-3">8-DIMENSIONAL QUALITY GATES</div>
-          <div className="space-y-3">
+        <div className="flex-1 p-3 overflow-y-auto">
+          <div className="text-xs font-mono text-white/50 mb-2">8D QUALITY GATES</div>
+          <div className="space-y-2">
             {qualityScores.map(q => (
               <div key={q.name}>
-                <div className="flex justify-between text-xs font-mono mb-1">
-                  <span className="text-white/70">{q.name}</span>
-                  <span className={q.score >= 80 ? 'text-green-400' : q.score >= 50 ? 'text-yellow-400' : 'text-white/40'}>{q.score.toFixed(0)}%</span>
+                <div className="flex justify-between text-[10px] font-mono mb-0.5">
+                  <span className="text-white/60">{q.name}</span>
+                  <span className={q.score >= 80 ? 'text-green-400' : q.score >= 50 ? 'text-yellow-400' : 'text-white/30'}>{q.score.toFixed(0)}%</span>
                 </div>
-                <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                  <div className={`h-full transition-all duration-500 ${q.score >= 80 ? 'bg-green-400' : q.score >= 50 ? 'bg-yellow-400' : 'bg-white/30'}`} style={{ width: `${q.score}%` }} />
+                <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                  <div className={`h-full transition-all duration-500 ${q.score >= 80 ? 'bg-green-400' : q.score >= 50 ? 'bg-yellow-400' : 'bg-white/20'}`} style={{ width: `${q.score}%` }} />
                 </div>
-                <div className="text-[10px] text-white/30 mt-0.5">Weight: {q.weight}x</div>
               </div>
             ))}
           </div>
         </div>
         
         {/* Action Buttons */}
-        <div className="p-4 border-t border-white/20 space-y-2">
-          <button onClick={runOuroborosLoop} disabled={ouroborosActive} className={`w-full py-3 text-sm font-mono rounded-lg transition-all ${ouroborosActive ? 'bg-green-500/20 text-green-400 animate-pulse' : 'bg-green-500/30 text-green-400 hover:bg-green-500/40'} border border-green-500/40`}>
+        <div className="p-3 border-t border-white/10 space-y-2">
+          <button 
+            onClick={runOuroborosLoop} 
+            disabled={ouroborosActive} 
+            className={`w-full py-2.5 text-xs font-mono rounded transition-all ${ouroborosActive ? 'bg-green-500/20 text-green-400 animate-pulse' : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'} border border-green-500/30`}
+          >
             {ouroborosActive ? '∞ CONVERGING...' : '▶ RUN OUROBOROS'}
           </button>
-          <button onClick={() => { setCurrentStage(0); setConvergence(0); setQualityScores(QUALITY_DIMENSIONS); addTerminal('PIPELINE RESET', 'system'); }} className="w-full py-3 text-sm font-mono bg-white/5 border border-white/20 rounded-lg text-white/60 hover:bg-white/10">
-            ⟳ RESET PIPELINE
+          <button 
+            onClick={() => { setCurrentStage(0); setConvergence(0); setQualityScores(QUALITY_DIMENSIONS); addTerminal('PIPELINE RESET', 'system'); setNodes(initialNodes); }} 
+            className="w-full py-2.5 text-xs font-mono bg-white/5 border border-white/10 rounded text-white/50 hover:bg-white/10 hover:text-white/70 transition-all"
+          >
+            ⟳ RESET
           </button>
         </div>
       </div>
 
       {/* MAIN CANVAS - ReactFlow */}
-      <div className={`absolute top-14 bottom-0 z-10 transition-all duration-300 ${leftPanelOpen ? 'left-96' : 'left-0'} ${rightPanelOpen ? 'right-80' : 'right-0'}`}>
+      <div className={`absolute top-12 bottom-0 z-10 transition-all duration-300 ${leftPanelOpen ? 'left-80' : 'left-0'} ${rightPanelOpen ? 'right-72' : 'right-0'}`}>
         <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} fitView className="!bg-transparent">
-          <Background color="rgba(0,255,136,0.03)" gap={50} />
-          <Controls className="!bg-black/80 !border-white/20 !rounded-lg" />
+          <Background color="rgba(0,255,136,0.02)" gap={40} />
+          <Controls className="!bg-black/70 !backdrop-blur-sm !border-white/10 !rounded" />
         </ReactFlow>
         
         {/* Legend */}
-        <div className="absolute bottom-4 left-4 bg-black/80 border border-white/20 rounded-lg p-4">
-          <div className="text-xs font-mono text-white/60 mb-2">PIPELINE LEGEND</div>
-          <div className="space-y-1 text-xs font-mono">
-            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded bg-green-400" /><span className="text-white/50">Completed</span></div>
-            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded bg-cyan-400 animate-pulse" /><span className="text-white/50">In Progress</span></div>
-            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded bg-white/20" /><span className="text-white/50">Pending</span></div>
-            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full border-2 border-green-400 border-dashed" /><span className="text-white/50">Ouroboros Loop</span></div>
+        <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm border border-white/10 rounded p-3">
+          <div className="text-[10px] font-mono text-white/50 mb-1.5">LEGEND</div>
+          <div className="space-y-1 text-[10px] font-mono">
+            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded bg-green-400" /><span className="text-white/40">Completed</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded bg-cyan-400 animate-pulse" /><span className="text-white/40">In Progress</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded bg-white/15" /><span className="text-white/40">Pending</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full border border-green-400 border-dashed" /><span className="text-white/40">Ouroboros</span></div>
+          </div>
+        </div>
+        
+        {/* Quick Commands Hint */}
+        <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm border border-white/10 rounded p-3 max-w-xs">
+          <div className="text-[10px] font-mono text-white/50 mb-1.5">QUICK COMMANDS</div>
+          <div className="space-y-0.5 text-[9px] font-mono text-white/40">
+            <div>"move to [stage]" - navigate stages</div>
+            <div>"run ouroboros" - start convergence</div>
+            <div>"check quality" - view gate scores</div>
+            <div>"status" - current pipeline state</div>
           </div>
         </div>
       </div>
 
       {/* Made with Emergent */}
-      <div className="fixed bottom-2 right-4 z-50 text-xs font-mono text-white/30">◎ Made with Emergent</div>
+      <div className="fixed bottom-2 right-3 z-50 text-[10px] font-mono text-white/20">◎ Made with Emergent</div>
     </div>
   );
 };
