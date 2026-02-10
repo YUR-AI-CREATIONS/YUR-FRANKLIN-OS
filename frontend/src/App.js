@@ -67,7 +67,7 @@ const GalacticBackground = () => {
 };
 
 // ============================================================================
-// ELECTRIC WORKFLOW PAGE - Full Genesis Pipeline
+// ELECTRIC WORKFLOW PAGE - Full Genesis Pipeline with Franklin Chat
 // ============================================================================
 const ElectricWorkflowPage = ({ onBack }) => {
   const [currentStage, setCurrentStage] = useState(0);
@@ -76,9 +76,9 @@ const ElectricWorkflowPage = ({ onBack }) => {
   const [leftPanelOpen, setLeftPanelOpen] = useState(true);
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
   const [chatInput, setChatInput] = useState('');
-  const [chatHistory, setChatHistory] = useState([
-    { role: 'system', content: 'Genesis Pipeline initialized. Ready to build your project.' },
-    { role: 'system', content: 'Enter your requirements or use /genesis <description> to start.' }
+  const [franklinChat, setFranklinChat] = useState([
+    { role: 'franklin', content: 'Welcome to the Genesis Pipeline. I\'m Franklin, your AI guide. I can help you navigate and control this workflow.' },
+    { role: 'franklin', content: 'Try commands like: "move to specification stage", "run ouroboros loop", "check quality gates", or just ask me anything about your project.' }
   ]);
   const [terminalOutput, setTerminalOutput] = useState([
     { type: 'system', text: '> GENESIS ENGINE v2.0 ONLINE' },
@@ -88,7 +88,7 @@ const ElectricWorkflowPage = ({ onBack }) => {
   ]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [ouroborosActive, setOuroborosActive] = useState(false);
-  const chatRef = useRef(null);
+  const franklinRef = useRef(null);
   const terminalRef = useRef(null);
 
   // Workflow nodes for ReactFlow - 8 stage pipeline
