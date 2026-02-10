@@ -172,11 +172,46 @@ class FranklinOrchestrator:
         sid = session_id or self.active_session
         return self.sessions.get(sid) if sid else None
     
-    async def call_grok(self, system_prompt: str, user_prompt: str, 
+    async def call_llm(self, system_prompt: str, user_prompt: str, 
                         temperature: float = 0.7, max_tokens: int = 2000) -> Optional[str]:
-        """Call Grok API with perfect prompting"""
+        """Call LLM API - uses Anthropic via Emergent integration"""
+        api_key = self.emergent_key or self.anthropic_key
+        
+        if not api_key:
+            logger.warning("No LLM API key configured")
+            return None
+        
+        try:
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                response = await client.post(
+                    self.anthropic_url,
+                    headers={
+                        "x-api-key": api_key,
+                        "anthropic-version": "2023-06-01",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "claude-sonnet-4-20250514",
+                        "max_tokens": max_tokens,
+                        "system": system_prompt,
+                        "messages": [
+                            {"role": "user", "content": user_prompt}
+                        ]
+                    }
+                )
+                response.raise_for_status()
+                result = response.json()
+                return result["content"][0]["text"]
+        except Exception as e:
+            logger.error(f"[LLM ERROR] {str(e)}")
+            # Fallback to XAI if Anthropic fails
+            return await self._fallback_xai(system_prompt, user_prompt, temperature, max_tokens)
+    
+    async def _fallback_xai(self, system_prompt: str, user_prompt: str,
+                           temperature: float = 0.7, max_tokens: int = 2000) -> Optional[str]:
+        """Fallback to XAI/Grok if primary LLM fails"""
         if not self.xai_api_key:
-            logger.warning("XAI_API_KEY not configured")
+            logger.warning("No fallback XAI key available")
             return None
         
         try:
@@ -201,8 +236,14 @@ class FranklinOrchestrator:
                 result = response.json()
                 return result["choices"][0]["message"]["content"]
         except Exception as e:
-            logger.error(f"[GROK ERROR] {str(e)}")
+            logger.error(f"[XAI FALLBACK ERROR] {str(e)}")
             return None
+    
+    # Alias for backward compatibility
+    async def call_grok(self, system_prompt: str, user_prompt: str, 
+                        temperature: float = 0.7, max_tokens: int = 2000) -> Optional[str]:
+        """Alias for call_llm - backward compatibility"""
+        return await self.call_llm(system_prompt, user_prompt, temperature, max_tokens)
     
     async def franklin_chat(self, user_message: str, session_id: str = None) -> Dict[str, Any]:
         """
