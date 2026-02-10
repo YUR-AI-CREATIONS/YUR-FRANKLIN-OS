@@ -145,6 +145,7 @@ Build "FRANKLIN OS," a sophisticated, VS Code-style IDE for building, certifying
 - LLM: Claude via Anthropic/Emergent integration
 - Workflow: ReactFlow for visual pipelines
 
-## Known Issues
-- App.js is still monolithic (~800 lines) but significantly reduced from 2000+
-- Some panel alignment may need fine-tuning based on screen size
+## Design Philosophy
+- **Truth**: No hidden actions, all processes visible
+- **Trust**: Reliable execution of user commands
+- **Transparency**: Real-time feedback on all operations
