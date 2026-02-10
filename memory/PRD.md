@@ -71,7 +71,7 @@ Build "FRANKLIN OS," a sophisticated, VS Code-style IDE for building, certifying
   - Bottom: Terminal + Projects/Folders sections
   - Franklin Prompt and Grok Prompt aligned with panels
   - "1 million context" labels on both panels
-- [x] Workflow page restored to original state (Electric Workflow with ReactFlow)
+- [x] Workflow page with 8-stage Genesis Pipeline visualization
 - [x] Galactic background with twinkling stars
 - [x] Ghost FRANKLIN title visible through transparent panels
 
