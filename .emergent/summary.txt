@@ -1,121 +1,166 @@
 <analysis>**original_problem_statement:**
-The user wants to build FRANKLIN OS, a sophisticated, VS Code-style IDE for building, certifying, and deploying enterprise applications with a galactic liquid glassmorphism cyberpunk aesthetic. The core mission is to create a fully functional software factory where a user interacts with an AI agent (Franklin) to define a project, which is then executed by a team of specialized agents (Grok, Genesis, Architect, etc.).
+The user wants to build FRANKLIN OS, a sophisticated, VS Code-style IDE for building, certifying, and deploying enterprise applications with a galactic liquid glassmorphism cyberpunk aesthetic. The core mission is to create a fully functional software factory where a user interacts with AI agents (Franklin, Grok) to define, build, and manage a project.
 
-The user has expressed extreme frustration with past failures but is now highly engaged after recent successes. Key requirements include a complex UI with sliding panels, a complete end-to-end agent orchestration workflow, chat persistence, real-time task tracking for transparency (Truth, Trust, and Transparency), and an immersive chat experience with Read Aloud and Print to PDF features.
+**PRODUCT REQUIREMENTS (from user-provided README):**
+*   **AI-Powered Development:** A multi-tiered AI agent system (Grok, Franklin) for requirement analysis and self-healing code generation.
+*   **Genesis Pipeline:** An 8-stage development pipeline (INCEPTION → SPECIFICATION → ARCHITECTURE → CONSTRUCTION → VALIDATION → EVOLUTION → DEPLOYMENT → GOVERNANCE) with an Ouroboros Loop for self-improvement and an 8-dimensional quality gate system.
+*   **Code Generation Engine:** Must automatically generate production-ready artifacts for various tech stacks (backend, frontend, DB, Docker, CI/CD).
+*   **VS Code-Style IDE:** A multi-panel interface with a React Flow canvas for workflow visualization, a command terminal, and collapsible panels.
+*   **User Authentication & Subscriptions:** The user has requested Stripe integration for user login and tiered pricing plans.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a React frontend and FastAPI backend. The UI has been completely overhauled to match the user's vision, featuring a stable, full-height, stacked sliding folder system for both left and right-side navigation. The core agent orchestration workflow () is implemented on the backend () and is successfully connected to the frontend. Users can initiate builds via a  command.
+The application is a full-stack React (frontend) and FastAPI (backend) application with three main pages:
+1.  **Landing Page:** Features a VIEW PRICING button leading to a Stripe-powered subscription selection modal.
+2.  **IDE Page:** A complex, multi-panel layout designed to match a user-provided wireframe. It includes resizable and transparent panels for Franklin (left) and Grok (right) chats, a central code editor, a terminal, and other UI elements like Connectors and CI/CD tools. The layout has been the subject of intense user scrutiny and multiple revisions.
+3.  **Electric Workflow Page:** A page visualizing the 8-stage Genesis Pipeline using React Flow, complete with an Ouroboros Loop and Quality Gates panel, as specified in the user's documentation.
 
-A full-screen, immersive chat modal has been implemented for all interactions (Franklin, Agents, Bots), which includes Read Aloud and Print to PDF functionality. The agent was in the middle of implementing chat persistence and task tracking to address the user's latest requests.
+The backend includes a Stripe integration with endpoints for fetching pricing packages and creating checkout sessions.
 
 **Last working item**:
--   **Last item agent was working:** Implementing chat persistence and real-time task tracking. This was a direct response to the user's request for truth (proof of work) and to prevent conversations from being lost on page refresh. The agent created a new backend file (), added persistence and task-tracking API endpoints, and began modifying the frontend () to save and load conversations.
--   **Status:** IN PROGRESS
--   **Agent Testing Done:** N
--   **Which testing method agent to use?** both
+-   **Last item agent was working:** Rebuilding the Electric Workflow page to accurately represent the 8-stage Genesis Pipeline described in the user's documentation. This was a response to the user's extreme dissatisfaction with a previous, simplified version. The agent implemented the 8 stages (Inception to Governance), the Ouroboros loop, and the quality gates panel.
+-   **Status:** USER VERIFICATION PENDING
+-   **Agent Testing Done:** Y (Verified via screenshots)
+-   **Which testing method agent to use?** frontend testing agent
 -   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Complete Chat Persistence and Task Tracking Implementation (P0 - CRITICAL)**
-    -   **Description:** The user needs to see that conversations are saved across page refreshes and that they can track the agent's background work. The backend routes are in place, but the frontend integration is incomplete. The UI for the task tracker has not been built yet.
-    -   **Attempted fixes:** Created , added routes to , and started modifying  with  hooks for loading/saving data.
+-   **Issue 1: IDE Layout Does Not Match Wireframe Exactly (P0 - CRITICAL BLOCKER)**
+    -   **Description:** The user is extremely frustrated and has repeatedly stated that the IDE page layout is not proportionally correct, the text is too small, and elements are not positioned exactly as per their drawing. This is the primary source of user dissatisfaction and is blocking all other progress.
+    -   **Attempted fixes:** The agent has rebuilt  multiple times, adjusting column widths (25%/50%/25%), increasing font sizes to , and repositioning components. These fixes have not satisfied the user.
     -   **Next debug checklist:**
-        1.  Verify the backend persistence endpoints (, ) and task tracking endpoint () are working correctly using .
-        2.  Finish the frontend implementation in  to ensure all chat histories (,  conversations, ) are correctly saved to and loaded from the backend on page refresh.
-        3.  Implement a UI component in the header to display the list of active tasks fetched from the  endpoint.
-        4.  Implement the planned Clear History functionality.
-        5.  Test by refreshing the page to confirm conversations persist and by initiating a  build to see it appear in the new task tracker.
-    -   **Why fix this issue and what will be achieved with the fix?** This is critical for user trust. It provides transparency into the agent's work and makes the application feel robust by preventing data loss.
+        1.  Analyze the user's latest annotated wireframe (from ) with extreme precision. Pay attention to relative proportions, not just percentages.
+        2.  Re-implement the CSS grid or flexbox layout in  to perfectly match the visual hierarchy and spacing in the drawing.
+        3.  Ensure all text labels and headers are clearly legible and sized appropriately as depicted.
+        4.  Verify that all drawn components (sparkly brain, tabs, bottom panels) are in their exact locations.
+    -   **Why fix this issue and what will be achieved with the fix?** Resolving this is critical to regaining user trust and unblocking further development. Failure to do so will result in continued user frustration and project churn.
     -   **Status:** IN PROGRESS
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** Frontend
+    -   **Blocked on other issue:** None. This IS the blocker.
+
+-   **Issue 2: Complete Chat Persistence and Task Tracking (P1)**
+    -   **Description:** This task from the previous fork was abandoned. The user needs conversations to be saved across page refreshes and wants to track the agent's background work for transparency (Truth, Trust, and Transparency). The UI was refactored, likely overwriting any initial frontend work.
+    -   **Attempted fixes:** A  file and API routes were created in the previous session, but no further progress was made.
+    -   **Next debug checklist:**
+        1.  Verify the backend endpoints in  (, , ) are still functional.
+        2.  Integrate API calls into  using  hooks to save/load all relevant chat histories (Franklin, Grok, Terminal) to the backend.
+        3.  Create a new UI component (e.g., in the header) to display active tasks fetched from the  endpoint.
+    -   **Why fix this issue and what will be achieved with the fix?** Fulfills a core user requirement for trust and application robustness.
+    -   **Status:** NOT STARTED
     -   **Is recurring issue?** N
     -   **Should Test frontend/backend/both after fix?** Both
-    -   **Blocked on other issue:** None
+    -   **Blocked on other issue:** Issue 1
 
 **In progress Task List**:
--   **Task 1: Complete Chat Persistence and Task Tracking**
-    -   **Where to resume:** In . The  hooks for loading and saving chat data need to be finalized and tested. The UI for displaying active tasks needs to be created.
-    -   **What will be achieved with this?** The application will remember user conversations and provide a real-time view of background agent activities, directly addressing the user's latest core requirements.
+-   **Task 1: Refine IDE layout**
+    -   **Where to resume:** . The entire layout needs to be re-evaluated against the user's wireframe.
+    -   **What will be achieved with this?** A UI that satisfies the user's explicit visual requirements.
     -   **Status:** IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?** Both
-    -   **Blocked on something:** None
+    -   **Should Test frontend/backend/both after fix?** Frontend
+    -   **Blocked on something:** User satisfaction.
 
 **Upcoming and Future Tasks**
 *   **Upcoming Tasks:**
-    *   **P1: Implement Whiteboard and Workspace Views:** The user's workflow specifies a collaborative whiteboard for agreeing on code sections, which then auto-populate into a workspace. These UI components and the corresponding logic need to be designed and implemented.
-    *   **P2: Implement Continuous Workflow (The Loop):** Evolve the current command-based system () into a persistent, stateful project management loop where the agent can work on tasks continuously.
+    *   **P1: Implement Full Stripe Authentication & Subscription Gating:** The UI and backend endpoints exist, but they need to be connected to create actual users, manage sessions, and restrict access to IDE features based on the selected subscription tier.
+    *   **P1: Implement Whiteboard and Workspace Views:** As per the original PRD, these collaborative views are a key part of the workflow.
+    *   **P2: Implement Continuous Workflow (The Loop):** Evolve the current  command into a stateful, continuous project management loop.
 *   **Future Tasks:**
-    *   **P2:** Implement the remaining UI windows from the 6-phase master plan (Pulse, Matrix, Ledger, Archive).
+    *   **P2: Refactor Monolithic Files:**  (~1800 lines) and  (~1850 lines) are dangerously large and need to be broken into smaller, maintainable modules, components, and hooks. This is a critical long-term stability risk.
+    *   **P2:** Implement remaining UI windows from the master plan (Pulse, Matrix, Ledger, Archive).
     *   **P2:** Integrate a Vector DB (e.g., Milvus, Weaviate) for the Memory Mesh.
-    *   **P2:** Define and create the database schema in Supabase (Phase 1 Birthmark system).
-    *   **P3:** **(HIGHLY RECOMMENDED)** Refactor the monolithic  and  into smaller, modular files to improve stability and maintainability.
+    *   **P2:** Define and create the database schema in Supabase.
 
 **Completed work in this session**
--   **UI Overhaul & Stabilization:** Fixed the critical frontend build error and successfully implemented the user's vision for a complex, full-height, stacked, and sliding folder UI. The panels are now clean, functional, and leave clickable tabs when collapsed.
--   **End-to-End Agent Orchestration:** Implemented and wired a full-stack workflow (). The system can now take a high-level user request via the UI, process it through the entire agent pipeline, and show progress updates.
--   **Immersive Chat Experience:** Created a full-screen chat modal for all conversations (Franklin, Agents, Bots) with improved readability and new features.
--   **New Chat Features:** Added Read Aloud (Text-to-Speech) and Print to PDF functionality to the chat interface.
+-   **IDE UI Redesign:** The IDE was completely rebuilt from a stacked-folder system to a 3-column layout matching a user wireframe. This involved multiple iterations to adjust transparency, resizability, and component placement.
+-   **Restored 3-Page Application:** Restored and integrated the Landing, IDE, and Workflow pages into a single navigable application.
+-   **Stripe Integration:** Added backend routes () and frontend UI () to display subscription tiers powered by Stripe.
+-   **Electric Workflow Page Rebuild:** The workflow page was completely overhauled to visualize the 8-stage Genesis Pipeline, Ouroboros loop, and quality gates, as described in the user's documentation.
+-   **Grok Chat Bug Fix:** Fixed a backend bug in  where the Grok endpoint was incorrectly using Franklin's system prompt, causing it to misidentify itself.
+-   **Created UI Component Backup:** The original  file with the user-liked stacked folder UI was saved to .
 
 **Earlier issues found/mentioned but not fixed**
--   **Monolithic :** The file has grown to over 2000 lines and is a significant technical debt, making the frontend fragile and hard to modify. This has been a recurring problem.
--   **Python Code Quality:** The backend code could benefit from linting and style improvements.
+-   **Monolithic :** The file has been rewritten but remains a single massive file controlling all three pages and their complex state. It is a major source of technical debt and fragility.
+-   **Monolithic :** The main backend file has grown to over 1800 lines and should be broken into separate routers and services.
+
+**Known issue recurrence from previous fork**
+-   **Issue recurrence in previous fork:** The need to refactor the monolithic  was highlighted in the last handoff but was not addressed. The agent rewrote the file but did not modularize it, perpetuating the problem.
+-   **Recurrence count:** 2
+-   **Status:** NOT STARTED
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Full-Stack Orchestration:** A central Python service () coordinates between the frontend, a primary AI (Franklin), a powerful LLM (Grok), and specialized agents.
--   **Complex React State:** The entire UI state (dozens of panels, chats, modals) is managed within a single  file using , making it extremely fragile.
--   **Web Speech API:** Used to implement the Read Aloud functionality.
+-   **Full-Stack Development:** React frontend, FastAPI backend.
+-   **Complex UI State Management:** All state for three complex pages is managed in a single  file using .
+-   **API Integration:** Stripe for payments, XAI for the Grok agent.
+-   **UI Visualization:** React Flow is used on the Workflow page.
 
 **key DB schema**
--   An implicit schema for storing chat conversations (, , ) has been introduced in  for MongoDB. No formal schema or tables exist in Supabase yet.
+-   **MongoDB:** Implicit schema for chat conversations (, , ) defined in .
+-   **Stripe (implicit):** A pricing package structure is defined in  with                total        used        free      shared  buff/cache   available
+Mem:        16358500     7631972     2655444       45696     6369908     8726528
+Swap:              0           0           0, , , and  tiers. No user schema has been created yet.
 
 **All files of reference**
--   : **CRITICAL & BLOATED.** Contains all UI logic and is the primary file for the next steps on persistence.
--   : **NEW & CRITICAL.** The core of the agent workflow.
--   : **NEW.** The backend logic for saving/loading chat history.
--   : Contains the new API endpoints for persistence and task tracking.
--   : Contains the project requirements and progress log.
+-   : **CRITICAL & BLOATED.** The source of user frustration. All UI logic for all three pages resides here. Needs to be modified with extreme care to match the wireframe.
+-   : The entry point of the app, now contains the Stripe pricing modal logic.
+-   : The main FastAPI file, now includes the router for . It is becoming a monolith.
+-   : **NEW.** Contains the logic for Stripe integration.
+-   : Was modified to fix a critical bug with the system prompt.
+-   : A backup of the previous UI that the user liked but decided to discard for performance reasons.
+-   : Was overwritten with the user's detailed documentation. It's the new source of truth.
 
 **Areas that need refactoring**:
--   **/app/frontend/src/App.js** is in urgent need of being broken down into smaller, reusable components (e.g., , ) and custom hooks to manage state. This is crucial for long-term stability.
+-   : **URGENT.** This file is unmaintainable. It must be broken down into separate files for each page (Landing, IDE, Workflow) and further into smaller, reusable components and custom hooks.
+-   : This file is also becoming a monolith and should have its routers and logic separated into a proper directory structure (e.g., , ).
 
 **key api endpoints**
 -   : Initiates the full agent build workflow.
--   : **NEW** - Saves a conversation history.
--   : **NEW** - Loads a conversation history.
--   : **NEW** - Gets a list of active background tasks.
+-   : Endpoint for the Grok agent.
+-   : **NEW** - Fetches the Stripe subscription packages.
+-   : **NEW** - Creates a Stripe checkout session.
 
 **Critical Info for New Agent**
--   **User Trust is High but Fragile:** The user is currently very pleased with the progress, but their trust was hard-won after extreme frustration. Accuracy and clear communication are paramount.
--   **Finish Persistence First:** Your immediate priority is to complete the chat persistence and task-tracking feature. This directly addresses the user's latest concerns about truth and usability.
--   **Propose Refactoring Next:** After delivering the persistence feature, strongly advocate for refactoring the  monolith as a critical step to ensure future stability and speed up development.
--   **The Workflow is the Core:** The  workflow is the heart of the application. Familiarize yourself with  before extending the logic.
+-   **USER IS EXTREMELY FRUSTRATED AND VOLATILE.** The user has repeatedly used profane language and accused the agent of incompetence and deliberate sabotage. Your top priority is to de-escalate by following instructions to the letter. Do not be creative. Do not deviate from the wireframe. When the user points out a mistake, apologize and fix it immediately and exactly as requested.
+-   **THE WIREFRAME IS LAW.** Reference the user's drawings ( and ) for every UI change on the IDE page. Proportions, font size, and element placement must be perfect.
+-   **THE PRD IS THE NEW BIBLE.** The user pasted a full  into the chat (). This overwrote the old PRD and is now the definitive source of truth for the project's features and architecture (e.g., the 8-stage Genesis Pipeline).
+-   **Tackle the UI Blocker First:** Do not attempt any other tasks until the user is satisfied with the IDE layout.
 
 **documents and test reports created in this job**
--    was updated to reflect completed tasks.
+-    (overwritten with user's full documentation)
+-    (archive of old UI)
 
 **Last 10 User Messages and any pending HUMAN messages**
--   The user expressed critical needs: knowing the agent is telling the truth (task tracking), saving chat history, understanding the automated loop, and having visibility into background bot work.
--   The user gave explicit approval (Proceed) for the agent to start implementing the persistence feature.
--   Prior messages show the user is thrilled with the new UI and functional agent workflow, a complete turnaround from their earlier frustration.
+-   The user is extremely angry about the IDE layout, stating it doesn't match their drawing, the text is too small, and it's not proportional.
+-   The user has accused the agent of being the dumbest fucking bot and deliberately doing things wrong.
+-   The user then asked about the third page with my work flows on it, indicating a shift in focus after becoming too frustrated with the IDE page.
+-   The agent showed the workflow page, which was also not what the user wanted.
+-   The user pasted a massive document (the new PRD) explaining the entire system, including the 8-stage Genesis Pipeline that should be on the workflow page.
+-   The agent correctly interpreted this and rebuilt the workflow page to match the new documentation.
+-   **Pending Action:** The user has not yet seen or approved the rebuilt Electric Workflow page. Their last point of anger was the IDE page.
 
 **Project Health Check:**
--   **Broken:** No part of the application is currently broken.
--   **Mocked:** Chat persistence and real-time task tracking are not yet functional. The Whiteboard and Workspace concepts from the user's workflow are not yet implemented.
+-   **Broken:** The user's trust is broken. The IDE page, from the user's perspective, is completely broken as it does not match their vision.
+-   **Mocked:** Stripe integration is UI-only; no actual user accounts or subscription logic is implemented. Chat persistence is non-existent.
 
 **3rd Party Integrations**
--   **LLMs (XAI/Grok, OpenAI, etc.):** Integrated and actively used in the backend orchestration logic.
--   **Supabase (PostgreSQL):** Configured but unused. The database is empty.
--   **Web Speech API:** Used for the Read Aloud feature.
+-   **LLMs (XAI/Grok, OpenAI):** Integrated into the backend orchestration logic.
+-   **Supabase (PostgreSQL):** Configured but unused.
+-   **Stripe:** Integrated for displaying pricing plans and initiating checkout. A test key () is present in .
 
 **Testing status**
+-   **Testing agent used after significant changes:** NO
+-   **Troubleshoot agent used after agent stuck in loop:** NO
 -   **Test files created:** None.
--   **Known regressions:** None. The application is more stable and functional than ever.
+-   **Known regressions:** None.
+
+**Credentials to test flow:**
+N/A
 
 **What agent forgot to execute**
--   The planned refactoring of the monolithic  has been repeatedly postponed and remains a major source of risk.
--   The Whiteboard and Workspace UI/logic, key components of the user-described workflow, have not been started.
--   The database schema for Supabase has not been created.</analysis>
+-   The agent completely abandoned the original task of implementing chat persistence and task tracking.
+-   The agent repeatedly failed to refactor the monolithic  file, a known and recurring critical issue.
+-   The agent did not fully implement the Stripe integration; it's only a frontend facade.</analysis>
