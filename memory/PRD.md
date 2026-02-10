@@ -123,15 +123,17 @@ Build "FRANKLIN OS," a sophisticated, VS Code-style IDE for building, certifying
 - [ ] Implement "Workspace" view for auto-populated code sections
 - [ ] Make panels slide in/out smoothly with proper animation
 - [ ] Synchronize prompt box movements with panel resizing
+- [ ] Complete Stripe authentication with user accounts
+- [ ] Chat persistence to backend database
 
 ### P2 - Medium Priority
 - [ ] Implement remaining UI windows (Pulse, Matrix, Ledger, Archive)
 - [ ] Vector DB integration for "Memory Mesh"
 - [ ] Supabase database schema creation
 - [ ] Continuous workflow loop ("The Loop")
+- [ ] Refactor App.js into smaller components
 
 ### P3 - Low Priority / Refactoring
-- [ ] Break down App.js into smaller components
 - [ ] Create route-based sections (/studio, /agents, /academy)
 - [ ] Optimize React re-renders
 - [ ] Add proper TypeScript types
