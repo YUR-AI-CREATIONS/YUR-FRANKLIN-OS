@@ -285,7 +285,7 @@ const ElectricWorkflowPage = ({ onBack }) => {
         setOuroborosActive(false);
         addTerminal('CONVERGENCE ACHIEVED: 99%', 'success');
         addTerminal('Frozen Spine: LOCKED', 'success');
-        setChatHistory(prev => [...prev, { role: 'system', content: '✓ Ouroboros Loop complete. 99% convergence achieved. Frozen Spine locked.' }]);
+        setFranklinChat(prev => [...prev, { role: 'franklin', content: '✓ Ouroboros Loop complete. 99% convergence achieved. Your project spine is now frozen and ready for deployment.' }]);
       }
       setConvergence(conv);
       
@@ -301,50 +301,29 @@ const ElectricWorkflowPage = ({ onBack }) => {
     if (!chatInput.trim() || isProcessing) return;
     const input = chatInput.trim();
     setChatInput('');
-    setChatHistory(prev => [...prev, { role: 'user', content: input }]);
+    setFranklinChat(prev => [...prev, { role: 'user', content: input }]);
     setIsProcessing(true);
 
-    if (input.toLowerCase().startsWith('/genesis ')) {
-      const mission = input.replace(/^\/genesis\s+/i, '');
-      addTerminal(`PROJECT: ${mission}`, 'system');
-      setChatHistory(prev => [...prev, { role: 'system', content: `Initializing Genesis Pipeline for: "${mission}"` }]);
-      
-      // Simulate pipeline progression
-      for (let i = 0; i < GENESIS_STAGES.length; i++) {
-        await new Promise(r => setTimeout(r, 800));
-        setCurrentStage(i);
-        addTerminal(`[${GENESIS_STAGES[i].name}] ${GENESIS_STAGES[i].desc}`, 'info');
-        setChatHistory(prev => [...prev, { role: 'system', content: `Stage ${i + 1}/8: ${GENESIS_STAGES[i].name} - ${GENESIS_STAGES[i].desc}` }]);
-        
-        // Highlight current node
-        setNodes(nds => nds.map(n => ({
-          ...n,
-          style: {
-            ...n.style,
-            boxShadow: n.id === GENESIS_STAGES[i].id ? '0 0 20px #00ff88' : 'none'
-          }
-        })));
-      }
-      
-      addTerminal('PIPELINE COMPLETE', 'success');
-      addTerminal('Ready for Ouroboros convergence loop', 'info');
-      setChatHistory(prev => [...prev, { role: 'system', content: '✓ Genesis Pipeline complete. Click "RUN OUROBOROS" to achieve convergence.' }]);
+    // Parse and try to execute command
+    const command = parseCommand(input);
+    const commandResult = await executeCommand(command);
+    
+    if (commandResult) {
+      // Command was handled locally
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: commandResult }]);
       setIsProcessing(false);
       return;
     }
 
-    if (input.toLowerCase() === '/quality') {
-      setChatHistory(prev => [...prev, { role: 'system', content: '8-Dimensional Quality Gate Assessment:\n' + qualityScores.map(q => `• ${q.name}: ${q.score.toFixed(1)}% (${q.weight}x weight)`).join('\n') }]);
-      setIsProcessing(false);
-      return;
-    }
-
-    // Regular chat with Grok
+    // If not a command, chat with the AI
     try {
-      const res = await axios.post(`${API}/api/grok/chat`, { message: input, history: chatHistory.slice(-6) });
-      setChatHistory(prev => [...prev, { role: 'grok', content: res.data.response || "I can help analyze that." }]);
+      const res = await axios.post(`${API}/api/build-orchestrator/chat`, { 
+        message: input,
+        context: `User is on the Genesis Pipeline workflow page. Current stage: ${GENESIS_STAGES[currentStage].name}. Convergence: ${convergence.toFixed(1)}%.`
+      });
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: res.data.response || "I can help you with that. Try asking about the pipeline stages or use commands like 'move to specification'." }]);
     } catch {
-      setChatHistory(prev => [...prev, { role: 'grok', content: "I'm here to assist with your project pipeline." }]);
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: "I'm here to help navigate the Genesis Pipeline. You can say things like 'move to architecture stage', 'run ouroboros', 'check quality gates', or 'what's my current status'." }]);
     }
     setIsProcessing(false);
   };
