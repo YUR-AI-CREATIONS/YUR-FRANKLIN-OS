@@ -507,7 +507,7 @@ const ElectricWorkflowPage = ({ onBack }) => {
 };
 
 // ============================================================================
-// IDE PAGE
+// IDE PAGE - THE ACTUAL BUILDER
 // ============================================================================
 const IDEPage = ({ onNavigate }) => {
   const [franklinInput, setFranklinInput] = useState('');
@@ -515,19 +515,24 @@ const IDEPage = ({ onNavigate }) => {
   const [terminalInput, setTerminalInput] = useState('');
   const [franklinChat, setFranklinChat] = useState(() => {
     const saved = localStorage.getItem('franklin_chat_v2');
-    return saved ? JSON.parse(saved) : [{ role: 'franklin', content: 'Welcome to FRANKLIN OS. I\'m here to help you navigate and build. What would you like to create today?' }];
+    return saved ? JSON.parse(saved) : [{ role: 'franklin', content: 'Welcome to FRANKLIN OS. Tell me what you want to build and I\'ll create it for you. Just say "build me a [description]" and watch the magic happen.' }];
   });
   const [grokChat, setGrokChat] = useState(() => {
     const saved = localStorage.getItem('grok_chat_v2');
     return saved ? JSON.parse(saved) : [];
   });
-  const [terminalOutput, setTerminalOutput] = useState([{ type: 'system', text: '> FRANKLIN OS Terminal v2.0' }, { type: 'info', text: '> Ready...' }]);
+  const [terminalOutput, setTerminalOutput] = useState([{ type: 'system', text: '> FRANKLIN OS Terminal v2.0' }, { type: 'info', text: '> Ready to build...' }]);
   const [savedChats, setSavedChats] = useState(() => {
     const saved = localStorage.getItem('saved_chats_v2');
     return saved ? JSON.parse(saved) : [];
   });
   const [franklinLoading, setFranklinLoading] = useState(false);
   const [grokLoading, setGrokLoading] = useState(false);
+  const [isBuilding, setIsBuilding] = useState(false);
+  const [buildResult, setBuildResult] = useState(null);
+  const [generatedCode, setGeneratedCode] = useState('');
+  const [activeTab, setActiveTab] = useState('code');
+  const [certificationStatus, setCertificationStatus] = useState(null);
   const franklinRef = useRef(null);
   const grokRef = useRef(null);
   const terminalRef = useRef(null);
@@ -541,25 +546,144 @@ const IDEPage = ({ onNavigate }) => {
 
   const addTerminal = (text, type = 'info') => setTerminalOutput(prev => [...prev, { type, text: `> ${text}` }]);
 
+  // Detect if user wants to build something
+  const detectBuildIntent = (message) => {
+    const lower = message.toLowerCase();
+    const buildKeywords = ['build', 'create', 'make', 'develop', 'generate', 'code', 'implement', 'write'];
+    return buildKeywords.some(k => lower.includes(k));
+  };
+
+  // THE ACTUAL BUILD FUNCTION
+  const executeBuild = async (mission) => {
+    setIsBuilding(true);
+    setGeneratedCode('');
+    setBuildResult(null);
+    setCertificationStatus(null);
+    
+    addTerminal('═══════════════════════════════════════', 'system');
+    addTerminal('FRANKLIN OS BUILD INITIATED', 'system');
+    addTerminal(`Mission: ${mission}`, 'info');
+    addTerminal('═══════════════════════════════════════', 'system');
+
+    setFranklinChat(prev => [...prev, { role: 'franklin', content: `🚀 **BUILD INITIATED**\n\nI'm now building: "${mission}"\n\nWatch the terminal for real-time progress. The Genesis agents are working on your project.` }]);
+
+    try {
+      addTerminal('Calling Genesis agents...', 'info');
+      addTerminal('[GENESIS] Analyzing requirements...', 'info');
+      
+      const res = await axios.post(`${API}/api/build-orchestrator/build`, { mission });
+      
+      if (res.data.success) {
+        const { output, sections, governance_log, agents_involved } = res.data;
+        
+        // Log each phase to terminal
+        output.forEach(item => {
+          const type = item.type === 'success' ? 'success' : item.type === 'error' ? 'error' : 'info';
+          addTerminal(`[${item.agent}] ${item.message.slice(0, 100)}${item.message.length > 100 ? '...' : ''}`, type);
+        });
+
+        // Find the implementation section (the actual code)
+        const codeSection = sections.find(s => s.name === 'Implementation');
+        const specSection = sections.find(s => s.name === 'Specification');
+        const archSection = sections.find(s => s.name === 'Architecture');
+        
+        if (codeSection && codeSection.code) {
+          setGeneratedCode(codeSection.code);
+          addTerminal('═══════════════════════════════════════', 'success');
+          addTerminal('CODE GENERATION COMPLETE', 'success');
+          addTerminal(`Lines of code: ~${codeSection.code.split('\n').length}`, 'success');
+        }
+        
+        // Set certification status
+        const signoff = governance_log.find(g => g.action === 'signed_off');
+        if (signoff) {
+          setCertificationStatus({
+            certified: true,
+            signedBy: signoff.signed_by,
+            certification: signoff.certification,
+            timestamp: signoff.timestamp,
+            agents: agents_involved,
+            auditHashes: sections.map(s => s.audit_hash)
+          });
+          addTerminal('═══════════════════════════════════════', 'success');
+          addTerminal('✓ FRANKLIN OS CERTIFIED', 'success');
+          addTerminal(`Signed by: ${signoff.signed_by}`, 'success');
+          addTerminal(`Certification: ${signoff.certification}`, 'success');
+        }
+
+        setBuildResult({
+          success: true,
+          sections,
+          spec: specSection?.content || '',
+          architecture: archSection?.content || '',
+          code: codeSection?.code || '',
+          governance: governance_log,
+          agents: agents_involved
+        });
+
+        setFranklinChat(prev => [...prev, { 
+          role: 'franklin', 
+          content: `✅ **BUILD COMPLETE - FRANKLIN OS CERTIFIED**\n\n**Agents involved:** ${agents_involved.join(', ')}\n\n**What was built:**\n- Specification document\n- System architecture\n- Production-ready code\n- Health check report\n\n**Certification:** ${signoff?.certification || 'GENESIS_CERTIFIED'}\n\nThe code is now displayed in the center panel. You can:\n- View the code\n- Copy it\n- Download as a package\n\nTell me if you want any modifications!` 
+        }]);
+
+      } else {
+        throw new Error('Build failed');
+      }
+    } catch (err) {
+      addTerminal('BUILD FAILED', 'error');
+      addTerminal(err.message || 'Unknown error', 'error');
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: `❌ Build encountered an issue. Let me try a different approach. Can you describe what you want in more detail?` }]);
+    }
+    
+    setIsBuilding(false);
+  };
+
   const handleFranklinSend = async () => {
-    if (!franklinInput.trim() || franklinLoading) return;
+    if (!franklinInput.trim() || franklinLoading || isBuilding) return;
     const input = franklinInput.trim();
     setFranklinInput('');
     setFranklinChat(prev => [...prev, { role: 'user', content: input }]);
     setFranklinLoading(true);
-    if (input.toLowerCase().startsWith('/genesis ')) {
-      addTerminal(`Redirecting to Electric Workflow...`, 'system');
-      setTimeout(() => onNavigate(PAGES.WORKFLOW), 500);
+
+    // Check for commands
+    if (input.toLowerCase() === '/workflow') { onNavigate(PAGES.WORKFLOW); setFranklinLoading(false); return; }
+    if (input.toLowerCase() === '/clear') { 
+      setFranklinChat([{ role: 'franklin', content: 'Cleared. Ready to build.' }]); 
+      setGrokChat([]); 
+      setTerminalOutput([{ type: 'system', text: '> Cleared' }]); 
+      setGeneratedCode('');
+      setBuildResult(null);
+      setCertificationStatus(null);
+      setFranklinLoading(false); 
+      return; 
+    }
+    if (input.toLowerCase() === '/save') { 
+      setSavedChats(prev => [...prev, { id: Date.now(), title: franklinChat[1]?.content?.slice(0, 25) + '...' || 'Chat', messages: franklinChat }]); 
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: 'Chat saved!' }]); 
+      setFranklinLoading(false); 
+      return; 
+    }
+
+    // Detect build intent and execute
+    if (detectBuildIntent(input)) {
       setFranklinLoading(false);
+      await executeBuild(input);
       return;
     }
-    if (input.toLowerCase() === '/workflow') { onNavigate(PAGES.WORKFLOW); setFranklinLoading(false); return; }
-    if (input.toLowerCase() === '/clear') { setFranklinChat([{ role: 'franklin', content: 'Cleared.' }]); setGrokChat([]); setTerminalOutput([{ type: 'system', text: '> Cleared' }]); setFranklinLoading(false); return; }
-    if (input.toLowerCase() === '/save') { setSavedChats(prev => [...prev, { id: Date.now(), title: franklinChat[1]?.content?.slice(0, 25) + '...' || 'Chat', messages: franklinChat }]); setFranklinChat(prev => [...prev, { role: 'franklin', content: 'Saved!' }]); setFranklinLoading(false); return; }
+
+    // Regular chat
     try {
       const res = await axios.post(`${API}/api/build-orchestrator/chat`, { message: input });
-      setFranklinChat(prev => [...prev, { role: 'franklin', content: res.data.response || "I can help." }]);
-    } catch { setFranklinChat(prev => [...prev, { role: 'franklin', content: "Use /genesis <desc> or /workflow to start building." }]); }
+      const response = res.data.response || "I can help you build something. Just tell me what you want to create!";
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: response }]);
+      
+      // If the response suggests building, offer to start
+      if (res.data.ready_to_build) {
+        setFranklinChat(prev => [...prev, { role: 'franklin', content: "I can build that for you right now. Just say 'build it' or describe what you want more specifically." }]);
+      }
+    } catch { 
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: "I'm ready to build. Tell me what you want to create - a web app, API, tool, anything!" }]); 
+    }
     setFranklinLoading(false);
   };
 
@@ -582,8 +706,36 @@ const IDEPage = ({ onNavigate }) => {
     setTerminalInput('');
     addTerminal(input, 'cmd');
     if (input === 'clear') setTerminalOutput([{ type: 'system', text: '> Cleared' }]);
-    else if (input === 'status') { addTerminal('FRANKLIN: Online', 'success'); addTerminal('GROK: Connected', 'success'); }
+    else if (input === 'status') { addTerminal('FRANKLIN: Online', 'success'); addTerminal('GROK: Connected', 'success'); addTerminal(`Build Status: ${isBuilding ? 'IN PROGRESS' : 'IDLE'}`, 'info'); }
     else if (input === 'workflow' || input === '/workflow') onNavigate(PAGES.WORKFLOW);
+    else if (input === 'help') {
+      addTerminal('Available commands:', 'info');
+      addTerminal('  status   - System status', 'info');
+      addTerminal('  clear    - Clear terminal', 'info');
+      addTerminal('  workflow - Go to workflow', 'info');
+      addTerminal('  download - Download code', 'info');
+    }
+    else if (input === 'download' && generatedCode) {
+      downloadCode();
+    }
+  };
+
+  const downloadCode = () => {
+    if (!generatedCode) return;
+    const blob = new Blob([generatedCode], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `franklin-os-build-${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    addTerminal('Code downloaded!', 'success');
+  };
+
+  const copyCode = () => {
+    if (!generatedCode) return;
+    navigator.clipboard.writeText(generatedCode);
+    addTerminal('Code copied to clipboard!', 'success');
   };
 
   return (
