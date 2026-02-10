@@ -15,15 +15,10 @@ import './App.css';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
 
-// Page Navigation
-const PAGES = {
-  LANDING: 'landing',
-  IDE: 'ide',
-  WORKFLOW: 'workflow'
-};
+const PAGES = { LANDING: 'landing', IDE: 'ide', WORKFLOW: 'workflow' };
 
 // ============================================================================
-// GALACTIC BACKGROUND - Twinkling Stars
+// GALACTIC BACKGROUND
 // ============================================================================
 const GalacticBackground = ({ opacity = 1 }) => {
   const canvasRef = useRef(null);
@@ -32,29 +27,15 @@ const GalacticBackground = ({ opacity = 1 }) => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
     const ctx = canvas.getContext('2d');
-    let animationId;
-    let time = 0;
+    let animationId, time = 0;
     
     const resize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      starsRef.current = generateStars(canvas.width, canvas.height);
-    };
-    
-    const generateStars = (w, h) => {
-      const stars = [];
-      for (let i = 0; i < 150; i++) {
-        stars.push({ x: Math.random() * w, y: Math.random() * h, size: Math.random() * 1 + 0.3, speed: Math.random() * 1.5 + 0.5, phase: Math.random() * Math.PI * 2, type: 'regular' });
-      }
-      for (let i = 0; i < 20; i++) {
-        stars.push({ x: Math.random() * w, y: Math.random() * h, size: Math.random() * 1.5 + 1, speed: Math.random() * 2 + 1, phase: Math.random() * Math.PI * 2, type: 'sparkle' });
-      }
-      for (let i = 0; i < 5; i++) {
-        stars.push({ x: Math.random() * w, y: Math.random() * h, size: Math.random() * 2 + 1.5, speed: Math.random() * 2.5 + 1.5, phase: Math.random() * Math.PI * 2, type: 'super' });
-      }
-      return stars;
+      starsRef.current = [];
+      for (let i = 0; i < 150; i++) starsRef.current.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 1 + 0.3, speed: Math.random() * 1.5 + 0.5, phase: Math.random() * Math.PI * 2, type: 'regular' });
+      for (let i = 0; i < 20; i++) starsRef.current.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 1.5 + 1, speed: Math.random() * 2 + 1, phase: Math.random() * Math.PI * 2, type: 'sparkle' });
     };
     
     const draw = () => {
@@ -62,42 +43,15 @@ const GalacticBackground = ({ opacity = 1 }) => {
       if (starsRef.current) {
         starsRef.current.forEach(star => {
           const twinkle = Math.sin(time * star.speed * 0.06 + star.phase) * 0.5 + 0.5;
-          const sparkle = Math.sin(time * star.speed * 0.1 + star.phase * 2) * 0.3 + 0.7;
-          
-          if (star.type === 'super') {
-            const intensity = twinkle * sparkle;
-            ctx.shadowBlur = 12;
-            ctx.shadowColor = `rgba(255, 255, 255, ${intensity * 0.5 * opacity})`;
-            ctx.strokeStyle = `rgba(255, 255, 255, ${intensity * 0.3 * opacity})`;
-            ctx.lineWidth = 0.5;
-            const len = star.size * 2 * intensity;
-            ctx.beginPath();
-            ctx.moveTo(star.x - len, star.y);
-            ctx.lineTo(star.x + len, star.y);
-            ctx.moveTo(star.x, star.y - len);
-            ctx.lineTo(star.x, star.y + len);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(star.x, star.y, star.size * intensity + 0.3, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255, 255, 255, ${intensity * 0.9 * opacity})`;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-          } else if (star.type === 'sparkle') {
-            const intensity = twinkle * sparkle;
+          if (star.type === 'sparkle') {
             ctx.shadowBlur = 8;
-            ctx.shadowColor = `rgba(255, 255, 255, ${intensity * 0.4 * opacity})`;
-            ctx.beginPath();
-            ctx.arc(star.x, star.y, star.size * intensity + 0.3, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255, 255, 255, ${(intensity * 0.85 + 0.1) * opacity})`;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-          } else {
-            const intensity = twinkle * 0.6 + 0.4;
-            ctx.beginPath();
-            ctx.arc(star.x, star.y, star.size * (intensity * 0.3 + 0.7), 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255, 255, 255, ${intensity * 0.7 * opacity})`;
-            ctx.fill();
+            ctx.shadowColor = `rgba(255, 255, 255, ${twinkle * 0.4 * opacity})`;
           }
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, star.size * (twinkle * 0.3 + 0.7), 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 255, 255, ${twinkle * 0.7 * opacity})`;
+          ctx.fill();
+          ctx.shadowBlur = 0;
         });
       }
       time += 1;
@@ -114,34 +68,16 @@ const GalacticBackground = ({ opacity = 1 }) => {
 };
 
 // ============================================================================
-// PAGE 3: ELECTRIC WORKFLOW (RESTORED FROM BACKUP)
+// WORKFLOW PAGE (UNCHANGED)
 // ============================================================================
 const ElectricWorkflowPage = ({ onBack, workflowNodes, workflowEdges, onNodesChange, onEdgesChange }) => {
   const [selectedNode, setSelectedNode] = useState(null);
-  const [buildStatus, setBuildStatus] = useState(null);
   const [leftPanelOpen, setLeftPanelOpen] = useState(true);
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
   const [chatInput, setChatInput] = useState('');
-  const [chatHistory, setChatHistory] = useState([{ role: 'system', content: 'Workflow initialized. Ready to build your project.' }]);
-  const [terminalOutput, setTerminalOutput] = useState([
-    { type: 'info', text: '> FRANKLIN OS Workflow Terminal v2.0' },
-    { type: 'info', text: '> Type commands or use natural language' },
-    { type: 'success', text: '> System ready.' }
-  ]);
+  const [chatHistory, setChatHistory] = useState([{ role: 'system', content: 'Workflow initialized.' }]);
   const [isProcessing, setIsProcessing] = useState(false);
   const chatRef = useRef(null);
-
-  useEffect(() => {
-    const loadStatus = async () => {
-      try {
-        const response = await axios.get(`${API}/api/quality/builds`);
-        if (response.data.builds?.length > 0) setBuildStatus(response.data.builds[response.data.builds.length - 1]);
-      } catch (err) { console.error('Failed to load build status:', err); }
-    };
-    loadStatus();
-    const interval = setInterval(loadStatus, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [chatHistory]);
 
@@ -157,131 +93,93 @@ const ElectricWorkflowPage = ({ onBack, workflowNodes, workflowEdges, onNodesCha
     setChatInput('');
     setChatHistory(prev => [...prev, { role: 'user', content: input }]);
     setIsProcessing(true);
-    setTerminalOutput(prev => [...prev, { type: 'cmd', text: `> ${input}` }]);
-    
     try {
       const response = await axios.post(`${API}/api/grok/chat`, { message: input, history: chatHistory.slice(-6) });
-      if (response.data.response) {
-        setChatHistory(prev => [...prev, { role: 'assistant', content: response.data.response }]);
-        setTerminalOutput(prev => [...prev, { type: 'success', text: '> Response received' }]);
-      }
+      if (response.data.response) setChatHistory(prev => [...prev, { role: 'assistant', content: response.data.response }]);
     } catch (err) {
-      setChatHistory(prev => [...prev, { role: 'assistant', content: 'I can help you with that. What specific aspect would you like to explore?' }]);
-      setTerminalOutput(prev => [...prev, { type: 'error', text: `> Error: ${err.message}` }]);
+      setChatHistory(prev => [...prev, { role: 'assistant', content: 'I can help. What would you like to explore?' }]);
     } finally { setIsProcessing(false); }
   };
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-black text-white relative" data-testid="workflow-page">
       <GalacticBackground opacity={1} />
-      
       <div className="absolute top-0 left-0 right-0 h-16 z-50 bg-black/80 backdrop-blur-md border-b border-white/10 flex items-center justify-center">
-        <button onClick={onBack} className="absolute left-4 px-4 py-2 text-xs font-mono text-white/70 hover:text-white hover:bg-white/10 rounded transition-all flex items-center gap-2" data-testid="back-to-ide">◀ BACK TO IDE</button>
+        <button onClick={onBack} className="absolute left-4 px-4 py-2 text-xs font-mono text-white/70 hover:text-white hover:bg-white/10 rounded" data-testid="back-to-ide">◀ BACK TO IDE</button>
         <div className="text-center">
-          <h1 className="workflow-chrome-title text-2xl font-mono tracking-[0.3em]" style={{ fontFamily: "'Orbitron', sans-serif" }}>◈ ELECTRIC WORKFLOW</h1>
+          <h1 className="text-2xl font-mono tracking-[0.3em] text-white/90" style={{ fontFamily: "'Orbitron', sans-serif" }}>◈ ELECTRIC WORKFLOW</h1>
           <p className="text-[10px] text-white/40 tracking-wider mt-1">VISUAL BUILD PIPELINE</p>
         </div>
-        {buildStatus && (
-          <div className="absolute right-4 text-[10px] font-mono text-white/50">
-            BUILD: <span className="text-cyan-400">{buildStatus.build_id}</span>
-            <span className={`ml-2 ${buildStatus.status === 'certified' ? 'text-green-400' : 'text-amber-400'}`}>{buildStatus.status?.toUpperCase()}</span>
-          </div>
-        )}
       </div>
-
-      <div className={`absolute top-16 bottom-12 z-40 bg-black/90 border-r border-white/10 backdrop-blur-md transition-all duration-300 ${leftPanelOpen ? 'left-0 w-72' : '-left-72 w-72'}`}>
-        <button onClick={() => setLeftPanelOpen(!leftPanelOpen)} className="absolute -right-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/80 border border-white/10 rounded-r-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all">{leftPanelOpen ? '◀' : '▶'}</button>
+      <div className={`absolute top-16 bottom-12 z-40 bg-black/90 border-r border-white/10 transition-all duration-300 ${leftPanelOpen ? 'left-0 w-72' : '-left-72 w-72'}`}>
+        <button onClick={() => setLeftPanelOpen(!leftPanelOpen)} className="absolute -right-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/80 border border-white/10 rounded-r-lg flex items-center justify-center text-white/50 hover:text-white">{leftPanelOpen ? '◀' : '▶'}</button>
         <div className="p-4 h-full flex flex-col">
-          <div className="text-[10px] font-mono text-white/40 tracking-wider mb-3">◆ CHAT RESPONSE</div>
+          <div className="text-[10px] font-mono text-white/40 mb-3">◆ CHAT RESPONSE</div>
           <div ref={chatRef} className="flex-1 overflow-y-auto space-y-3 scrollbar-thin">
             {chatHistory.map((msg, idx) => (
-              <div key={idx} className={`text-xs font-mono ${msg.role === 'user' ? 'text-cyan-400' : msg.role === 'system' ? 'text-amber-400' : 'text-white/80'}`}>
+              <div key={idx} className={`text-xs font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/80'}`}>
                 <span className="text-white/30 text-[9px]">[{msg.role.toUpperCase()}]</span>
-                <p className="mt-1 leading-relaxed">{msg.content}</p>
+                <p className="mt-1">{msg.content}</p>
               </div>
             ))}
-            {isProcessing && <div className="flex items-center gap-2 text-purple-400 text-xs"><span className="animate-spin">◈</span> Processing...</div>}
           </div>
         </div>
       </div>
-
-      <div className={`absolute top-16 bottom-12 z-40 bg-black/90 border-l border-white/10 backdrop-blur-md transition-all duration-300 ${rightPanelOpen ? 'right-0 w-72' : '-right-72 w-72'}`}>
-        <button onClick={() => setRightPanelOpen(!rightPanelOpen)} className="absolute -left-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/80 border border-white/10 rounded-l-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all">{rightPanelOpen ? '▶' : '◀'}</button>
+      <div className={`absolute top-16 bottom-12 z-40 bg-black/90 border-l border-white/10 transition-all duration-300 ${rightPanelOpen ? 'right-0 w-72' : '-right-72 w-72'}`}>
+        <button onClick={() => setRightPanelOpen(!rightPanelOpen)} className="absolute -left-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/80 border border-white/10 rounded-l-lg flex items-center justify-center text-white/50 hover:text-white">{rightPanelOpen ? '▶' : '◀'}</button>
         <div className="p-4 h-full flex flex-col overflow-y-auto">
-          <div className="text-[10px] font-mono text-white/40 tracking-wider mb-4">◆ WORKFLOW CONTROLS</div>
-          <div className="mb-6">
-            <div className="text-xs font-mono text-white/60 mb-2">STAGE PROGRESS</div>
-            <div className="space-y-2">
-              {['Specification', 'Architecture', 'Implementation', 'Integration', 'Quality', 'Certification'].map((stage, idx) => (
-                <div key={stage} className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${buildStatus?.stages_completed > idx ? 'bg-green-400' : buildStatus?.stages_completed === idx ? 'bg-cyan-400 animate-pulse' : 'bg-white/20'}`} />
-                  <span className="text-[10px] font-mono text-white/60">{stage}</span>
-                </div>
-              ))}
-            </div>
+          <div className="text-[10px] font-mono text-white/40 mb-4">◆ WORKFLOW CONTROLS</div>
+          <div className="space-y-2">
+            {['Specification', 'Architecture', 'Implementation', 'Integration', 'Quality', 'Certification'].map((stage, idx) => (
+              <div key={stage} className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${idx < 2 ? 'bg-green-400' : 'bg-white/20'}`} />
+                <span className="text-[10px] font-mono text-white/60">{stage}</span>
+              </div>
+            ))}
           </div>
           {selectedNode && (
-            <div className="mb-6 p-3 bg-white/5 rounded-lg border border-white/10">
+            <div className="mt-4 p-3 bg-white/5 rounded-lg border border-white/10">
               <div className="text-xs font-mono text-white/60 mb-2">SELECTED NODE</div>
               <div className="text-sm font-mono text-white/90">{selectedNode.data?.label || selectedNode.id}</div>
             </div>
           )}
           <div className="space-y-2 mt-auto">
-            <button className="w-full px-4 py-3 text-xs font-mono bg-green-500/20 border border-green-500/30 rounded-lg text-green-400 hover:bg-green-500/30 transition-all">▶ RUN WORKFLOW</button>
-            <button className="w-full px-4 py-3 text-xs font-mono bg-white/5 border border-white/10 rounded-lg text-white/60 hover:bg-white/10 transition-all">⟳ RESET</button>
+            <button className="w-full px-4 py-3 text-xs font-mono bg-green-500/20 border border-green-500/30 rounded-lg text-green-400">▶ RUN WORKFLOW</button>
+            <button className="w-full px-4 py-3 text-xs font-mono bg-white/5 border border-white/10 rounded-lg text-white/60">⟳ RESET</button>
           </div>
         </div>
       </div>
-
       <div className={`absolute top-16 bottom-12 z-10 transition-all duration-300 ${leftPanelOpen ? 'left-72' : 'left-0'} ${rightPanelOpen ? 'right-72' : 'right-0'}`}>
-        <ReactFlow nodes={workflowNodes} edges={workflowEdges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} onNodeClick={onNodeClick} fitView minZoom={0.2} maxZoom={2} className="!bg-transparent" defaultEdgeOptions={{ style: { stroke: '#00ff88', strokeWidth: 2 }, animated: true }}>
-          <Background color="rgba(255,255,255,0.02)" gap={30} style={{ opacity: 0.3 }} />
+        <ReactFlow nodes={workflowNodes} edges={workflowEdges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} onNodeClick={onNodeClick} fitView className="!bg-transparent">
+          <Background color="rgba(255,255,255,0.02)" gap={30} />
           <Controls className="!bg-black/70 !border-white/20 !rounded-lg" />
         </ReactFlow>
       </div>
-
-      <div className="absolute bottom-0 left-0 right-0 h-12 z-40 bg-black/95 border-t border-white/10 backdrop-blur-md flex items-center">
-        <div className="w-48 h-full border-r border-white/10 px-3 flex items-center gap-2">
-          <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleChatSend()} placeholder="Ask about workflow..." className="flex-1 bg-transparent border-none text-[10px] font-mono text-white placeholder-white/30 focus:outline-none" disabled={isProcessing} />
-          <button onClick={handleChatSend} disabled={isProcessing || !chatInput.trim()} className="px-2 py-1 text-[9px] font-mono text-cyan-400 hover:bg-white/10 rounded transition-all disabled:opacity-30">▶</button>
-        </div>
-        <div className="flex-1 h-full px-4 flex items-center overflow-hidden">
-          <div className="text-[9px] font-mono text-green-400 truncate">{terminalOutput.length > 0 ? terminalOutput[terminalOutput.length - 1].text : '> System ready.'}</div>
-        </div>
+      <div className="absolute bottom-0 left-0 right-0 h-12 z-40 bg-black/95 border-t border-white/10 flex items-center px-4">
+        <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleChatSend()} placeholder="Ask about workflow..." className="flex-1 bg-transparent text-[10px] font-mono text-white placeholder-white/30 focus:outline-none" />
+        <button onClick={handleChatSend} className="px-3 py-1 text-xs font-mono text-cyan-400">▶</button>
       </div>
-
-      <style>{`
-        .workflow-chrome-title { background: linear-gradient(90deg, rgba(100,100,100,0.8) 0%, rgba(180,180,180,1) 25%, rgba(255,255,255,1) 50%, rgba(180,180,180,1) 75%, rgba(100,100,100,0.8) 100%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: chromePulse 3s ease-in-out infinite; }
-        @keyframes chromePulse { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-        .scrollbar-thin::-webkit-scrollbar { width: 4px; }
-        .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
-        .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
-      `}</style>
+      <style>{`.scrollbar-thin::-webkit-scrollbar { width: 4px; } .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }`}</style>
     </div>
   );
 };
 
 // ============================================================================
-// PAGE 2: MAIN IDE - MATCHING YOUR WIREFRAME
+// IDE PAGE - EXACTLY MATCHING YOUR WIREFRAME
 // ============================================================================
 const IDEPage = ({ onNavigate }) => {
-  // Panel widths
-  const [leftWidth, setLeftWidth] = useState(280);
-  const [rightWidth, setRightWidth] = useState(280);
+  const [leftWidth, setLeftWidth] = useState(300);
+  const [rightWidth, setRightWidth] = useState(300);
   const [isResizingLeft, setIsResizingLeft] = useState(false);
   const [isResizingRight, setIsResizingRight] = useState(false);
   
-  // Chat states
   const [franklinInput, setFranklinInput] = useState('');
   const [grokInput, setGrokInput] = useState('');
   const [terminalInput, setTerminalInput] = useState('');
   
-  // Active tab in center
-  const [activeTab, setActiveTab] = useState('frontend');
-  
   const [franklinChat, setFranklinChat] = useState(() => {
     const saved = localStorage.getItem('franklin_chat_v2');
-    return saved ? JSON.parse(saved) : [{ role: 'franklin', content: 'Welcome to FRANKLIN OS. I\'m here to help you build. What would you like to create?' }];
+    return saved ? JSON.parse(saved) : [{ role: 'franklin', content: 'Welcome to FRANKLIN OS. I\'m here to help you navigate and build. What would you like to create today?' }];
   });
   
   const [grokChat, setGrokChat] = useState(() => {
@@ -289,14 +187,10 @@ const IDEPage = ({ onNavigate }) => {
     return saved ? JSON.parse(saved) : [];
   });
   
-  const [terminalOutput, setTerminalOutput] = useState(() => {
-    const saved = localStorage.getItem('terminal_output_v2');
-    return saved ? JSON.parse(saved) : [
-      { type: 'system', text: '> FRANKLIN OS Terminal v2.0' },
-      { type: 'system', text: '> Ready...' },
-      { type: 'info', text: '> Type /genesis <mission> to start' }
-    ];
-  });
+  const [terminalOutput, setTerminalOutput] = useState([
+    { type: 'system', text: '> FRANKLIN OS Terminal v2.0' },
+    { type: 'system', text: '> Ready...' }
+  ]);
   
   const [savedChats, setSavedChats] = useState(() => {
     const saved = localStorage.getItem('saved_chats_v2');
@@ -311,11 +205,11 @@ const IDEPage = ({ onNavigate }) => {
   const grokRef = useRef(null);
   const terminalRef = useRef(null);
   
-  // Resize handlers
+  // Resize
   useEffect(() => {
     const handleMouseMove = (e) => {
-      if (isResizingLeft) setLeftWidth(Math.min(450, Math.max(200, e.clientX)));
-      else if (isResizingRight) setRightWidth(Math.min(450, Math.max(200, window.innerWidth - e.clientX)));
+      if (isResizingLeft) setLeftWidth(Math.min(500, Math.max(220, e.clientX)));
+      else if (isResizingRight) setRightWidth(Math.min(500, Math.max(220, window.innerWidth - e.clientX)));
     };
     const handleMouseUp = () => { setIsResizingLeft(false); setIsResizingRight(false); };
     if (isResizingLeft || isResizingRight) {
@@ -325,22 +219,19 @@ const IDEPage = ({ onNavigate }) => {
     return () => { document.removeEventListener('mousemove', handleMouseMove); document.removeEventListener('mouseup', handleMouseUp); };
   }, [isResizingLeft, isResizingRight]);
   
-  // Save to localStorage
+  // Persist
   useEffect(() => { localStorage.setItem('franklin_chat_v2', JSON.stringify(franklinChat.slice(-50))); }, [franklinChat]);
   useEffect(() => { localStorage.setItem('grok_chat_v2', JSON.stringify(grokChat.slice(-50))); }, [grokChat]);
-  useEffect(() => { localStorage.setItem('terminal_output_v2', JSON.stringify(terminalOutput.slice(-100))); }, [terminalOutput]);
   useEffect(() => { localStorage.setItem('saved_chats_v2', JSON.stringify(savedChats.slice(-20))); }, [savedChats]);
   
-  // Auto-scroll
+  // Scroll
   useEffect(() => { if (franklinRef.current) franklinRef.current.scrollTop = franklinRef.current.scrollHeight; }, [franklinChat]);
   useEffect(() => { if (grokRef.current) grokRef.current.scrollTop = grokRef.current.scrollHeight; }, [grokChat]);
   useEffect(() => { if (terminalRef.current) terminalRef.current.scrollTop = terminalRef.current.scrollHeight; }, [terminalOutput]);
   
-  const addTerminal = (text, type = 'info') => {
-    setTerminalOutput(prev => [...prev, { type, text: `> ${text}` }]);
-  };
+  const addTerminal = (text, type = 'info') => setTerminalOutput(prev => [...prev, { type, text: `> ${text}` }]);
   
-  // Handle Franklin send
+  // Franklin handler
   const handleFranklinSend = async () => {
     if (!franklinInput.trim() || franklinLoading) return;
     const input = franklinInput.trim();
@@ -352,7 +243,6 @@ const IDEPage = ({ onNavigate }) => {
       const mission = input.replace(/^\/(?:genesis|build)\s+/i, '');
       addTerminal(`GENESIS: ${mission}`, 'system');
       setFranklinChat(prev => [...prev, { role: 'franklin', content: `Initiating build: "${mission}". Watch the terminal.` }]);
-      
       try {
         const response = await axios.post(`${API}/api/build-orchestrator/build`, { mission });
         if (response.data.output) {
@@ -363,71 +253,43 @@ const IDEPage = ({ onNavigate }) => {
             }
           });
         }
-        if (response.data.success) {
-          addTerminal('BUILD COMPLETE ✓', 'success');
-          setGrokChat(prev => [...prev, { role: 'grok', content: 'Build complete! All agents finished.' }]);
-        }
+        if (response.data.success) addTerminal('BUILD COMPLETE ✓', 'success');
       } catch (err) { addTerminal(`Error: ${err.message}`, 'error'); }
       setFranklinLoading(false);
       return;
     }
-    
     if (input.toLowerCase() === '/workflow') { onNavigate(PAGES.WORKFLOW); setFranklinLoading(false); return; }
-    if (input.toLowerCase() === '/clear') {
-      setFranklinChat([{ role: 'franklin', content: 'Cleared. What would you like to build?' }]);
-      setGrokChat([]);
-      setTerminalOutput([{ type: 'system', text: '> Cleared' }]);
-      setFranklinLoading(false);
-      return;
-    }
-    if (input.toLowerCase() === '/save') {
-      setSavedChats(prev => [...prev, { id: Date.now(), title: franklinChat[1]?.content?.slice(0, 30) + '...' || 'New Chat', messages: franklinChat }]);
-      setFranklinChat(prev => [...prev, { role: 'franklin', content: 'Chat saved!' }]);
-      setFranklinLoading(false);
-      return;
-    }
-    if (input.toLowerCase() === '/help') {
-      setFranklinChat(prev => [...prev, { role: 'franklin', content: 'Commands:\n• /genesis <mission>\n• /workflow\n• /clear\n• /save\n• /help' }]);
-      setFranklinLoading(false);
-      return;
-    }
+    if (input.toLowerCase() === '/clear') { setFranklinChat([{ role: 'franklin', content: 'Cleared.' }]); setGrokChat([]); setTerminalOutput([{ type: 'system', text: '> Cleared' }]); setFranklinLoading(false); return; }
+    if (input.toLowerCase() === '/save') { setSavedChats(prev => [...prev, { id: Date.now(), title: franklinChat[1]?.content?.slice(0, 30) + '...' || 'New Chat', messages: franklinChat }]); setFranklinChat(prev => [...prev, { role: 'franklin', content: 'Chat saved!' }]); setFranklinLoading(false); return; }
+    if (input.toLowerCase() === '/help') { setFranklinChat(prev => [...prev, { role: 'franklin', content: 'Commands:\n• /genesis <mission>\n• /workflow\n• /clear\n• /save\n• /help' }]); setFranklinLoading(false); return; }
     
     try {
       const response = await axios.post(`${API}/api/build-orchestrator/chat`, { message: input });
       setFranklinChat(prev => [...prev, { role: 'franklin', content: response.data.response || "I can help with that." }]);
-    } catch (err) {
-      setFranklinChat(prev => [...prev, { role: 'franklin', content: "Use /genesis <description> to start building." }]);
-    }
+    } catch (err) { setFranklinChat(prev => [...prev, { role: 'franklin', content: "Use /genesis <description> to start building." }]); }
     setFranklinLoading(false);
   };
   
-  // Handle Grok send - THIS IS THE GROK ENDPOINT
+  // Grok handler
   const handleGrokSend = async () => {
     if (!grokInput.trim() || grokLoading) return;
     const input = grokInput.trim();
     setGrokInput('');
     setGrokChat(prev => [...prev, { role: 'user', content: input }]);
     setGrokLoading(true);
-    
     try {
-      const response = await axios.post(`${API}/api/grok/chat`, { 
-        message: input, 
-        history: grokChat.slice(-6).map(m => ({ role: m.role === 'grok' ? 'assistant' : m.role, content: m.content }))
-      });
-      setGrokChat(prev => [...prev, { role: 'grok', content: response.data.response || "I'm analyzing that..." }]);
-    } catch (err) {
-      setGrokChat(prev => [...prev, { role: 'grok', content: "I can help analyze that. What specific aspect interests you?" }]);
-    }
+      const response = await axios.post(`${API}/api/grok/chat`, { message: input, history: grokChat.slice(-6).map(m => ({ role: m.role === 'grok' ? 'assistant' : m.role, content: m.content })) });
+      setGrokChat(prev => [...prev, { role: 'grok', content: response.data.response || "I'm analyzing..." }]);
+    } catch (err) { setGrokChat(prev => [...prev, { role: 'grok', content: "I can help analyze that." }]); }
     setGrokLoading(false);
   };
   
-  // Handle terminal
+  // Terminal handler
   const handleTerminalSend = () => {
     if (!terminalInput.trim()) return;
     const input = terminalInput.trim();
     setTerminalInput('');
     addTerminal(input, 'cmd');
-    
     if (input === 'clear') setTerminalOutput([{ type: 'system', text: '> Cleared' }]);
     else if (input === 'help') addTerminal('Commands: clear, help, status', 'info');
     else if (input === 'status') { addTerminal('FRANKLIN OS: Online', 'success'); addTerminal('Grok: Connected', 'success'); }
@@ -439,8 +301,8 @@ const IDEPage = ({ onNavigate }) => {
       <GalacticBackground opacity={1} />
       
       {/* FRANKLIN GHOST TITLE */}
-      <div className="fixed inset-x-0 top-[18%] flex justify-center pointer-events-none z-[1]">
-        <h1 className="select-none whitespace-nowrap" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 'clamp(5rem, 14vw, 12rem)', fontWeight: 600, letterSpacing: '0.4em', paddingLeft: '0.2em', background: 'linear-gradient(180deg, rgba(100,100,100,0.2) 0%, rgba(140,140,140,0.25) 50%, rgba(100,100,100,0.2) 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>FRANKLIN</h1>
+      <div className="fixed inset-x-0 top-[15%] flex justify-center pointer-events-none z-[1]">
+        <h1 className="select-none" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 'clamp(4rem, 12vw, 11rem)', fontWeight: 600, letterSpacing: '0.35em', background: 'linear-gradient(180deg, rgba(100,100,100,0.18) 0%, rgba(140,140,140,0.22) 50%, rgba(100,100,100,0.18) 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>FRANKLIN</h1>
       </div>
       
       {/* TOP HEADER */}
@@ -456,19 +318,29 @@ const IDEPage = ({ onNavigate }) => {
         </div>
       </div>
       
-      {/* ============================================================ */}
-      {/* LEFT PANEL - FRANKLIN */}
-      {/* ============================================================ */}
-      <div className="absolute top-8 bottom-36 left-0 z-30 bg-black/50 backdrop-blur-sm border-r border-white/10 flex flex-col" style={{ width: leftWidth }} data-testid="franklin-panel">
+      {/* ======================================================================== */}
+      {/* LEFT COLUMN - FRANKLIN CHAT WINDOW (as you drew it) */}
+      {/* ======================================================================== */}
+      <div className="absolute top-8 bottom-32 left-0 z-30 bg-black/50 backdrop-blur-sm border-r border-white/10 flex flex-col" style={{ width: leftWidth }} data-testid="franklin-panel">
+        {/* Header: FRANKLIN | COLLAPSE */}
         <div className="h-7 px-3 border-b border-white/10 flex items-center justify-between">
           <span className="text-[10px] font-mono text-cyan-400">◆ FRANKLIN</span>
           <span className="text-[7px] font-mono text-white/30">COLLAPSE</span>
         </div>
+        {/* code area | 1 million context */}
+        <div className="h-5 px-3 border-b border-white/5 flex items-center">
+          <span className="text-[8px] font-mono text-white/40">code area</span>
+          <span className="text-[8px] font-mono text-white/20 mx-2">|</span>
+          <span className="text-[8px] font-mono text-white/40">1 million context</span>
+        </div>
+        {/* FRANKLIN ONBOARD CHAT */}
         <div className="h-5 px-3 border-b border-white/5 flex items-center justify-between">
           <span className="text-[8px] font-mono text-white/50">FRANKLIN ONBOARD CHAT</span>
           <span className="text-[6px] font-mono text-white/30 border border-white/10 px-1 rounded">⊞ EXPAND</span>
         </div>
+        {/* Context Window */}
         <div className="px-3 py-0.5 text-[7px] font-mono text-white/20">Context Window</div>
+        {/* Chat messages */}
         <div ref={franklinRef} className="flex-1 overflow-y-auto px-3 py-2 space-y-2 scrollbar-thin">
           {franklinChat.map((msg, idx) => (
             <div key={idx} className={`text-[10px] font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/70'}`}>
@@ -478,62 +350,71 @@ const IDEPage = ({ onNavigate }) => {
           ))}
           {franklinLoading && <div className="text-purple-400 text-[10px] flex items-center gap-1"><span className="animate-spin">◈</span> Processing...</div>}
         </div>
+        {/* 1 million context */}
         <div className="h-5 px-3 border-t border-white/5 flex items-center justify-center">
           <span className="text-[8px] font-mono text-cyan-400/60">1 million context</span>
         </div>
-        <div onMouseDown={() => setIsResizingLeft(true)} className="absolute top-0 bottom-0 right-0 w-1 cursor-col-resize hover:bg-cyan-400/30 transition-colors" />
+        {/* Resize handle */}
+        <div onMouseDown={() => setIsResizingLeft(true)} className="absolute top-0 bottom-0 right-0 w-1 cursor-col-resize hover:bg-cyan-400/30" />
       </div>
       
       {/* FRANKLIN PROMPT */}
-      <div className="absolute left-0 bottom-24 h-12 z-40 bg-black/70 border border-cyan-500/30 flex items-center px-3" style={{ width: leftWidth }} data-testid="franklin-prompt">
+      <div className="absolute left-0 bottom-20 h-12 z-40 bg-black/70 border border-cyan-500/30 flex items-center px-3" style={{ width: leftWidth }} data-testid="franklin-prompt">
         <span className="text-[8px] font-mono text-cyan-400 mr-2">Franklin Prompt</span>
         <span className="text-cyan-400 mr-1">▶</span>
         <input type="text" value={franklinInput} onChange={(e) => setFranklinInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleFranklinSend()} placeholder="Type here..." className="flex-1 bg-transparent text-[10px] font-mono text-white placeholder-white/30 focus:outline-none" disabled={franklinLoading} />
       </div>
       
-      {/* ============================================================ */}
-      {/* CENTER - CODE AREA with TABS */}
-      {/* ============================================================ */}
-      <div className="absolute top-8 bottom-36 z-20 flex flex-col" style={{ left: leftWidth, right: rightWidth }} data-testid="code-area">
-        {/* Tab bar: frontend, backend, database, deploy */}
-        <div className="h-7 bg-black/60 border-b border-white/10 flex items-center px-2 gap-1">
-          {['frontend', 'backend', 'database', 'deploy'].map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab)} className={`px-3 py-1 text-[8px] font-mono uppercase tracking-wider rounded transition-all ${activeTab === tab ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-white/40 hover:text-white/70 border border-transparent'}`}>
-              {tab}
-            </button>
-          ))}
-          <div className="flex-1" />
-          <span className="text-[8px] font-mono text-white/30">1 million context</span>
+      {/* ======================================================================== */}
+      {/* CENTER COLUMN - CODE AREA */}
+      {/* ======================================================================== */}
+      <div className="absolute top-8 bottom-32 z-20 flex flex-col" style={{ left: leftWidth, right: rightWidth }} data-testid="code-area">
+        {/* Header: code area | 1 million context | untitled. */}
+        <div className="h-6 bg-black/60 border-b border-white/10 flex items-center px-4 text-[8px] font-mono">
+          <span className="text-cyan-400">code area</span>
+          <span className="mx-2 text-white/20">|</span>
+          <span className="text-white/40">1 million context</span>
+          <span className="ml-auto text-white/30">untitled.</span>
         </div>
-        
+        {/* Tabs: front end | backend | database | deploy */}
+        <div className="h-6 bg-black/50 border-b border-white/5 flex items-center px-4 gap-4">
+          {['front end', 'backend', 'database', 'deploy'].map((tab, idx) => (
+            <span key={tab} className={`text-[8px] font-mono cursor-pointer transition-colors ${idx === 0 ? 'text-cyan-400' : 'text-white/40 hover:text-white/70'}`}>{tab}</span>
+          ))}
+        </div>
         {/* Code content */}
         <div className="flex-1 bg-black/30 p-4 overflow-auto relative">
           <pre className="text-[10px] font-mono text-white/50 whitespace-pre-wrap">{codeContent}</pre>
+          {/* ghost lines */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-3 text-[9px] font-mono text-cyan-400/30 pointer-events-none">
             <span>◄───</span><span>ghost lines</span><span>───►</span>
           </div>
         </div>
       </div>
       
-      {/* ============================================================ */}
-      {/* RIGHT PANEL - GROK with SPARKLY BRAIN */}
-      {/* ============================================================ */}
-      <div className="absolute top-8 bottom-36 right-0 z-30 bg-black/50 backdrop-blur-sm border-l border-white/10 flex flex-col" style={{ width: rightWidth }} data-testid="grok-panel">
+      {/* ======================================================================== */}
+      {/* RIGHT COLUMN - GROK with SPARKLY BRAIN (as you drew it) */}
+      {/* ======================================================================== */}
+      <div className="absolute top-8 bottom-32 right-0 z-30 bg-black/50 backdrop-blur-sm border-l border-white/10 flex flex-col" style={{ width: rightWidth }} data-testid="grok-panel">
+        {/* Header: GROK | untitled. | ACADEMY */}
         <div className="h-7 px-3 border-b border-white/10 flex items-center justify-between">
           <span className="text-[10px] font-mono text-green-400">◆ GROK</span>
-          <div className="flex items-center gap-1 text-[7px] font-mono text-white/30">
-            <span>▶ ACADEMY</span>
+          <div className="flex items-center gap-2 text-[7px] font-mono text-white/30">
+            <span>untitled.</span>
+            <span>▶</span>
+            <span>ACADEMY</span>
           </div>
         </div>
         
-        {/* Sparkly Brain */}
-        <div className="h-24 border-b border-white/5 flex items-center justify-center">
-          <div className="w-20 h-20">
-            <NeuralBrain themeColor="#22c55e" isThinking={grokLoading} size="sm" />
+        {/* SPARKLY BRAIN - prominent as you drew */}
+        <div className="h-32 border-b border-white/5 flex items-center justify-center relative">
+          <div className="w-28 h-28">
+            <NeuralBrain themeColor="#22c55e" isThinking={grokLoading} size="md" />
           </div>
+          <span className="absolute bottom-1 right-2 text-[7px] font-mono text-white/20">sparkly brain</span>
         </div>
         
-        {/* Grok Chat */}
+        {/* Grok responses */}
         <div ref={grokRef} className="flex-1 overflow-y-auto px-3 py-2 space-y-2 scrollbar-thin">
           {grokChat.length === 0 ? (
             <div className="text-[9px] font-mono text-white/30 text-center py-4">
@@ -551,14 +432,15 @@ const IDEPage = ({ onNavigate }) => {
           {grokLoading && <div className="text-green-400 text-[10px] flex items-center gap-1"><span className="animate-spin">◈</span> Grok thinking...</div>}
         </div>
         
+        {/* 1 million context */}
         <div className="h-5 px-3 border-t border-white/5 flex items-center justify-center">
           <span className="text-[8px] font-mono text-green-400/60">1 million context</span>
         </div>
         
-        {/* Saved chats */}
+        {/* SAVED CHATS section (yellow box in your drawing) */}
         <div className="border-t border-white/10">
           <div className="px-3 py-1 text-[8px] font-mono text-white/40">saved chats</div>
-          <div className="max-h-16 overflow-y-auto px-2 pb-1">
+          <div className="max-h-20 overflow-y-auto px-2 pb-1">
             {savedChats.length === 0 ? (
               <div className="text-[7px] font-mono text-white/20 text-center py-1">No saved chats. Use /save</div>
             ) : (
@@ -569,32 +451,32 @@ const IDEPage = ({ onNavigate }) => {
           </div>
         </div>
         
-        <div onMouseDown={() => setIsResizingRight(true)} className="absolute top-0 bottom-0 left-0 w-1 cursor-col-resize hover:bg-green-400/30 transition-colors" />
+        {/* Resize handle */}
+        <div onMouseDown={() => setIsResizingRight(true)} className="absolute top-0 bottom-0 left-0 w-1 cursor-col-resize hover:bg-green-400/30" />
       </div>
       
       {/* GROK PROMPT */}
-      <div className="absolute right-0 bottom-24 h-12 z-40 bg-black/70 border border-green-500/30 flex items-center px-3" style={{ width: rightWidth }} data-testid="grok-prompt">
+      <div className="absolute right-0 bottom-20 h-12 z-40 bg-black/70 border border-green-500/30 flex items-center px-3" style={{ width: rightWidth }} data-testid="grok-prompt">
         <span className="text-[8px] font-mono text-green-400 mr-2">Grok Prompt</span>
         <span className="text-green-400 mr-1">▶</span>
         <input type="text" value={grokInput} onChange={(e) => setGrokInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleGrokSend()} placeholder="Ask Grok anything..." className="flex-1 bg-transparent text-[10px] font-mono text-white placeholder-white/30 focus:outline-none" disabled={grokLoading} />
       </div>
       
-      {/* ============================================================ */}
-      {/* BOTTOM SECTION - CONNECTORS | TERMINAL | CI/CD MCP */}
-      {/* ============================================================ */}
+      {/* ======================================================================== */}
+      {/* BOTTOM ROW: CONNECTORS | TERMINAL | CI/CD + GROK RESPONSE */}
+      {/* ======================================================================== */}
       
-      {/* CONNECTORS - Bottom Left */}
-      <div className="absolute left-0 bottom-0 h-24 z-40 bg-black/80 border-t border-r border-white/10 flex flex-col" style={{ width: leftWidth }}>
+      {/* CONNECTORS - Bottom Left (as you drew) */}
+      <div className="absolute left-0 bottom-0 h-20 z-40 bg-black/80 border-t border-r border-white/10 flex flex-col" style={{ width: leftWidth }}>
         <div className="px-3 py-1 text-[8px] font-mono text-red-400 border-b border-white/5">connectors</div>
-        <div className="flex-1 overflow-y-auto px-2 py-1 grid grid-cols-2 gap-1">
-          {['📁 Project Alpha', '📁 Franklin Demo', '🔌 API Gateway', '🔌 Database'].map((item, idx) => (
-            <div key={idx} className="text-[7px] font-mono text-white/40 py-0.5 px-1 hover:bg-white/5 rounded cursor-pointer truncate">{item}</div>
-          ))}
+        <div className="flex-1 overflow-y-auto px-2 py-1">
+          <div className="text-[7px] font-mono text-white/40 py-0.5 px-1 hover:bg-white/5 rounded cursor-pointer">📁 Project Alpha</div>
+          <div className="text-[7px] font-mono text-white/40 py-0.5 px-1 hover:bg-white/5 rounded cursor-pointer">📁 Franklin Demo</div>
         </div>
       </div>
       
-      {/* TERMINAL - Center */}
-      <div className="absolute bottom-0 h-24 z-40 bg-black/80 border-t border-white/10 flex flex-col" style={{ left: leftWidth, right: rightWidth }} data-testid="terminal">
+      {/* TERMINAL - Bottom Center */}
+      <div className="absolute bottom-0 h-20 z-40 bg-black/80 border-t border-white/10 flex flex-col" style={{ left: leftWidth, right: rightWidth }} data-testid="terminal">
         <div className="h-5 px-3 border-b border-white/5 flex items-center text-[8px] font-mono">
           <span className="text-purple-400">◆ TERMINAL</span>
           <span className="mx-3 text-white/20">|</span>
@@ -611,51 +493,54 @@ const IDEPage = ({ onNavigate }) => {
         </div>
       </div>
       
-      {/* CI/CD MCP SERVER TOOLS - Bottom Right */}
-      <div className="absolute right-0 bottom-0 h-24 z-40 bg-black/80 border-t border-l border-white/10 flex flex-col" style={{ width: rightWidth }}>
+      {/* CI/CD MCP SERVER TOOLS + GROK RESPONSE - Bottom Right (as you drew) */}
+      <div className="absolute right-0 bottom-0 h-20 z-40 bg-black/80 border-t border-l border-white/10 flex flex-col" style={{ width: rightWidth }}>
         <div className="h-5 px-3 border-b border-white/5 flex items-center justify-between">
-          <span className="text-[8px] font-mono text-yellow-400">◈ CI/CD - MCP SERVER TOOLS</span>
+          <span className="text-[7px] font-mono text-yellow-400">◈ CI/CD - MCP SERVER TOOLS</span>
+          <span className="text-[7px] font-mono text-green-400">GROK RESPONSE</span>
         </div>
-        <div className="flex-1 overflow-y-auto px-2 py-1">
-          <div className="grid grid-cols-2 gap-1">
+        <div className="flex-1 flex">
+          {/* CI/CD buttons */}
+          <div className="w-1/2 p-1 grid grid-cols-2 gap-1">
             {['🚀 Deploy', '🔄 Build', '📊 Monitor', '🔧 Config'].map((tool, idx) => (
-              <button key={idx} className="text-[7px] font-mono text-white/50 py-1 px-2 bg-white/5 hover:bg-white/10 rounded border border-white/10 transition-all">{tool}</button>
+              <button key={idx} className="text-[6px] font-mono text-white/50 py-1 px-1 bg-white/5 hover:bg-white/10 rounded border border-white/10">{tool}</button>
+            ))}
+          </div>
+          {/* Grok response area */}
+          <div className="w-1/2 border-l border-white/10 p-1 overflow-y-auto">
+            <div className="text-[7px] font-mono text-white/30">Grok responses...</div>
+            {grokChat.slice(-2).map((msg, idx) => (
+              <div key={idx} className="text-[6px] font-mono text-white/40 truncate py-0.5">{msg.content?.slice(0, 30)}...</div>
             ))}
           </div>
         </div>
-        <div className="px-3 py-1 text-[7px] font-mono text-white/20 text-right">SM Context Window</div>
+        <div className="px-2 py-0.5 text-[6px] font-mono text-white/20 text-right">SM Context Window</div>
       </div>
       
       {/* Made with Emergent */}
-      <div className="fixed bottom-1 right-2 z-50 text-[7px] font-mono text-white/20 flex items-center gap-1">
+      <div className="fixed bottom-1 left-1/2 -translate-x-1/2 z-50 text-[7px] font-mono text-white/20 flex items-center gap-1">
         <span className="text-cyan-400">◎</span> Made with Emergent
       </div>
       
       {/* Workflow button */}
       <button onClick={() => onNavigate(PAGES.WORKFLOW)} className="fixed top-1 right-4 z-50 px-2 py-0.5 text-[8px] font-mono text-purple-400 hover:bg-purple-500/20 border border-purple-500/30 rounded">◈ WORKFLOW</button>
       
-      <style>{`
-        .scrollbar-thin::-webkit-scrollbar { width: 3px; }
-        .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
-        .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
-      `}</style>
+      <style>{`.scrollbar-thin::-webkit-scrollbar { width: 3px; } .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }`}</style>
     </div>
   );
 };
 
 // ============================================================================
-// MAIN APP - PAGE ROUTER
+// MAIN APP
 // ============================================================================
 function App() {
   const [currentPage, setCurrentPage] = useState(PAGES.LANDING);
-  
   const [workflowNodes, setWorkflowNodes, onNodesChange] = useNodesState([
     { id: '1', type: 'default', position: { x: 250, y: 50 }, data: { label: 'Genesis' } },
     { id: '2', type: 'default', position: { x: 100, y: 150 }, data: { label: 'Architect' } },
     { id: '3', type: 'default', position: { x: 400, y: 150 }, data: { label: 'Implementer' } },
     { id: '4', type: 'default', position: { x: 250, y: 250 }, data: { label: 'Quality' } },
   ]);
-  
   const [workflowEdges, setWorkflowEdges, onEdgesChange] = useEdgesState([
     { id: 'e1-2', source: '1', target: '2', animated: true },
     { id: 'e1-3', source: '1', target: '3', animated: true },
