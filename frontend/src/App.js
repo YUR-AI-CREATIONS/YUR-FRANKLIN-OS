@@ -751,13 +751,21 @@ const IDEPage = ({ onNavigate }) => {
       <div className="absolute top-0 left-0 right-0 h-12 z-50 bg-black/90 border-b border-white/20 flex items-center px-6">
         <span className="text-base font-mono text-white tracking-wider" style={{ fontFamily: "'Orbitron', sans-serif" }}>◈ FRANKLIN OS</span>
         <div className="flex-1" />
+        {isBuilding && (
+          <div className="mr-4 px-4 py-1.5 text-sm font-mono text-yellow-400 border border-yellow-500/50 rounded animate-pulse flex items-center gap-2">
+            <span className="animate-spin">◈</span> BUILDING...
+          </div>
+        )}
+        {certificationStatus && (
+          <div className="mr-4 px-4 py-1.5 text-sm font-mono text-green-400 border border-green-500/50 rounded flex items-center gap-2">
+            ✓ CERTIFIED
+          </div>
+        )}
         <button onClick={() => onNavigate(PAGES.WORKFLOW)} className="mr-4 px-4 py-1.5 text-sm font-mono text-purple-400 border border-purple-500/50 rounded hover:bg-purple-500/20 transition-all">
-          ◈ ELECTRIC WORKFLOW
+          ◈ WORKFLOW
         </button>
         <div className="flex items-center gap-6 text-xs font-mono">
-          <span className="text-green-400 flex items-center gap-2"><span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />SENTINEL: ACTIVE</span>
-          <span className="text-cyan-400">PQC: ONLINE</span>
-          <span className="text-purple-400">AGENTS: 5</span>
+          <span className="text-green-400 flex items-center gap-2"><span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />ONLINE</span>
         </div>
       </div>
 
@@ -765,79 +773,141 @@ const IDEPage = ({ onNavigate }) => {
       <div className="absolute top-12 bottom-0 left-0 right-0 flex">
         
         {/* LEFT COLUMN - FRANKLIN */}
-        <div className="w-1/4 min-w-[300px] flex flex-col border-r border-white/20 bg-black/60">
+        <div className="w-1/4 min-w-[280px] flex flex-col border-r border-white/20 bg-black/60">
           <div className="h-10 px-4 border-b border-white/20 flex items-center justify-between">
             <span className="text-sm font-mono text-cyan-400 font-semibold">◆ FRANKLIN</span>
-            <span className="text-xs font-mono text-white/40">1M context</span>
+            <span className="text-xs font-mono text-white/40">Builder</span>
           </div>
           <div ref={franklinRef} className="flex-1 overflow-y-auto p-4 space-y-4">
             {franklinChat.map((msg, idx) => (
               <div key={idx}>
                 <span className="text-xs font-mono text-white/40">◈ {msg.role.toUpperCase()}</span>
-                <p className={`text-sm font-mono mt-1 leading-relaxed ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/80'}`}>{msg.content}</p>
+                <p className={`text-sm font-mono mt-1 leading-relaxed whitespace-pre-wrap ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/80'}`}>{msg.content}</p>
               </div>
             ))}
-            {franklinLoading && <div className="text-purple-400 text-sm flex items-center gap-2"><span className="animate-spin">◈</span> Processing...</div>}
+            {(franklinLoading || isBuilding) && <div className="text-purple-400 text-sm flex items-center gap-2"><span className="animate-spin">◈</span> {isBuilding ? 'Building...' : 'Processing...'}</div>}
           </div>
           <div className="h-14 px-4 border-t border-cyan-500/40 bg-black/80 flex items-center gap-3">
-            <span className="text-sm font-mono text-cyan-400">Franklin ▶</span>
-            <input type="text" value={franklinInput} onChange={(e) => setFranklinInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleFranklinSend()} placeholder="Type here..." className="flex-1 bg-transparent text-sm font-mono text-white placeholder-white/40 focus:outline-none" data-testid="franklin-prompt" />
-          </div>
-          <div className="h-24 border-t border-white/20 bg-black/80 p-3">
-            <div className="text-xs font-mono text-red-400 mb-2">CONNECTORS</div>
-            <div className="space-y-1">
-              <div className="text-sm font-mono text-white/60 hover:text-white cursor-pointer">📁 Project Alpha</div>
-              <div className="text-sm font-mono text-white/60 hover:text-white cursor-pointer">📁 Franklin Demo</div>
-            </div>
+            <span className="text-sm font-mono text-cyan-400">▶</span>
+            <input 
+              type="text" 
+              value={franklinInput} 
+              onChange={(e) => setFranklinInput(e.target.value)} 
+              onKeyDown={(e) => e.key === 'Enter' && handleFranklinSend()} 
+              placeholder="Tell me what to build..." 
+              className="flex-1 bg-transparent text-sm font-mono text-white placeholder-white/40 focus:outline-none" 
+              data-testid="franklin-prompt" 
+              disabled={isBuilding}
+            />
           </div>
         </div>
 
         {/* CENTER COLUMN - CODE AREA */}
         <div className="flex-1 flex flex-col">
-          <div className="h-10 px-6 border-b border-white/20 bg-black/60 flex items-center">
-            <span className="text-sm font-mono text-cyan-400">code area</span>
-            <span className="text-sm font-mono text-white/30 mx-3">|</span>
-            <span className="text-sm font-mono text-white/50">1 million context</span>
+          {/* Tabs */}
+          <div className="h-10 px-4 border-b border-white/20 bg-black/60 flex items-center gap-4">
+            <button 
+              onClick={() => setActiveTab('code')} 
+              className={`text-sm font-mono transition-all ${activeTab === 'code' ? 'text-cyan-400' : 'text-white/40 hover:text-white/60'}`}
+            >
+              CODE
+            </button>
+            <button 
+              onClick={() => setActiveTab('spec')} 
+              className={`text-sm font-mono transition-all ${activeTab === 'spec' ? 'text-cyan-400' : 'text-white/40 hover:text-white/60'}`}
+            >
+              SPEC
+            </button>
+            <button 
+              onClick={() => setActiveTab('arch')} 
+              className={`text-sm font-mono transition-all ${activeTab === 'arch' ? 'text-cyan-400' : 'text-white/40 hover:text-white/60'}`}
+            >
+              ARCHITECTURE
+            </button>
+            <div className="flex-1" />
+            {generatedCode && (
+              <>
+                <button onClick={copyCode} className="px-3 py-1 text-xs font-mono text-white/60 hover:text-white border border-white/20 rounded hover:bg-white/10 transition-all">
+                  COPY
+                </button>
+                <button onClick={downloadCode} className="px-3 py-1 text-xs font-mono text-green-400 border border-green-500/40 rounded hover:bg-green-500/20 transition-all">
+                  DOWNLOAD
+                </button>
+              </>
+            )}
           </div>
-          <div className="h-10 px-6 border-b border-white/10 bg-black/50 flex items-center gap-8">
-            <span className="text-sm font-mono text-cyan-400 cursor-pointer">front end</span>
-            <span className="text-sm font-mono text-white/50 hover:text-white cursor-pointer">backend</span>
-            <span className="text-sm font-mono text-white/50 hover:text-white cursor-pointer">database</span>
-            <span className="text-sm font-mono text-white/50 hover:text-white cursor-pointer">deploy</span>
-          </div>
-          <div className="flex-1 bg-black/40 p-6 overflow-auto relative">
-            <pre className="text-sm font-mono text-white/60 leading-relaxed">// Your code will appear here...{'\n'}// Use /genesis or go to Electric Workflow</pre>
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-4 text-sm font-mono text-cyan-400/40">
-              <span>◄────</span><span>ghost lines</span><span>────►</span>
+          
+          {/* Certification Badge */}
+          {certificationStatus && (
+            <div className="h-10 px-4 border-b border-green-500/30 bg-green-500/10 flex items-center gap-4">
+              <span className="text-sm font-mono text-green-400">✓ FRANKLIN OS CERTIFIED</span>
+              <span className="text-xs font-mono text-white/40">|</span>
+              <span className="text-xs font-mono text-white/50">Signed: {certificationStatus.signedBy}</span>
+              <span className="text-xs font-mono text-white/40">|</span>
+              <span className="text-xs font-mono text-white/50">Agents: {certificationStatus.agents?.join(', ')}</span>
             </div>
+          )}
+          
+          {/* Code Display */}
+          <div className="flex-1 bg-black/40 p-4 overflow-auto">
+            {activeTab === 'code' && (
+              generatedCode ? (
+                <pre className="text-sm font-mono text-green-400/90 leading-relaxed whitespace-pre-wrap">{generatedCode}</pre>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center">
+                  <div className="text-6xl mb-4 opacity-20">◈</div>
+                  <p className="text-lg font-mono text-white/40">Tell Franklin what to build</p>
+                  <p className="text-sm font-mono text-white/25 mt-2">Example: "Build me a todo app API"</p>
+                  <p className="text-sm font-mono text-white/25">Example: "Create a user authentication system"</p>
+                </div>
+              )
+            )}
+            {activeTab === 'spec' && (
+              buildResult?.spec ? (
+                <pre className="text-sm font-mono text-white/80 leading-relaxed whitespace-pre-wrap">{buildResult.spec}</pre>
+              ) : (
+                <p className="text-sm font-mono text-white/40 text-center py-8">Specification will appear here after build</p>
+              )
+            )}
+            {activeTab === 'arch' && (
+              buildResult?.architecture ? (
+                <pre className="text-sm font-mono text-white/80 leading-relaxed whitespace-pre-wrap">{buildResult.architecture}</pre>
+              ) : (
+                <p className="text-sm font-mono text-white/40 text-center py-8">Architecture will appear here after build</p>
+              )
+            )}
           </div>
-          <div className="h-32 border-t border-white/20 bg-black/80 flex flex-col">
-            <div className="h-8 px-6 border-b border-white/10 flex items-center">
+          
+          {/* Terminal */}
+          <div className="h-36 border-t border-white/20 bg-black/80 flex flex-col">
+            <div className="h-8 px-4 border-b border-white/10 flex items-center justify-between">
               <span className="text-sm font-mono text-purple-400">◆ TERMINAL</span>
+              {isBuilding && <span className="text-xs font-mono text-yellow-400 animate-pulse">Building...</span>}
             </div>
-            <div ref={terminalRef} className="flex-1 overflow-y-auto px-6 py-2">
+            <div ref={terminalRef} className="flex-1 overflow-y-auto px-4 py-2">
               {terminalOutput.map((line, idx) => (
-                <div key={idx} className={`text-sm font-mono ${line.type === 'error' ? 'text-red-400' : line.type === 'success' ? 'text-green-400' : line.type === 'system' ? 'text-purple-400' : 'text-white/60'}`}>{line.text}</div>
+                <div key={idx} className={`text-xs font-mono ${line.type === 'error' ? 'text-red-400' : line.type === 'success' ? 'text-green-400' : line.type === 'system' ? 'text-purple-400' : line.type === 'cmd' ? 'text-cyan-400' : 'text-white/60'}`}>{line.text}</div>
               ))}
             </div>
-            <div className="h-8 px-6 border-t border-white/10 flex items-center">
-              <input type="text" value={terminalInput} onChange={(e) => setTerminalInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleTerminalSend()} placeholder="Enter command..." className="flex-1 bg-transparent text-sm font-mono text-white placeholder-white/40 focus:outline-none" />
+            <div className="h-8 px-4 border-t border-white/10 flex items-center">
+              <span className="text-purple-400 mr-2">▶</span>
+              <input type="text" value={terminalInput} onChange={(e) => setTerminalInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleTerminalSend()} placeholder="help, status, download..." className="flex-1 bg-transparent text-xs font-mono text-white placeholder-white/40 focus:outline-none" />
             </div>
           </div>
         </div>
 
         {/* RIGHT COLUMN - GROK */}
-        <div className="w-1/4 min-w-[300px] flex flex-col border-l border-white/20 bg-black/60">
+        <div className="w-1/4 min-w-[280px] flex flex-col border-l border-white/20 bg-black/60">
           <div className="h-10 px-4 border-b border-white/20 flex items-center justify-between">
             <span className="text-sm font-mono text-green-400 font-semibold">◆ GROK</span>
-            <span className="text-xs font-mono text-white/40">1M context</span>
+            <span className="text-xs font-mono text-white/40">Analyst</span>
           </div>
-          <div className="h-40 border-b border-white/10 flex items-center justify-center">
-            <div className="w-32 h-32"><NeuralBrain themeColor="#22c55e" isThinking={grokLoading} size="lg" /></div>
+          <div className="h-32 border-b border-white/10 flex items-center justify-center">
+            <div className="w-24 h-24"><NeuralBrain themeColor="#22c55e" isThinking={grokLoading} size="lg" /></div>
           </div>
           <div ref={grokRef} className="flex-1 overflow-y-auto p-4 space-y-4">
             {grokChat.length === 0 ? (
-              <div className="text-sm font-mono text-white/40 text-center py-8">Grok responses appear here...</div>
+              <div className="text-sm font-mono text-white/40 text-center py-8">Ask Grok to analyze code or explain concepts...</div>
             ) : (
               grokChat.map((msg, idx) => (
                 <div key={idx}>
@@ -848,25 +918,9 @@ const IDEPage = ({ onNavigate }) => {
             )}
             {grokLoading && <div className="text-green-400 text-sm flex items-center gap-2"><span className="animate-spin">◈</span> Thinking...</div>}
           </div>
-          <div className="h-20 border-t border-white/20 p-3">
-            <div className="text-xs font-mono text-white/50 mb-1">saved chats</div>
-            {savedChats.length === 0 ? <div className="text-xs font-mono text-white/30">No saved chats</div> : savedChats.slice(-3).map(c => <div key={c.id} className="text-sm font-mono text-white/50 truncate cursor-pointer hover:text-white">{c.title}</div>)}
-          </div>
           <div className="h-14 px-4 border-t border-green-500/40 bg-black/80 flex items-center gap-3">
-            <span className="text-sm font-mono text-green-400">Grok ▶</span>
+            <span className="text-sm font-mono text-green-400">▶</span>
             <input type="text" value={grokInput} onChange={(e) => setGrokInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleGrokSend()} placeholder="Ask Grok..." className="flex-1 bg-transparent text-sm font-mono text-white placeholder-white/40 focus:outline-none" data-testid="grok-prompt" />
-          </div>
-          <div className="h-24 border-t border-white/20 bg-black/80 flex">
-            <div className="w-1/2 p-2 border-r border-white/10">
-              <div className="text-xs font-mono text-yellow-400 mb-2">CI/CD • MCP TOOLS</div>
-              <div className="grid grid-cols-2 gap-1">
-                {['Deploy', 'Build', 'Monitor', 'Config'].map(t => <button key={t} className="text-xs font-mono text-white/60 py-1 bg-white/5 hover:bg-white/10 rounded">{t}</button>)}
-              </div>
-            </div>
-            <div className="w-1/2 p-2">
-              <div className="text-xs font-mono text-green-400">GROK RESPONSE</div>
-              <div className="text-xs font-mono text-white/40 mt-1">Responses...</div>
-            </div>
           </div>
         </div>
       </div>
