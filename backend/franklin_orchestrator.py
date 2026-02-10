@@ -99,10 +99,15 @@ class FranklinOrchestrator:
     """
     
     def __init__(self):
+        # Use Emergent LLM Key for Anthropic
+        self.emergent_key = os.getenv("EMERGENT_LLM_KEY")
+        self.anthropic_key = os.getenv("ANTHROPIC_API_KEY")
         self.xai_api_key = os.getenv("XAI_API_KEY")
         self.xai_url = "https://api.x.ai/v1/chat/completions"
+        self.anthropic_url = "https://api.anthropic.com/v1/messages"
         self.sessions: Dict[str, BuildSession] = {}
         self.active_session: Optional[str] = None
+        self.llm_provider = os.getenv("LLM_PROVIDER", "anthropic")
         
         # Agent personas
         self.agents = {
@@ -136,7 +141,7 @@ class FranklinOrchestrator:
             }
         }
         
-        logger.info(">>> FRANKLIN ORCHESTRATOR ONLINE")
+        logger.info(f">>> FRANKLIN ORCHESTRATOR ONLINE (LLM Provider: {self.llm_provider})")
     
     def _generate_hash(self, content: str) -> str:
         """Generate audit hash for content"""
