@@ -121,10 +121,155 @@ const ElectricWorkflowPage = ({ onBack }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
-  useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [chatHistory]);
+  useEffect(() => { if (franklinRef.current) franklinRef.current.scrollTop = franklinRef.current.scrollHeight; }, [franklinChat]);
   useEffect(() => { if (terminalRef.current) terminalRef.current.scrollTop = terminalRef.current.scrollHeight; }, [terminalOutput]);
 
   const addTerminal = (text, type = 'info') => setTerminalOutput(prev => [...prev, { type, text: `> ${text}` }]);
+
+  // Parse natural language commands for pipeline control
+  const parseCommand = (input) => {
+    const lower = input.toLowerCase();
+    
+    // Stage navigation commands
+    const stageKeywords = {
+      'inception': 0, 'spec': 1, 'specification': 1, 'arch': 2, 'architecture': 2,
+      'construction': 3, 'build': 3, 'validation': 4, 'test': 4, 'testing': 4,
+      'evolution': 5, 'optimize': 5, 'deploy': 6, 'deployment': 6,
+      'governance': 7, 'govern': 7, 'compliance': 7
+    };
+    
+    // Check for stage movement
+    if (lower.includes('move to') || lower.includes('go to') || lower.includes('jump to') || lower.includes('set stage')) {
+      for (const [keyword, stageIdx] of Object.entries(stageKeywords)) {
+        if (lower.includes(keyword)) {
+          return { type: 'move_stage', stage: stageIdx, stageName: GENESIS_STAGES[stageIdx].name };
+        }
+      }
+    }
+    
+    // Check for ouroboros
+    if (lower.includes('ouroboros') || lower.includes('converge') || lower.includes('convergence')) {
+      if (lower.includes('run') || lower.includes('start') || lower.includes('execute') || lower.includes('begin')) {
+        return { type: 'run_ouroboros' };
+      }
+    }
+    
+    // Check for quality gate queries
+    if (lower.includes('quality') || lower.includes('gate')) {
+      return { type: 'quality_check' };
+    }
+    
+    // Check for status
+    if (lower.includes('status') || lower.includes('where am i') || lower.includes('current stage')) {
+      return { type: 'status' };
+    }
+    
+    // Check for reset
+    if (lower.includes('reset') || lower.includes('restart') || lower.includes('start over')) {
+      return { type: 'reset' };
+    }
+    
+    // Check for genesis command
+    if (lower.startsWith('/genesis ') || lower.includes('start project') || lower.includes('begin project') || lower.includes('initialize project')) {
+      const projectName = input.replace(/^\/genesis\s+/i, '').replace(/start project|begin project|initialize project/i, '').trim();
+      return { type: 'genesis', projectName: projectName || 'New Project' };
+    }
+    
+    // Check for next/previous stage
+    if (lower.includes('next stage') || lower.includes('advance') || lower.includes('proceed')) {
+      return { type: 'next_stage' };
+    }
+    if (lower.includes('previous stage') || lower.includes('go back') || lower.includes('back stage')) {
+      return { type: 'prev_stage' };
+    }
+    
+    return { type: 'chat', message: input };
+  };
+
+  // Execute parsed commands
+  const executeCommand = async (command) => {
+    switch (command.type) {
+      case 'move_stage':
+        setCurrentStage(command.stage);
+        addTerminal(`MOVED TO: ${command.stageName}`, 'system');
+        highlightStage(command.stage);
+        return `Moving to ${command.stageName} stage. This stage handles: ${GENESIS_STAGES[command.stage].desc}`;
+      
+      case 'run_ouroboros':
+        if (ouroborosActive) {
+          return 'Ouroboros loop is already running. Please wait for it to complete.';
+        }
+        runOuroborosLoop();
+        return 'Initiating Ouroboros convergence loop. Target: 99% convergence across all quality dimensions.';
+      
+      case 'quality_check':
+        const avgScore = qualityScores.reduce((a, b) => a + b.score, 0) / qualityScores.length;
+        const qualityReport = qualityScores.map(q => `• ${q.name}: ${q.score.toFixed(1)}%`).join('\n');
+        return `8-Dimensional Quality Gate Assessment:\n\nAverage Score: ${avgScore.toFixed(1)}%\n\n${qualityReport}\n\nUse "run ouroboros" to improve scores.`;
+      
+      case 'status':
+        const stage = GENESIS_STAGES[currentStage];
+        return `Current Status:\n• Stage: ${stage.name} (${currentStage + 1}/8)\n• Description: ${stage.desc}\n• Convergence: ${convergence.toFixed(1)}%\n• Ouroboros: ${ouroborosActive ? 'ACTIVE' : 'STANDBY'}`;
+      
+      case 'reset':
+        setCurrentStage(0);
+        setConvergence(0);
+        setQualityScores(QUALITY_DIMENSIONS);
+        addTerminal('PIPELINE RESET', 'system');
+        setNodes(initialNodes);
+        return 'Pipeline has been reset to INCEPTION stage. All quality scores cleared.';
+      
+      case 'genesis':
+        addTerminal(`PROJECT: ${command.projectName}`, 'system');
+        await runGenesisPipeline(command.projectName);
+        return `Genesis Pipeline initiated for "${command.projectName}". Running through all 8 stages...`;
+      
+      case 'next_stage':
+        if (currentStage < 7) {
+          const nextStage = currentStage + 1;
+          setCurrentStage(nextStage);
+          addTerminal(`ADVANCED TO: ${GENESIS_STAGES[nextStage].name}`, 'system');
+          highlightStage(nextStage);
+          return `Advanced to ${GENESIS_STAGES[nextStage].name} stage.`;
+        }
+        return 'Already at the final stage (GOVERNANCE). Use "run ouroboros" to complete the loop.';
+      
+      case 'prev_stage':
+        if (currentStage > 0) {
+          const prevStage = currentStage - 1;
+          setCurrentStage(prevStage);
+          addTerminal(`RETURNED TO: ${GENESIS_STAGES[prevStage].name}`, 'system');
+          highlightStage(prevStage);
+          return `Returned to ${GENESIS_STAGES[prevStage].name} stage.`;
+        }
+        return 'Already at the first stage (INCEPTION).';
+      
+      default:
+        return null; // Will be handled by AI chat
+    }
+  };
+
+  const highlightStage = (stageIdx) => {
+    setNodes(nds => nds.map(n => ({
+      ...n,
+      style: {
+        ...n.style,
+        boxShadow: n.id === GENESIS_STAGES[stageIdx]?.id ? '0 0 25px #00ff88, 0 0 50px #00ff88' : 'none'
+      }
+    })));
+  };
+
+  const runGenesisPipeline = async (projectName) => {
+    for (let i = 0; i < GENESIS_STAGES.length; i++) {
+      await new Promise(r => setTimeout(r, 800));
+      setCurrentStage(i);
+      addTerminal(`[${GENESIS_STAGES[i].name}] ${GENESIS_STAGES[i].desc}`, 'info');
+      highlightStage(i);
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: `Stage ${i + 1}/8: ${GENESIS_STAGES[i].name} - ${GENESIS_STAGES[i].desc}` }]);
+    }
+    addTerminal('PIPELINE COMPLETE', 'success');
+    addTerminal('Ready for Ouroboros convergence', 'info');
+  };
 
   const runOuroborosLoop = () => {
     setOuroborosActive(true);
