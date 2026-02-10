@@ -13,6 +13,8 @@ Build "FRANKLIN OS," a sophisticated, VS Code-style IDE for building, certifying
 - Terminal at bottom center
 - Projects/Folders tabs
 - Stripe integration for user subscriptions
+- **Consistent Galaxy Black Glassmorphism across ALL pages**
+- **Franklin chat on Workflow page that executes real actions**
 
 ## Core Architecture
 ```
