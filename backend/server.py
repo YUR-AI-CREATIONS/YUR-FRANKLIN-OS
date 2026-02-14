@@ -55,6 +55,9 @@ from payment_routes import payment_router, webhook_router
 # Import LITHIUM routes (real build system)
 from lithium_routes import router as lithium_router
 
+# Import SIMPLE BUILD routes (one prompt → real files)
+from simple_build_routes import router as simple_build_router
+
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
