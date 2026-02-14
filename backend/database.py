@@ -329,24 +329,38 @@ class DatabaseManager:
             return dict(doc) if doc else None
     
     # ========================================================================
-    # PROJECT OPERATIONS
+    # PROJECT OPERATIONS (MongoDB fallback)
     # ========================================================================
     
     async def create_project(self, user_id: str, name: str, description: str = "") -> Dict:
         """Create a new project"""
         project_id = str(uuid4())
-        await self.pg.execute(
-            """INSERT INTO projects (id, user_id, name, description) VALUES ($1, $2::uuid, $3, $4)""",
-            project_id, user_id, name, description
-        )
+        if self._pg_available:
+            await self.pg.execute(
+                """INSERT INTO projects (id, user_id, name, description) VALUES ($1, $2::uuid, $3, $4)""",
+                project_id, user_id, name, description
+            )
+        else:
+            await self.mongo.db["projects"].insert_one({
+                "id": project_id,
+                "user_id": user_id,
+                "name": name,
+                "description": description,
+                "status": "draft",
+                "created_at": datetime.now(timezone.utc)
+            })
         return {"id": project_id, "name": name}
     
     async def get_user_projects(self, user_id: str) -> List[Dict]:
         """Get all projects for a user"""
-        return await self.pg.fetch(
-            """SELECT id, name, description, status, created_at FROM projects WHERE user_id = $1::uuid ORDER BY created_at DESC""",
-            user_id
-        )
+        if self._pg_available:
+            return await self.pg.fetch(
+                """SELECT id, name, description, status, created_at FROM projects WHERE user_id = $1::uuid ORDER BY created_at DESC""",
+                user_id
+            )
+        else:
+            cursor = self.mongo.db["projects"].find({"user_id": user_id}).sort("created_at", -1)
+            return [doc async for doc in cursor]
     
     # ========================================================================
     # BUILD OPERATIONS
