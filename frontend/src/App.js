@@ -553,7 +553,7 @@ const IDEPage = ({ onNavigate }) => {
     return buildKeywords.some(k => lower.includes(k));
   };
 
-  // THE ACTUAL BUILD FUNCTION
+  // THE ACTUAL BUILD FUNCTION - Using Lithium Backend
   const executeBuild = async (mission) => {
     setIsBuilding(true);
     setGeneratedCode('');
@@ -565,77 +565,113 @@ const IDEPage = ({ onNavigate }) => {
     addTerminal(`Mission: ${mission}`, 'info');
     addTerminal('═══════════════════════════════════════', 'system');
 
-    setFranklinChat(prev => [...prev, { role: 'franklin', content: `🚀 **BUILD INITIATED**\n\nI'm now building: "${mission}"\n\nWatch the terminal for real-time progress. The Genesis agents are working on your project.` }]);
+    setFranklinChat(prev => [...prev, { role: 'franklin', content: `🚀 **BUILD INITIATED**\n\nI'm now building: "${mission}"\n\nWatch the terminal for real-time progress.` }]);
 
     try {
+      // Step 1: Call the orchestrator to generate code via LLM
       addTerminal('Calling Genesis agents...', 'info');
       addTerminal('[GENESIS] Analyzing requirements...', 'info');
       
-      const res = await axios.post(`${API}/api/build-orchestrator/build`, { mission });
+      const orchestratorRes = await axios.post(`${API}/api/build-orchestrator/build`, { mission });
       
-      if (res.data.success) {
-        const { output, sections, governance_log, agents_involved } = res.data;
-        
-        // Log each phase to terminal
-        output.forEach(item => {
-          const type = item.type === 'success' ? 'success' : item.type === 'error' ? 'error' : 'info';
-          addTerminal(`[${item.agent}] ${item.message.slice(0, 100)}${item.message.length > 100 ? '...' : ''}`, type);
-        });
-
-        // Find the implementation section (the actual code)
-        const codeSection = sections.find(s => s.name === 'Implementation');
-        const specSection = sections.find(s => s.name === 'Specification');
-        const archSection = sections.find(s => s.name === 'Architecture');
-        
-        if (codeSection && codeSection.code) {
-          setGeneratedCode(codeSection.code);
-          addTerminal('═══════════════════════════════════════', 'success');
-          addTerminal('CODE GENERATION COMPLETE', 'success');
-          addTerminal(`Lines of code: ~${codeSection.code.split('\n').length}`, 'success');
-        }
-        
-        // Set certification status
-        const signoff = governance_log.find(g => g.action === 'signed_off');
-        if (signoff) {
-          setCertificationStatus({
-            certified: true,
-            signedBy: signoff.signed_by,
-            certification: signoff.certification,
-            timestamp: signoff.timestamp,
-            agents: agents_involved,
-            auditHashes: sections.map(s => s.audit_hash)
-          });
-          addTerminal('═══════════════════════════════════════', 'success');
-          addTerminal('✓ FRANKLIN OS CERTIFIED', 'success');
-          addTerminal(`Signed by: ${signoff.signed_by}`, 'success');
-          addTerminal(`Certification: ${signoff.certification}`, 'success');
-        }
-
-        setBuildResult({
-          success: true,
-          sections,
-          spec: specSection?.content || '',
-          architecture: archSection?.content || '',
-          code: codeSection?.code || '',
-          governance: governance_log,
-          agents: agents_involved
-        });
-
-        setFranklinChat(prev => [...prev, { 
-          role: 'franklin', 
-          content: `✅ **BUILD COMPLETE - FRANKLIN OS CERTIFIED**\n\n**Agents involved:** ${agents_involved.join(', ')}\n\n**What was built:**\n- Specification document\n- System architecture\n- Production-ready code\n- Health check report\n\n**Certification:** ${signoff?.certification || 'GENESIS_CERTIFIED'}\n\nThe code is now displayed in the center panel. You can:\n- View the code\n- Copy it\n- Download as a package\n\nTell me if you want any modifications!` 
-        }]);
-
-      } else {
-        throw new Error('Build failed');
+      if (!orchestratorRes.data.success) {
+        throw new Error('Orchestrator failed to generate code');
       }
+
+      const { output, sections, governance_log, agents_involved } = orchestratorRes.data;
+      
+      // Log agent progress
+      output.forEach(item => {
+        const type = item.type === 'success' ? 'success' : item.type === 'error' ? 'error' : 'info';
+        addTerminal(`[${item.agent}] ${item.message.slice(0, 80)}...`, type);
+      });
+
+      const codeSection = sections.find(s => s.name === 'Implementation');
+      const specSection = sections.find(s => s.name === 'Specification');
+      const archSection = sections.find(s => s.name === 'Architecture');
+      const healthSection = sections.find(s => s.name === 'Health');
+      
+      // Step 2: Send to Lithium to create REAL files
+      addTerminal('Creating project files...', 'info');
+      
+      const lithiumRes = await axios.post(`${API}/api/lithium/build`, {
+        mission: mission,
+        spec_content: specSection?.content || '',
+        architecture_content: archSection?.content || '',
+        code_content: codeSection?.code || '',
+        health_report: healthSection?.content || ''
+      });
+
+      const { build_id, files, stats, tree, checksums } = lithiumRes.data;
+      
+      addTerminal('═══════════════════════════════════════', 'success');
+      addTerminal('REAL FILES CREATED', 'success');
+      addTerminal(`Build ID: ${build_id}`, 'success');
+      addTerminal(`Files: ${stats.files_created}`, 'success');
+      addTerminal(`Lines: ${stats.total_lines}`, 'success');
+      addTerminal('ZIP ready for download', 'success');
+      
+      // Display the generated code
+      if (codeSection && codeSection.code) {
+        setGeneratedCode(codeSection.code);
+      }
+      
+      // Store build result with Lithium data
+      setBuildResult({
+        success: true,
+        buildId: build_id,
+        sections,
+        spec: specSection?.content || '',
+        architecture: archSection?.content || '',
+        code: codeSection?.code || '',
+        governance: governance_log,
+        agents: agents_involved,
+        files: files,
+        stats: stats,
+        tree: tree,
+        checksums: checksums
+      });
+
+      // Initial status - not yet certified (needs to go through 8-gate)
+      setCertificationStatus({
+        certified: false,
+        buildId: build_id,
+        filesCreated: stats.files_created,
+        totalLines: stats.total_lines,
+        readyForCertification: true
+      });
+
+      setFranklinChat(prev => [...prev, { 
+        role: 'franklin', 
+        content: `✅ **BUILD COMPLETE**\n\n**Build ID:** ${build_id}\n**Files Created:** ${stats.files_created}\n**Lines of Code:** ${stats.total_lines}\n\n**Project Structure:**\n\`\`\`\n${tree}\n\`\`\`\n\n**Next Step:** Click **"SEND TO CERTIFICATION"** to run the 8-Gate validation and get your FRANKLIN OS Certificate.` 
+      }]);
+
     } catch (err) {
       addTerminal('BUILD FAILED', 'error');
       addTerminal(err.message || 'Unknown error', 'error');
-      setFranklinChat(prev => [...prev, { role: 'franklin', content: `❌ Build encountered an issue. Let me try a different approach. Can you describe what you want in more detail?` }]);
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: `❌ Build encountered an issue: ${err.message}\n\nCan you describe what you want in more detail?` }]);
     }
     
     setIsBuilding(false);
+  };
+
+  // Send build to Workflow page for 8-Gate Certification
+  const sendToCertification = () => {
+    if (!buildResult?.buildId) return;
+    
+    // Store build data for Workflow page
+    localStorage.setItem('pending_certification', JSON.stringify({
+      buildId: buildResult.buildId,
+      mission: buildResult.spec?.slice(0, 100) || 'Build',
+      files: buildResult.files,
+      stats: buildResult.stats,
+      code: buildResult.code,
+      spec: buildResult.spec,
+      architecture: buildResult.architecture
+    }));
+    
+    addTerminal('Transferring to Workflow for 8-Gate Certification...', 'system');
+    onNavigate(PAGES.WORKFLOW);
   };
 
   const handleFranklinSend = async () => {
