@@ -800,7 +800,16 @@ const IDEPage = ({ onNavigate }) => {
             <span className="animate-spin">◈</span> BUILDING...
           </div>
         )}
-        {certificationStatus && (
+        {certificationStatus?.readyForCertification && !certificationStatus?.certified && (
+          <button 
+            onClick={sendToCertification} 
+            className="mr-4 px-4 py-1.5 text-sm font-mono text-cyan-400 border border-cyan-500/50 rounded hover:bg-cyan-500/20 transition-all animate-pulse"
+            data-testid="send-to-cert-btn"
+          >
+            ▶ SEND TO CERTIFICATION
+          </button>
+        )}
+        {certificationStatus?.certified && (
           <div className="mr-4 px-4 py-1.5 text-sm font-mono text-green-400 border border-green-500/50 rounded flex items-center gap-2">
             ✓ CERTIFIED
           </div>
