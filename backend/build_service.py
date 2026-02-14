@@ -90,25 +90,26 @@ class BuildService:
         # Step 5: Generate project tree
         tree = file_generator.get_project_tree(build_id)
         
-        # Step 6: Save to PostgreSQL
-        build_record = await db.create_build(
-            mission=mission,
-            user_id=user_id,
-            project_id=project_id
-        )
-        
-        await db.update_build(
-            build_record["id"],
-            status="completed",
-            spec_content=spec_content,
-            architecture_content=architecture_content,
-            code_content=code_content,
-            health_report=health_report,
-            artifacts_path=str(project_dir),
-            file_count=stats["files_created"],
-            total_lines=stats["total_lines"],
-            completed_at=datetime.now(timezone.utc)
-        )
+        # Step 6: Save to database (use our build_id)
+        # First save to MongoDB builds collection
+        await db.mongo.connect()
+        now = datetime.now(timezone.utc)
+        await db.mongo.db["builds"].insert_one({
+            "id": build_id,
+            "mission": mission,
+            "user_id": user_id,
+            "project_id": project_id,
+            "status": "completed",
+            "spec_content": spec_content,
+            "architecture_content": architecture_content,
+            "code_content": code_content,
+            "health_report": health_report,
+            "artifacts_path": str(project_dir),
+            "file_count": stats["files_created"],
+            "total_lines": stats["total_lines"],
+            "created_at": now,
+            "completed_at": now
+        })
         
         # Step 7: Save artifacts to MongoDB
         files_with_checksums = []
