@@ -1050,8 +1050,8 @@ def test_hello_name():
       return;
     }
     
-    // Download ZIP from Lithium
-    window.open(`${API}/api/lithium/build/${buildResult.buildId}/download`, '_blank');
+    // Download ZIP from Simple Build endpoint
+    window.open(`${API}/api/build/${buildResult.buildId}/download`, '_blank');
     addTerminal('ZIP download started!', 'success');
   };
 
