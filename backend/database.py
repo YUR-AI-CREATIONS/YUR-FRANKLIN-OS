@@ -461,7 +461,7 @@ class DatabaseManager:
             return result
     
     # ========================================================================
-    # CERTIFICATION OPERATIONS
+    # CERTIFICATION OPERATIONS (MongoDB fallback)
     # ========================================================================
     
     async def create_certification(self, build_id: str) -> Dict:
@@ -477,10 +477,29 @@ class DatabaseManager:
         content = f"{build.get('spec_content', '')}{build.get('architecture_content', '')}{build.get('code_content', '')}"
         cert_hash = hashlib.sha256(content.encode()).hexdigest()
         
-        await self.pg.execute(
-            """INSERT INTO certifications (id, build_id, certification_hash) VALUES ($1, $2::uuid, $3)""",
-            cert_id, build_id, cert_hash
-        )
+        if self._pg_available:
+            await self.pg.execute(
+                """INSERT INTO certifications (id, build_id, certification_hash) VALUES ($1, $2::uuid, $3)""",
+                cert_id, build_id, cert_hash
+            )
+        else:
+            await self.mongo.db["certifications"].insert_one({
+                "id": cert_id,
+                "build_id": build_id,
+                "certification_hash": cert_hash,
+                "gate_1_passed": False, "gate_1_details": None,
+                "gate_2_passed": False, "gate_2_details": None,
+                "gate_3_passed": False, "gate_3_details": None,
+                "gate_4_passed": False, "gate_4_details": None,
+                "gate_5_passed": False, "gate_5_details": None,
+                "gate_6_passed": False, "gate_6_details": None,
+                "gate_7_passed": False, "gate_7_details": None,
+                "gate_8_passed": False, "gate_8_details": None,
+                "all_gates_passed": False,
+                "certified_at": None,
+                "signed_by": "FRANKLIN",
+                "created_at": datetime.now(timezone.utc)
+            })
         
         return {"id": cert_id, "build_id": build_id, "hash": cert_hash}
     
@@ -489,19 +508,28 @@ class DatabaseManager:
         if gate_num < 1 or gate_num > 8:
             raise ValueError("Gate number must be between 1 and 8")
         
-        await self.pg.execute(
-            f"""UPDATE certifications 
-                SET gate_{gate_num}_passed = $1, gate_{gate_num}_details = $2
-                WHERE id = $3::uuid""",
-            passed, json.dumps(details), cert_id
-        )
+        if self._pg_available:
+            await self.pg.execute(
+                f"""UPDATE certifications 
+                    SET gate_{gate_num}_passed = $1, gate_{gate_num}_details = $2
+                    WHERE id = $3::uuid""",
+                passed, json.dumps(details), cert_id
+            )
+        else:
+            await self.mongo.db["certifications"].update_one(
+                {"id": cert_id},
+                {"$set": {f"gate_{gate_num}_passed": passed, f"gate_{gate_num}_details": details}}
+            )
     
     async def finalize_certification(self, cert_id: str) -> Dict:
         """Check all gates and finalize certification"""
-        cert = await self.pg.fetchrow(
-            """SELECT * FROM certifications WHERE id = $1::uuid""",
-            cert_id
-        )
+        if self._pg_available:
+            cert = await self.pg.fetchrow(
+                """SELECT * FROM certifications WHERE id = $1::uuid""",
+                cert_id
+            )
+        else:
+            cert = await self.mongo.db["certifications"].find_one({"id": cert_id})
         
         if not cert:
             raise ValueError(f"Certification {cert_id} not found")
@@ -518,42 +546,58 @@ class DatabaseManager:
             cert.get('gate_8_passed')
         ])
         
+        now = datetime.now(timezone.utc)
+        
         if all_passed:
-            await self.pg.execute(
-                """UPDATE certifications 
-                   SET all_gates_passed = TRUE, certified_at = NOW()
-                   WHERE id = $1::uuid""",
-                cert_id
-            )
-            
-            # Update build status
-            await self.pg.execute(
-                """UPDATE builds SET status = 'certified' WHERE id = (
-                    SELECT build_id FROM certifications WHERE id = $1::uuid
-                )""",
-                cert_id
-            )
+            if self._pg_available:
+                await self.pg.execute(
+                    """UPDATE certifications 
+                       SET all_gates_passed = TRUE, certified_at = NOW()
+                       WHERE id = $1::uuid""",
+                    cert_id
+                )
+                await self.pg.execute(
+                    """UPDATE builds SET status = 'certified' WHERE id = (
+                        SELECT build_id FROM certifications WHERE id = $1::uuid
+                    )""",
+                    cert_id
+                )
+            else:
+                await self.mongo.db["certifications"].update_one(
+                    {"id": cert_id},
+                    {"$set": {"all_gates_passed": True, "certified_at": now}}
+                )
+                build_id = cert.get("build_id")
+                await self.mongo.db["builds"].update_one(
+                    {"id": build_id},
+                    {"$set": {"status": "certified"}}
+                )
         
         return {
             "id": cert_id,
             "all_gates_passed": all_passed,
-            "certified_at": datetime.now(timezone.utc).isoformat() if all_passed else None
+            "certified_at": now.isoformat() if all_passed else None
         }
     
     async def get_certification(self, build_id: str) -> Optional[Dict]:
         """Get certification for a build"""
-        row = await self.pg.fetchrow(
-            """SELECT * FROM certifications WHERE build_id = $1::uuid""",
-            build_id
-        )
-        if row:
-            # Convert to dict and handle JSON fields
-            result = dict(row)
-            for i in range(1, 9):
-                key = f'gate_{i}_details'
-                if result.get(key) and isinstance(result[key], str):
-                    result[key] = json.loads(result[key])
-            return result
+        if self._pg_available:
+            row = await self.pg.fetchrow(
+                """SELECT * FROM certifications WHERE build_id = $1::uuid""",
+                build_id
+            )
+            if row:
+                result = dict(row)
+                for i in range(1, 9):
+                    key = f'gate_{i}_details'
+                    if result.get(key) and isinstance(result[key], str):
+                        result[key] = json.loads(result[key])
+                return result
+        else:
+            doc = await self.mongo.db["certifications"].find_one({"build_id": build_id})
+            if doc:
+                doc.pop('_id', None)
+                return doc
         return None
     
     # ========================================================================
