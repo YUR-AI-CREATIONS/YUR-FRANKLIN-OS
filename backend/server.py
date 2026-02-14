@@ -1829,6 +1829,9 @@ app.include_router(deploy_router)
 app.include_router(payment_router)
 app.include_router(webhook_router)
 
+# LITHIUM - Real build system
+app.include_router(lithium_router)
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
