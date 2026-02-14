@@ -567,6 +567,16 @@ const ElectricWorkflowPage = ({ onBack }) => {
         
         {/* Action Buttons */}
         <div className="p-3 border-t border-white/10 space-y-2">
+          {pendingBuild && (
+            <button 
+              onClick={runCertification} 
+              disabled={isCertifying} 
+              className={`w-full py-2.5 text-xs font-mono rounded transition-all ${isCertifying ? 'bg-cyan-500/20 text-cyan-400 animate-pulse' : 'bg-cyan-500/30 text-cyan-400 hover:bg-cyan-500/40'} border border-cyan-500/40`}
+              data-testid="run-certification-btn"
+            >
+              {isCertifying ? '◈ CERTIFYING...' : '▶ RUN 8-GATE CERTIFICATION'}
+            </button>
+          )}
           <button 
             onClick={runOuroborosLoop} 
             disabled={ouroborosActive} 
@@ -575,7 +585,7 @@ const ElectricWorkflowPage = ({ onBack }) => {
             {ouroborosActive ? '∞ CONVERGING...' : '▶ RUN OUROBOROS'}
           </button>
           <button 
-            onClick={() => { setCurrentStage(0); setConvergence(0); setQualityScores(QUALITY_DIMENSIONS); addTerminal('PIPELINE RESET', 'system'); setNodes(initialNodes); }} 
+            onClick={() => { setCurrentStage(0); setConvergence(0); setQualityScores(QUALITY_DIMENSIONS); addTerminal('PIPELINE RESET', 'system'); setNodes(initialNodes); setPendingBuild(null); setCertificationResult(null); }} 
             className="w-full py-2.5 text-xs font-mono bg-white/5 border border-white/10 rounded text-white/50 hover:bg-white/10 hover:text-white/70 transition-all"
           >
             ⟳ RESET
