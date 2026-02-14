@@ -183,7 +183,7 @@ class BuildService:
             )
         
         # Finalize certification
-        final = await db.finalize_certification(cert_record["id"])
+        await db.finalize_certification(cert_record["id"])
         
         # Update build status
         if cert_results["all_passed"]:

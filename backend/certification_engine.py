@@ -269,7 +269,7 @@ class CertificationEngine:
             try:
                 json.loads(jf.get("content", "{}"))
                 json_valid += 1
-            except:
+            except Exception:
                 errors.append(f"Invalid JSON: {jf.get('path')}")
         
         if json_files:
