@@ -88,6 +88,9 @@ const ElectricWorkflowPage = ({ onBack }) => {
   ]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [ouroborosActive, setOuroborosActive] = useState(false);
+  const [pendingBuild, setPendingBuild] = useState(null);
+  const [certificationResult, setCertificationResult] = useState(null);
+  const [isCertifying, setIsCertifying] = useState(false);
   const franklinRef = useRef(null);
   const terminalRef = useRef(null);
 
