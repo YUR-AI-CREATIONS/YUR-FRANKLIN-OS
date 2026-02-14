@@ -363,17 +363,29 @@ class DatabaseManager:
             return [doc async for doc in cursor]
     
     # ========================================================================
-    # BUILD OPERATIONS
+    # BUILD OPERATIONS (MongoDB fallback)
     # ========================================================================
     
     async def create_build(self, mission: str, user_id: str = None, project_id: str = None) -> Dict:
         """Create a new build record"""
         build_id = str(uuid4())
-        await self.pg.execute(
-            """INSERT INTO builds (id, mission, user_id, project_id, status) 
-               VALUES ($1, $2, $3::uuid, $4::uuid, 'building')""",
-            build_id, mission, user_id, project_id
-        )
+        now = datetime.now(timezone.utc)
+        
+        if self._pg_available:
+            await self.pg.execute(
+                """INSERT INTO builds (id, mission, user_id, project_id, status) 
+                   VALUES ($1, $2, $3::uuid, $4::uuid, 'building')""",
+                build_id, mission, user_id, project_id
+            )
+        else:
+            await self.mongo.db["builds"].insert_one({
+                "id": build_id,
+                "mission": mission,
+                "user_id": user_id,
+                "project_id": project_id,
+                "status": "building",
+                "created_at": now
+            })
         return {"id": build_id, "mission": mission, "status": "building"}
     
     async def update_build(self, build_id: str, **kwargs) -> None:
@@ -381,44 +393,72 @@ class DatabaseManager:
         allowed = ['status', 'spec_content', 'architecture_content', 'code_content', 
                    'health_report', 'artifacts_path', 'file_count', 'total_lines', 'completed_at']
         
-        updates = []
-        values = []
-        idx = 1
-        
-        for key, value in kwargs.items():
-            if key in allowed:
-                updates.append(f"{key} = ${idx}")
-                values.append(value)
-                idx += 1
-        
-        if updates:
-            values.append(build_id)
-            query = f"UPDATE builds SET {', '.join(updates)} WHERE id = ${idx}::uuid"
-            await self.pg.execute(query, *values)
+        if self._pg_available:
+            updates = []
+            values = []
+            idx = 1
+            
+            for key, value in kwargs.items():
+                if key in allowed:
+                    updates.append(f"{key} = ${idx}")
+                    values.append(value)
+                    idx += 1
+            
+            if updates:
+                values.append(build_id)
+                query = f"UPDATE builds SET {', '.join(updates)} WHERE id = ${idx}::uuid"
+                await self.pg.execute(query, *values)
+        else:
+            update_data = {k: v for k, v in kwargs.items() if k in allowed}
+            if update_data:
+                await self.mongo.db["builds"].update_one(
+                    {"id": build_id},
+                    {"$set": update_data}
+                )
     
     async def get_build(self, build_id: str) -> Optional[Dict]:
         """Get a build by ID"""
-        return await self.pg.fetchrow(
-            """SELECT * FROM builds WHERE id = $1::uuid""",
-            build_id
-        )
+        if self._pg_available:
+            return await self.pg.fetchrow(
+                """SELECT * FROM builds WHERE id = $1::uuid""",
+                build_id
+            )
+        else:
+            doc = await self.mongo.db["builds"].find_one({"id": build_id})
+            return dict(doc) if doc else None
     
     async def get_user_builds(self, user_id: str) -> List[Dict]:
         """Get all builds for a user"""
-        return await self.pg.fetch(
-            """SELECT id, mission, status, file_count, total_lines, created_at, completed_at 
-               FROM builds WHERE user_id = $1::uuid ORDER BY created_at DESC""",
-            user_id
-        )
+        if self._pg_available:
+            return await self.pg.fetch(
+                """SELECT id, mission, status, file_count, total_lines, created_at, completed_at 
+                   FROM builds WHERE user_id = $1::uuid ORDER BY created_at DESC""",
+                user_id
+            )
+        else:
+            cursor = self.mongo.db["builds"].find({"user_id": user_id}).sort("created_at", -1)
+            return [doc async for doc in cursor]
     
     async def get_pending_certification_builds(self) -> List[Dict]:
         """Get builds ready for certification"""
-        return await self.pg.fetch(
-            """SELECT b.* FROM builds b 
-               LEFT JOIN certifications c ON c.build_id = b.id
-               WHERE b.status = 'completed' AND c.id IS NULL
-               ORDER BY b.completed_at DESC"""
-        )
+        if self._pg_available:
+            return await self.pg.fetch(
+                """SELECT b.* FROM builds b 
+                   LEFT JOIN certifications c ON c.build_id = b.id
+                   WHERE b.status = 'completed' AND c.id IS NULL
+                   ORDER BY b.completed_at DESC"""
+            )
+        else:
+            # MongoDB: find builds with status=completed that don't have certifications
+            cursor = self.mongo.db["builds"].find({"status": "completed"}).sort("completed_at", -1)
+            builds = [doc async for doc in cursor]
+            # Filter out those with certifications
+            result = []
+            for build in builds:
+                cert = await self.mongo.db["certifications"].find_one({"build_id": build["id"]})
+                if not cert:
+                    result.append(build)
+            return result
     
     # ========================================================================
     # CERTIFICATION OPERATIONS
