@@ -245,6 +245,13 @@ const ElectricWorkflowPage = ({ onBack }) => {
       }
     }
     
+    // Check for certification
+    if (lower.includes('certif') || lower.includes('validate') || lower.includes('8-gate') || lower.includes('8 gate')) {
+      if (lower.includes('run') || lower.includes('start') || lower.includes('begin')) {
+        return { type: 'run_certification' };
+      }
+    }
+    
     // Check for ouroboros
     if (lower.includes('ouroboros') || lower.includes('converge') || lower.includes('convergence')) {
       if (lower.includes('run') || lower.includes('start') || lower.includes('execute') || lower.includes('begin')) {
