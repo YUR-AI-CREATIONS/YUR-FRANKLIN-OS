@@ -757,15 +757,23 @@ const IDEPage = ({ onNavigate }) => {
   };
 
   const downloadCode = () => {
-    if (!generatedCode) return;
-    const blob = new Blob([generatedCode], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `franklin-os-build-${Date.now()}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    addTerminal('Code downloaded!', 'success');
+    if (!buildResult?.buildId) {
+      // Fallback: download text blob
+      if (!generatedCode) return;
+      const blob = new Blob([generatedCode], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `franklin-os-build-${Date.now()}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+      addTerminal('Code downloaded!', 'success');
+      return;
+    }
+    
+    // Download ZIP from Lithium
+    window.open(`${API}/api/lithium/build/${buildResult.buildId}/download`, '_blank');
+    addTerminal('ZIP download started!', 'success');
   };
 
   const copyCode = () => {
