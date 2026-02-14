@@ -9,6 +9,30 @@ import './App.css';
 const API = process.env.REACT_APP_BACKEND_URL || '';
 const PAGES = { LANDING: 'landing', IDE: 'ide', WORKFLOW: 'workflow' };
 
+// Genesis Pipeline Stages
+const GENESIS_STAGES = [
+  { id: 'inception', name: 'INCEPTION', desc: 'Requirement validation' },
+  { id: 'specification', name: 'SPECIFICATION', desc: 'Detailed spec generation' },
+  { id: 'architecture', name: 'ARCHITECTURE', desc: 'System design' },
+  { id: 'construction', name: 'CONSTRUCTION', desc: 'Code generation' },
+  { id: 'validation', name: 'VALIDATION', desc: 'Testing' },
+  { id: 'evolution', name: 'EVOLUTION', desc: 'Optimization' },
+  { id: 'deployment', name: 'DEPLOYMENT', desc: 'Deployment prep' },
+  { id: 'governance', name: 'GOVERNANCE', desc: 'Compliance check' }
+];
+
+// Quality Gate Dimensions
+const QUALITY_DIMENSIONS = [
+  { name: 'Completeness', weight: 1.5, score: 0 },
+  { name: 'Coherence', weight: 1.3, score: 0 },
+  { name: 'Correctness', weight: 1.5, score: 0 },
+  { name: 'Security', weight: 1.4, score: 0 },
+  { name: 'Performance', weight: 1.0, score: 0 },
+  { name: 'Scalability', weight: 1.0, score: 0 },
+  { name: 'Maintainability', weight: 1.1, score: 0 },
+  { name: 'Compliance', weight: 1.2, score: 0 }
+];
+
 // GALACTIC BACKGROUND
 const GalacticBackground = () => {
   const canvasRef = useRef(null);
@@ -21,7 +45,7 @@ const GalacticBackground = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       stars = [];
-      for (let i = 0; i < 100; i++) stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 1.5 + 0.5, speed: Math.random() * 2 + 0.5, phase: Math.random() * Math.PI * 2 });
+      for (let i = 0; i < 150; i++) stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 1.5 + 0.5, speed: Math.random() * 2 + 0.5, phase: Math.random() * Math.PI * 2 });
     };
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -42,87 +66,596 @@ const GalacticBackground = () => {
   return <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />;
 };
 
-// WORKFLOW PAGE
-const ElectricWorkflowPage = ({ onBack, workflowNodes, workflowEdges, onNodesChange, onEdgesChange }) => {
-  const [leftOpen, setLeftOpen] = useState(true);
-  const [rightOpen, setRightOpen] = useState(true);
+// ============================================================================
+// ELECTRIC WORKFLOW PAGE - Full Genesis Pipeline with Franklin Chat
+// ============================================================================
+const ElectricWorkflowPage = ({ onBack }) => {
+  const [currentStage, setCurrentStage] = useState(0);
+  const [convergence, setConvergence] = useState(0);
+  const [qualityScores, setQualityScores] = useState(QUALITY_DIMENSIONS);
+  const [leftPanelOpen, setLeftPanelOpen] = useState(true);
+  const [rightPanelOpen, setRightPanelOpen] = useState(true);
   const [chatInput, setChatInput] = useState('');
-  const [chatHistory, setChatHistory] = useState([{ role: 'system', content: 'Workflow initialized.' }]);
+  const [franklinChat, setFranklinChat] = useState([
+    { role: 'franklin', content: 'Welcome to the Genesis Pipeline. I\'m Franklin, your AI guide. I can help you navigate and control this workflow.' },
+    { role: 'franklin', content: 'Try commands like: "move to specification stage", "run ouroboros loop", "check quality gates", or just ask me anything about your project.' }
+  ]);
+  const [terminalOutput, setTerminalOutput] = useState([
+    { type: 'system', text: '> GENESIS ENGINE v2.0 ONLINE' },
+    { type: 'info', text: '> Ouroboros Loop: STANDBY' },
+    { type: 'info', text: '> Quality Gates: 8 DIMENSIONS READY' },
+    { type: 'success', text: '> System ready for project initialization' }
+  ]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const chatRef = useRef(null);
-  useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [chatHistory]);
-  const onConnect = useCallback((params) => onEdgesChange((eds) => addEdge({ ...params, animated: true, style: { stroke: '#00ff88', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#00ff88' } }, eds)), [onEdgesChange]);
+  const [ouroborosActive, setOuroborosActive] = useState(false);
+  const [pendingBuild, setPendingBuild] = useState(null);
+  const [certificationResult, setCertificationResult] = useState(null);
+  const [isCertifying, setIsCertifying] = useState(false);
+  const franklinRef = useRef(null);
+  const terminalRef = useRef(null);
+
+  // Workflow nodes for ReactFlow - 8 stage pipeline
+  const initialNodes = [
+    { id: 'inception', position: { x: 100, y: 100 }, data: { label: 'INCEPTION' }, style: { background: '#1a1a2e', border: '2px solid #00ff88', color: '#fff', padding: 20, borderRadius: 8, width: 140 } },
+    { id: 'specification', position: { x: 300, y: 100 }, data: { label: 'SPECIFICATION' }, style: { background: '#1a1a2e', border: '2px solid #00d4ff', color: '#fff', padding: 20, borderRadius: 8, width: 140 } },
+    { id: 'architecture', position: { x: 500, y: 100 }, data: { label: 'ARCHITECTURE' }, style: { background: '#1a1a2e', border: '2px solid #a855f7', color: '#fff', padding: 20, borderRadius: 8, width: 140 } },
+    { id: 'construction', position: { x: 700, y: 100 }, data: { label: 'CONSTRUCTION' }, style: { background: '#1a1a2e', border: '2px solid #f59e0b', color: '#fff', padding: 20, borderRadius: 8, width: 140 } },
+    { id: 'validation', position: { x: 100, y: 250 }, data: { label: 'VALIDATION' }, style: { background: '#1a1a2e', border: '2px solid #ef4444', color: '#fff', padding: 20, borderRadius: 8, width: 140 } },
+    { id: 'evolution', position: { x: 300, y: 250 }, data: { label: 'EVOLUTION' }, style: { background: '#1a1a2e', border: '2px solid #22c55e', color: '#fff', padding: 20, borderRadius: 8, width: 140 } },
+    { id: 'deployment', position: { x: 500, y: 250 }, data: { label: 'DEPLOYMENT' }, style: { background: '#1a1a2e', border: '2px solid #3b82f6', color: '#fff', padding: 20, borderRadius: 8, width: 140 } },
+    { id: 'governance', position: { x: 700, y: 250 }, data: { label: 'GOVERNANCE' }, style: { background: '#1a1a2e', border: '2px solid #ec4899', color: '#fff', padding: 20, borderRadius: 8, width: 140 } },
+    // Ouroboros center node
+    { id: 'ouroboros', position: { x: 400, y: 400 }, data: { label: '∞ OUROBOROS' }, style: { background: '#0f0f23', border: '3px solid #00ff88', color: '#00ff88', padding: 25, borderRadius: '50%', width: 120, height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold' } },
+  ];
+
+  const initialEdges = [
+    { id: 'e1', source: 'inception', target: 'specification', animated: true, style: { stroke: '#00ff88' }, markerEnd: { type: MarkerType.ArrowClosed } },
+    { id: 'e2', source: 'specification', target: 'architecture', animated: true, style: { stroke: '#00d4ff' }, markerEnd: { type: MarkerType.ArrowClosed } },
+    { id: 'e3', source: 'architecture', target: 'construction', animated: true, style: { stroke: '#a855f7' }, markerEnd: { type: MarkerType.ArrowClosed } },
+    { id: 'e4', source: 'construction', target: 'validation', animated: true, style: { stroke: '#f59e0b' }, markerEnd: { type: MarkerType.ArrowClosed } },
+    { id: 'e5', source: 'validation', target: 'evolution', animated: true, style: { stroke: '#ef4444' }, markerEnd: { type: MarkerType.ArrowClosed } },
+    { id: 'e6', source: 'evolution', target: 'deployment', animated: true, style: { stroke: '#22c55e' }, markerEnd: { type: MarkerType.ArrowClosed } },
+    { id: 'e7', source: 'deployment', target: 'governance', animated: true, style: { stroke: '#3b82f6' }, markerEnd: { type: MarkerType.ArrowClosed } },
+    // Ouroboros loop connections
+    { id: 'e8', source: 'governance', target: 'ouroboros', animated: true, style: { stroke: '#00ff88', strokeDasharray: '5,5' }, markerEnd: { type: MarkerType.ArrowClosed } },
+    { id: 'e9', source: 'ouroboros', target: 'inception', animated: true, style: { stroke: '#00ff88', strokeDasharray: '5,5' }, markerEnd: { type: MarkerType.ArrowClosed } },
+  ];
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  // Load pending certification from IDE
+  useEffect(() => {
+    const pending = localStorage.getItem('pending_certification');
+    if (pending) {
+      try {
+        const data = JSON.parse(pending);
+        setPendingBuild(data);
+        setFranklinChat(prev => [...prev, { 
+          role: 'franklin', 
+          content: `📦 **BUILD LOADED**\n\nBuild ID: ${data.buildId}\nFiles: ${data.files?.length || 0}\nLines: ${data.stats?.total_lines || 0}\n\nSay "run certification" or click **RUN 8-GATE CERTIFICATION** to validate this build.`
+        }]);
+        addTerminal(`Build ${data.buildId} loaded from IDE`, 'system');
+        localStorage.removeItem('pending_certification');
+      } catch (e) {
+        console.error('Failed to load pending certification:', e);
+      }
+    }
+  }, []);
+
+  useEffect(() => { if (franklinRef.current) franklinRef.current.scrollTop = franklinRef.current.scrollHeight; }, [franklinChat]);
+  useEffect(() => { if (terminalRef.current) terminalRef.current.scrollTop = terminalRef.current.scrollHeight; }, [terminalOutput]);
+
+  const addTerminal = (text, type = 'info') => setTerminalOutput(prev => [...prev, { type, text: `> ${text}` }]);
+
+  // Run real 8-Gate Certification
+  const runCertification = async () => {
+    if (!pendingBuild?.buildId) {
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: 'No build loaded. Go to IDE and build something first, then click "SEND TO CERTIFICATION".' }]);
+      return;
+    }
+
+    setIsCertifying(true);
+    addTerminal('═══════════════════════════════════════', 'system');
+    addTerminal('8-GATE CERTIFICATION INITIATED', 'system');
+    addTerminal(`Build ID: ${pendingBuild.buildId}`, 'info');
+    addTerminal('═══════════════════════════════════════', 'system');
+
+    setFranklinChat(prev => [...prev, { role: 'franklin', content: '🔍 **RUNNING 8-GATE CERTIFICATION**\n\nValidating your build against all 8 quality gates...' }]);
+
+    try {
+      const res = await axios.post(`${API}/api/lithium/certify`, {
+        build_id: pendingBuild.buildId
+      });
+
+      const { gates, all_gates_passed, total_score, certification_hash, certified_at } = res.data;
+      setCertificationResult(res.data);
+
+      // Update quality scores based on gate results
+      const gateNames = ['Intent', 'Data', 'Model', 'Vector', 'Orchestration', 'API', 'UI', 'Security'];
+      setQualityScores(gateNames.map((name, idx) => ({
+        name,
+        weight: 1.0,
+        score: gates[idx]?.score || 0
+      })));
+
+      // Log each gate result
+      gates.forEach((gate, idx) => {
+        setCurrentStage(idx);
+        const status = gate.passed ? '✓ PASSED' : '✗ FAILED';
+        const type = gate.passed ? 'success' : 'error';
+        addTerminal(`Gate ${idx + 1}: ${gate.gate_name} - ${status} (${gate.score.toFixed(0)}%)`, type);
+        
+        if (gate.errors?.length > 0) {
+          gate.errors.forEach(err => addTerminal(`  └─ ${err}`, 'error'));
+        }
+      });
+
+      setConvergence(total_score);
+
+      if (all_gates_passed) {
+        addTerminal('═══════════════════════════════════════', 'success');
+        addTerminal('✓ ALL GATES PASSED', 'success');
+        addTerminal('✓ FRANKLIN OS CERTIFIED', 'success');
+        addTerminal(`Hash: ${certification_hash?.slice(0, 16)}...`, 'success');
+        addTerminal(`Certified: ${certified_at}`, 'success');
+
+        setFranklinChat(prev => [...prev, { 
+          role: 'franklin', 
+          content: `✅ **CERTIFICATION COMPLETE**\n\n**Result:** ALL 8 GATES PASSED\n**Score:** ${total_score.toFixed(1)}%\n**Hash:** ${certification_hash}\n**Certified:** ${certified_at}\n\n🎉 Your build is now **FRANKLIN OS CERTIFIED** and ready for deployment!`
+        }]);
+      } else {
+        const failedGates = gates.filter(g => !g.passed).map(g => g.gate_name);
+        addTerminal('═══════════════════════════════════════', 'error');
+        addTerminal(`✗ CERTIFICATION FAILED - ${failedGates.length} gates did not pass`, 'error');
+
+        setFranklinChat(prev => [...prev, { 
+          role: 'franklin', 
+          content: `⚠️ **CERTIFICATION INCOMPLETE**\n\n**Score:** ${total_score.toFixed(1)}%\n**Failed Gates:** ${failedGates.join(', ')}\n\nReview the issues and fix them in the IDE, then re-submit for certification.`
+        }]);
+      }
+
+    } catch (err) {
+      addTerminal('CERTIFICATION FAILED', 'error');
+      addTerminal(err.message || 'Unknown error', 'error');
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: `❌ Certification failed: ${err.message}` }]);
+    }
+
+    setIsCertifying(false);
+  };
+
+  // Parse natural language commands for pipeline control
+  const parseCommand = (input) => {
+    const lower = input.toLowerCase();
+    
+    // Stage navigation commands
+    const stageKeywords = {
+      'inception': 0, 'spec': 1, 'specification': 1, 'arch': 2, 'architecture': 2,
+      'construction': 3, 'build': 3, 'validation': 4, 'test': 4, 'testing': 4,
+      'evolution': 5, 'optimize': 5, 'deploy': 6, 'deployment': 6,
+      'governance': 7, 'govern': 7, 'compliance': 7
+    };
+    
+    // Check for stage movement
+    if (lower.includes('move to') || lower.includes('go to') || lower.includes('jump to') || lower.includes('set stage')) {
+      for (const [keyword, stageIdx] of Object.entries(stageKeywords)) {
+        if (lower.includes(keyword)) {
+          return { type: 'move_stage', stage: stageIdx, stageName: GENESIS_STAGES[stageIdx].name };
+        }
+      }
+    }
+    
+    // Check for certification
+    if (lower.includes('certif') || lower.includes('validate') || lower.includes('8-gate') || lower.includes('8 gate')) {
+      if (lower.includes('run') || lower.includes('start') || lower.includes('begin')) {
+        return { type: 'run_certification' };
+      }
+    }
+    
+    // Check for ouroboros
+    if (lower.includes('ouroboros') || lower.includes('converge') || lower.includes('convergence')) {
+      if (lower.includes('run') || lower.includes('start') || lower.includes('execute') || lower.includes('begin')) {
+        return { type: 'run_ouroboros' };
+      }
+    }
+    
+    // Check for quality gate queries
+    if (lower.includes('quality') || lower.includes('gate')) {
+      return { type: 'quality_check' };
+    }
+    
+    // Check for status
+    if (lower.includes('status') || lower.includes('where am i') || lower.includes('current stage')) {
+      return { type: 'status' };
+    }
+    
+    // Check for reset
+    if (lower.includes('reset') || lower.includes('restart') || lower.includes('start over')) {
+      return { type: 'reset' };
+    }
+    
+    // Check for genesis command
+    if (lower.startsWith('/genesis ') || lower.includes('start project') || lower.includes('begin project') || lower.includes('initialize project')) {
+      const projectName = input.replace(/^\/genesis\s+/i, '').replace(/start project|begin project|initialize project/i, '').trim();
+      return { type: 'genesis', projectName: projectName || 'New Project' };
+    }
+    
+    // Check for next/previous stage
+    if (lower.includes('next stage') || lower.includes('advance') || lower.includes('proceed')) {
+      return { type: 'next_stage' };
+    }
+    if (lower.includes('previous stage') || lower.includes('go back') || lower.includes('back stage')) {
+      return { type: 'prev_stage' };
+    }
+    
+    return { type: 'chat', message: input };
+  };
+
+  // Execute parsed commands
+  const executeCommand = async (command) => {
+    switch (command.type) {
+      case 'move_stage':
+        setCurrentStage(command.stage);
+        addTerminal(`MOVED TO: ${command.stageName}`, 'system');
+        highlightStage(command.stage);
+        return `Moving to ${command.stageName} stage. This stage handles: ${GENESIS_STAGES[command.stage].desc}`;
+      
+      case 'run_certification':
+        if (isCertifying) {
+          return 'Certification is already running. Please wait.';
+        }
+        runCertification();
+        return 'Starting 8-Gate Certification...';
+      
+      case 'run_ouroboros':
+        if (ouroborosActive) {
+          return 'Ouroboros loop is already running. Please wait for it to complete.';
+        }
+        runOuroborosLoop();
+        return 'Initiating Ouroboros convergence loop. Target: 99% convergence across all quality dimensions.';
+      
+      case 'quality_check':
+        const avgScore = qualityScores.reduce((a, b) => a + b.score, 0) / qualityScores.length;
+        const qualityReport = qualityScores.map(q => `• ${q.name}: ${q.score.toFixed(1)}%`).join('\n');
+        return `8-Dimensional Quality Gate Assessment:\n\nAverage Score: ${avgScore.toFixed(1)}%\n\n${qualityReport}\n\nUse "run ouroboros" to improve scores.`;
+      
+      case 'status':
+        const stage = GENESIS_STAGES[currentStage];
+        const buildStatus = pendingBuild ? `Build: ${pendingBuild.buildId}` : 'No build loaded';
+        return `Current Status:\n• Stage: ${stage.name} (${currentStage + 1}/8)\n• Description: ${stage.desc}\n• Convergence: ${convergence.toFixed(1)}%\n• ${buildStatus}\n• Ouroboros: ${ouroborosActive ? 'ACTIVE' : 'STANDBY'}`;
+      
+      case 'reset':
+        setCurrentStage(0);
+        setConvergence(0);
+        setQualityScores(QUALITY_DIMENSIONS);
+        addTerminal('PIPELINE RESET', 'system');
+        setNodes(initialNodes);
+        return 'Pipeline has been reset to INCEPTION stage. All quality scores cleared.';
+      
+      case 'genesis':
+        addTerminal(`PROJECT: ${command.projectName}`, 'system');
+        await runGenesisPipeline(command.projectName);
+        return `Genesis Pipeline initiated for "${command.projectName}". Running through all 8 stages...`;
+      
+      case 'next_stage':
+        if (currentStage < 7) {
+          const nextStage = currentStage + 1;
+          setCurrentStage(nextStage);
+          addTerminal(`ADVANCED TO: ${GENESIS_STAGES[nextStage].name}`, 'system');
+          highlightStage(nextStage);
+          return `Advanced to ${GENESIS_STAGES[nextStage].name} stage.`;
+        }
+        return 'Already at the final stage (GOVERNANCE). Use "run ouroboros" to complete the loop.';
+      
+      case 'prev_stage':
+        if (currentStage > 0) {
+          const prevStage = currentStage - 1;
+          setCurrentStage(prevStage);
+          addTerminal(`RETURNED TO: ${GENESIS_STAGES[prevStage].name}`, 'system');
+          highlightStage(prevStage);
+          return `Returned to ${GENESIS_STAGES[prevStage].name} stage.`;
+        }
+        return 'Already at the first stage (INCEPTION).';
+      
+      default:
+        return null; // Will be handled by AI chat
+    }
+  };
+
+  const highlightStage = (stageIdx) => {
+    setNodes(nds => nds.map(n => ({
+      ...n,
+      style: {
+        ...n.style,
+        boxShadow: n.id === GENESIS_STAGES[stageIdx]?.id ? '0 0 25px #00ff88, 0 0 50px #00ff88' : 'none'
+      }
+    })));
+  };
+
+  const runGenesisPipeline = async (projectName) => {
+    for (let i = 0; i < GENESIS_STAGES.length; i++) {
+      await new Promise(r => setTimeout(r, 800));
+      setCurrentStage(i);
+      addTerminal(`[${GENESIS_STAGES[i].name}] ${GENESIS_STAGES[i].desc}`, 'info');
+      highlightStage(i);
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: `Stage ${i + 1}/8: ${GENESIS_STAGES[i].name} - ${GENESIS_STAGES[i].desc}` }]);
+    }
+    addTerminal('PIPELINE COMPLETE', 'success');
+    addTerminal('Ready for Ouroboros convergence', 'info');
+  };
+
+  const runOuroborosLoop = () => {
+    setOuroborosActive(true);
+    addTerminal('OUROBOROS LOOP INITIATED', 'system');
+    addTerminal('Target: 99% convergence', 'info');
+    
+    let conv = convergence;
+    const interval = setInterval(() => {
+      conv += Math.random() * 5 + 2;
+      if (conv >= 99) {
+        conv = 99;
+        clearInterval(interval);
+        setOuroborosActive(false);
+        addTerminal('CONVERGENCE ACHIEVED: 99%', 'success');
+        addTerminal('Frozen Spine: LOCKED', 'success');
+        setFranklinChat(prev => [...prev, { role: 'franklin', content: '✓ Ouroboros Loop complete. 99% convergence achieved. Your project spine is now frozen and ready for deployment.' }]);
+      }
+      setConvergence(conv);
+      
+      // Update quality scores
+      setQualityScores(prev => prev.map(q => ({
+        ...q,
+        score: Math.min(100, q.score + Math.random() * 10)
+      })));
+    }, 500);
+  };
+
   const handleChatSend = async () => {
     if (!chatInput.trim() || isProcessing) return;
-    setChatHistory(prev => [...prev, { role: 'user', content: chatInput }]);
-    setChatInput(''); setIsProcessing(true);
+    const input = chatInput.trim();
+    setChatInput('');
+    setFranklinChat(prev => [...prev, { role: 'user', content: input }]);
+    setIsProcessing(true);
+
+    // Parse and try to execute command
+    const command = parseCommand(input);
+    const commandResult = await executeCommand(command);
+    
+    if (commandResult) {
+      // Command was handled locally
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: commandResult }]);
+      setIsProcessing(false);
+      return;
+    }
+
+    // If not a command, chat with the AI
     try {
-      const res = await axios.post(`${API}/api/grok/chat`, { message: chatInput, history: chatHistory.slice(-6) });
-      if (res.data.response) setChatHistory(prev => [...prev, { role: 'assistant', content: res.data.response }]);
-    } catch { setChatHistory(prev => [...prev, { role: 'assistant', content: 'I can help with that.' }]); }
+      const res = await axios.post(`${API}/api/build-orchestrator/chat`, { 
+        message: input,
+        context: `User is on the Genesis Pipeline workflow page. Current stage: ${GENESIS_STAGES[currentStage].name}. Convergence: ${convergence.toFixed(1)}%.`
+      });
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: res.data.response || "I can help you with that. Try asking about the pipeline stages or use commands like 'move to specification'." }]);
+    } catch {
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: "I'm here to help navigate the Genesis Pipeline. You can say things like 'move to architecture stage', 'run ouroboros', 'check quality gates', or 'what's my current status'." }]);
+    }
     setIsProcessing(false);
   };
+
+  const onConnect = useCallback((params) => setEdges((eds) => addEdge({ ...params, animated: true, style: { stroke: '#00ff88' } }, eds)), [setEdges]);
+
   return (
-    <div className="h-screen w-screen overflow-hidden bg-black text-white relative">
+    <div className="h-screen w-screen overflow-hidden bg-black text-white relative" data-testid="workflow-page">
       <GalacticBackground />
-      <div className="absolute top-0 left-0 right-0 h-14 z-50 bg-black/80 border-b border-white/10 flex items-center justify-center">
-        <button onClick={onBack} className="absolute left-4 px-4 py-2 text-sm font-mono text-white/70 hover:text-white" data-testid="back-to-ide">◀ BACK TO IDE</button>
-        <h1 className="text-xl font-mono tracking-widest" style={{ fontFamily: "'Orbitron', sans-serif" }}>◈ ELECTRIC WORKFLOW</h1>
+      
+      {/* GHOST FRANKLIN - Same as IDE page */}
+      <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-[1]">
+        <h1 className="select-none" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '12vw', fontWeight: 600, letterSpacing: '0.3em', color: 'rgba(80,80,80,0.12)' }}>FRANKLIN</h1>
       </div>
-      <div className={`absolute top-14 bottom-14 z-40 bg-black/90 border-r border-white/10 transition-all ${leftOpen ? 'left-0 w-80' : '-left-80 w-80'}`}>
-        <button onClick={() => setLeftOpen(!leftOpen)} className="absolute -right-10 top-1/2 -translate-y-1/2 w-10 h-20 bg-black border border-white/10 rounded-r-lg flex items-center justify-center text-white/50 hover:text-white text-lg">{leftOpen ? '◀' : '▶'}</button>
-        <div className="p-4 h-full flex flex-col">
-          <div className="text-sm font-mono text-white/50 mb-4">◆ CHAT RESPONSE</div>
-          <div ref={chatRef} className="flex-1 overflow-y-auto space-y-4">
-            {chatHistory.map((msg, idx) => <div key={idx} className={`text-sm font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/80'}`}><span className="text-white/40 text-xs">[{msg.role.toUpperCase()}]</span><p className="mt-1">{msg.content}</p></div>)}
+      
+      {/* HEADER */}
+      <div className="absolute top-0 left-0 right-0 h-12 z-50 bg-black/80 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6">
+        <button onClick={onBack} className="px-4 py-2 text-sm font-mono text-white/70 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition-all" data-testid="back-to-ide">
+          ◀ BACK TO IDE
+        </button>
+        <div className="text-center">
+          <h1 className="text-lg font-mono tracking-[0.2em] text-white" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+            ◈ GENESIS PIPELINE
+          </h1>
+          <p className="text-[10px] text-white/40">OUROBOROS LOOP • 8 QUALITY GATES • FROZEN SPINE</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="text-sm font-mono">
+            <span className="text-white/40">Convergence:</span>
+            <span className={`ml-2 font-semibold ${convergence >= 99 ? 'text-green-400' : convergence >= 50 ? 'text-yellow-400' : 'text-white/60'}`}>{convergence.toFixed(1)}%</span>
+          </div>
+          <div className={`w-2.5 h-2.5 rounded-full ${ouroborosActive ? 'bg-green-400 animate-pulse shadow-lg shadow-green-400/50' : 'bg-white/20'}`} />
+        </div>
+      </div>
+
+      {/* LEFT PANEL - Franklin Chat */}
+      <div className={`absolute top-12 bottom-0 z-40 bg-black/70 backdrop-blur-sm border-r border-white/10 transition-all duration-300 flex flex-col ${leftPanelOpen ? 'left-0 w-80' : '-left-80 w-80'}`}>
+        <button onClick={() => setLeftPanelOpen(!leftPanelOpen)} className="absolute -right-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/70 backdrop-blur-sm border border-white/10 rounded-r flex items-center justify-center text-white/50 hover:text-white text-sm transition-all">
+          {leftPanelOpen ? '◀' : '▶'}
+        </button>
+        
+        {/* Franklin Header */}
+        <div className="h-10 px-4 border-b border-white/10 flex items-center justify-between bg-black/50">
+          <span className="text-sm font-mono text-cyan-400 font-semibold">◆ FRANKLIN</span>
+          <span className="text-[10px] font-mono text-white/30">Pipeline Guide</span>
+        </div>
+        
+        {/* Franklin Chat */}
+        <div ref={franklinRef} className="flex-1 overflow-y-auto p-3 space-y-3">
+          {franklinChat.map((msg, idx) => (
+            <div key={idx} className={`text-sm font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/70'}`}>
+              <span className="text-[10px] text-white/30 uppercase">{msg.role === 'user' ? '◈ YOU' : '◈ FRANKLIN'}</span>
+              <p className="mt-1 whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+            </div>
+          ))}
+          {isProcessing && <div className="text-purple-400 text-sm flex items-center gap-2"><span className="animate-spin">◈</span> Processing...</div>}
+        </div>
+        
+        {/* Franklin Prompt */}
+        <div className="h-12 px-3 border-t border-cyan-500/30 bg-black/60 flex items-center gap-2">
+          <span className="text-sm font-mono text-cyan-400">Franklin ▶</span>
+          <input 
+            type="text" 
+            value={chatInput} 
+            onChange={(e) => setChatInput(e.target.value)} 
+            onKeyDown={(e) => e.key === 'Enter' && handleChatSend()} 
+            placeholder="Ask or command..." 
+            className="flex-1 bg-transparent text-sm font-mono text-white placeholder-white/30 focus:outline-none" 
+            data-testid="workflow-franklin-prompt"
+          />
+        </div>
+        
+        {/* Terminal Section */}
+        <div className="h-36 flex flex-col border-t border-white/10">
+          <div className="h-7 px-3 border-b border-white/10 flex items-center bg-black/50">
+            <span className="text-xs font-mono text-purple-400">◆ TERMINAL</span>
+          </div>
+          <div ref={terminalRef} className="flex-1 overflow-y-auto p-2">
+            {terminalOutput.map((line, idx) => (
+              <div key={idx} className={`text-[11px] font-mono ${line.type === 'error' ? 'text-red-400' : line.type === 'success' ? 'text-green-400' : line.type === 'system' ? 'text-purple-400' : 'text-white/50'}`}>{line.text}</div>
+            ))}
           </div>
         </div>
       </div>
-      <div className={`absolute top-14 bottom-14 z-40 bg-black/90 border-l border-white/10 transition-all ${rightOpen ? 'right-0 w-80' : '-right-80 w-80'}`}>
-        <button onClick={() => setRightOpen(!rightOpen)} className="absolute -left-10 top-1/2 -translate-y-1/2 w-10 h-20 bg-black border border-white/10 rounded-l-lg flex items-center justify-center text-white/50 hover:text-white text-lg">{rightOpen ? '▶' : '◀'}</button>
-        <div className="p-4 h-full flex flex-col">
-          <div className="text-sm font-mono text-white/50 mb-4">◆ CONTROLS</div>
-          <div className="space-y-3">{['Specification', 'Architecture', 'Implementation', 'Quality', 'Certification'].map((s, i) => <div key={s} className="flex items-center gap-3"><div className={`w-4 h-4 rounded-full ${i < 2 ? 'bg-green-400' : 'bg-white/20'}`} /><span className="text-sm font-mono text-white/60">{s}</span></div>)}</div>
-          <div className="mt-auto space-y-3">
-            <button className="w-full py-3 text-sm font-mono bg-green-500/20 border border-green-500/30 rounded-lg text-green-400">▶ RUN WORKFLOW</button>
-            <button className="w-full py-3 text-sm font-mono bg-white/5 border border-white/10 rounded-lg text-white/60">⟳ RESET</button>
+
+      {/* RIGHT PANEL - Controls & Quality */}
+      <div className={`absolute top-12 bottom-0 z-40 bg-black/70 backdrop-blur-sm border-l border-white/10 transition-all duration-300 flex flex-col ${rightPanelOpen ? 'right-0 w-72' : '-right-72 w-72'}`}>
+        <button onClick={() => setRightPanelOpen(!rightPanelOpen)} className="absolute -left-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/70 backdrop-blur-sm border border-white/10 rounded-l flex items-center justify-center text-white/50 hover:text-white text-sm transition-all">
+          {rightPanelOpen ? '▶' : '◀'}
+        </button>
+        
+        {/* Stage Progress */}
+        <div className="p-3 border-b border-white/10">
+          <div className="text-xs font-mono text-white/50 mb-2">GENESIS STAGES</div>
+          <div className="space-y-1.5">
+            {GENESIS_STAGES.map((stage, idx) => (
+              <div 
+                key={stage.id} 
+                className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer transition-all ${idx === currentStage ? 'bg-cyan-500/20' : 'hover:bg-white/5'}`}
+                onClick={() => { setCurrentStage(idx); highlightStage(idx); addTerminal(`JUMPED TO: ${stage.name}`, 'system'); }}
+              >
+                <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] ${idx < currentStage ? 'bg-green-400 text-black' : idx === currentStage ? 'bg-cyan-400 animate-pulse text-black' : 'bg-white/15 text-white/30'}`}>
+                  {idx < currentStage ? '✓' : idx + 1}
+                </div>
+                <span className={`text-xs font-mono ${idx <= currentStage ? 'text-white' : 'text-white/35'}`}>{stage.name}</span>
+              </div>
+            ))}
           </div>
         </div>
+        
+        {/* Quality Gates */}
+        <div className="flex-1 p-3 overflow-y-auto">
+          <div className="text-xs font-mono text-white/50 mb-2">8D QUALITY GATES</div>
+          <div className="space-y-2">
+            {qualityScores.map(q => (
+              <div key={q.name}>
+                <div className="flex justify-between text-[10px] font-mono mb-0.5">
+                  <span className="text-white/60">{q.name}</span>
+                  <span className={q.score >= 80 ? 'text-green-400' : q.score >= 50 ? 'text-yellow-400' : 'text-white/30'}>{q.score.toFixed(0)}%</span>
+                </div>
+                <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                  <div className={`h-full transition-all duration-500 ${q.score >= 80 ? 'bg-green-400' : q.score >= 50 ? 'bg-yellow-400' : 'bg-white/20'}`} style={{ width: `${q.score}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Action Buttons */}
+        <div className="p-3 border-t border-white/10 space-y-2">
+          {pendingBuild && (
+            <button 
+              onClick={runCertification} 
+              disabled={isCertifying} 
+              className={`w-full py-2.5 text-xs font-mono rounded transition-all ${isCertifying ? 'bg-cyan-500/20 text-cyan-400 animate-pulse' : 'bg-cyan-500/30 text-cyan-400 hover:bg-cyan-500/40'} border border-cyan-500/40`}
+              data-testid="run-certification-btn"
+            >
+              {isCertifying ? '◈ CERTIFYING...' : '▶ RUN 8-GATE CERTIFICATION'}
+            </button>
+          )}
+          <button 
+            onClick={runOuroborosLoop} 
+            disabled={ouroborosActive} 
+            className={`w-full py-2.5 text-xs font-mono rounded transition-all ${ouroborosActive ? 'bg-green-500/20 text-green-400 animate-pulse' : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'} border border-green-500/30`}
+          >
+            {ouroborosActive ? '∞ CONVERGING...' : '▶ RUN OUROBOROS'}
+          </button>
+          <button 
+            onClick={() => { setCurrentStage(0); setConvergence(0); setQualityScores(QUALITY_DIMENSIONS); addTerminal('PIPELINE RESET', 'system'); setNodes(initialNodes); setPendingBuild(null); setCertificationResult(null); }} 
+            className="w-full py-2.5 text-xs font-mono bg-white/5 border border-white/10 rounded text-white/50 hover:bg-white/10 hover:text-white/70 transition-all"
+          >
+            ⟳ RESET
+          </button>
+        </div>
       </div>
-      <div className={`absolute top-14 bottom-14 z-10 transition-all ${leftOpen ? 'left-80' : 'left-0'} ${rightOpen ? 'right-80' : 'right-0'}`}>
-        <ReactFlow nodes={workflowNodes} edges={workflowEdges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} fitView className="!bg-transparent">
-          <Background color="rgba(255,255,255,0.03)" gap={40} />
-          <Controls className="!bg-black/70 !border-white/20" />
+
+      {/* MAIN CANVAS - ReactFlow */}
+      <div className={`absolute top-12 bottom-0 z-10 transition-all duration-300 ${leftPanelOpen ? 'left-80' : 'left-0'} ${rightPanelOpen ? 'right-72' : 'right-0'}`}>
+        <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} fitView className="!bg-transparent">
+          <Background color="rgba(0,255,136,0.02)" gap={40} />
+          <Controls className="!bg-black/70 !backdrop-blur-sm !border-white/10 !rounded" />
         </ReactFlow>
+        
+        {/* Legend */}
+        <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm border border-white/10 rounded p-3">
+          <div className="text-[10px] font-mono text-white/50 mb-1.5">LEGEND</div>
+          <div className="space-y-1 text-[10px] font-mono">
+            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded bg-green-400" /><span className="text-white/40">Completed</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded bg-cyan-400 animate-pulse" /><span className="text-white/40">In Progress</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded bg-white/15" /><span className="text-white/40">Pending</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full border border-green-400 border-dashed" /><span className="text-white/40">Ouroboros</span></div>
+          </div>
+        </div>
+        
+        {/* Quick Commands Hint */}
+        <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm border border-white/10 rounded p-3 max-w-xs">
+          <div className="text-[10px] font-mono text-white/50 mb-1.5">QUICK COMMANDS</div>
+          <div className="space-y-0.5 text-[9px] font-mono text-white/40">
+            <div>"move to [stage]" - navigate stages</div>
+            <div>"run ouroboros" - start convergence</div>
+            <div>"check quality" - view gate scores</div>
+            <div>"status" - current pipeline state</div>
+          </div>
+        </div>
       </div>
-      <div className="absolute bottom-0 left-0 right-0 h-14 z-40 bg-black/90 border-t border-white/10 flex items-center px-6">
-        <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleChatSend()} placeholder="Ask about workflow..." className="flex-1 bg-transparent text-sm font-mono text-white placeholder-white/30 focus:outline-none" />
-        <button onClick={handleChatSend} className="px-4 py-2 text-sm font-mono text-cyan-400">SEND ▶</button>
-      </div>
+
+      {/* Made with Emergent */}
+      <div className="fixed bottom-2 right-3 z-50 text-[10px] font-mono text-white/20">◎ Made with Emergent</div>
     </div>
   );
 };
 
-// IDE PAGE - PROPER PROPORTIONS AND READABLE TEXT
+// ============================================================================
+// IDE PAGE - THE ACTUAL BUILDER
+// ============================================================================
 const IDEPage = ({ onNavigate }) => {
   const [franklinInput, setFranklinInput] = useState('');
   const [grokInput, setGrokInput] = useState('');
   const [terminalInput, setTerminalInput] = useState('');
   const [franklinChat, setFranklinChat] = useState(() => {
     const saved = localStorage.getItem('franklin_chat_v2');
-    return saved ? JSON.parse(saved) : [{ role: 'franklin', content: 'Welcome to FRANKLIN OS. I\'m here to help you navigate and build. What would you like to create today?' }];
+    return saved ? JSON.parse(saved) : [{ role: 'franklin', content: 'Welcome to FRANKLIN OS. Tell me what you want to build and I\'ll create it for you. Just say "build me a [description]" and watch the magic happen.' }];
   });
   const [grokChat, setGrokChat] = useState(() => {
     const saved = localStorage.getItem('grok_chat_v2');
     return saved ? JSON.parse(saved) : [];
   });
-  const [terminalOutput, setTerminalOutput] = useState([{ type: 'system', text: '> FRANKLIN OS Terminal v2.0' }, { type: 'info', text: '> Ready...' }]);
+  const [terminalOutput, setTerminalOutput] = useState([{ type: 'system', text: '> FRANKLIN OS Terminal v2.0' }, { type: 'info', text: '> Ready to build...' }]);
   const [savedChats, setSavedChats] = useState(() => {
     const saved = localStorage.getItem('saved_chats_v2');
     return saved ? JSON.parse(saved) : [];
   });
   const [franklinLoading, setFranklinLoading] = useState(false);
   const [grokLoading, setGrokLoading] = useState(false);
+  const [isBuilding, setIsBuilding] = useState(false);
+  const [buildResult, setBuildResult] = useState(null);
+  const [generatedCode, setGeneratedCode] = useState('');
+  const [activeTab, setActiveTab] = useState('code');
+  const [certificationStatus, setCertificationStatus] = useState(null);
   const franklinRef = useRef(null);
   const grokRef = useRef(null);
   const terminalRef = useRef(null);
@@ -136,30 +669,336 @@ const IDEPage = ({ onNavigate }) => {
 
   const addTerminal = (text, type = 'info') => setTerminalOutput(prev => [...prev, { type, text: `> ${text}` }]);
 
+  // Detect if user wants to build something
+  const detectBuildIntent = (message) => {
+    const lower = message.toLowerCase();
+    const buildKeywords = ['build', 'create', 'make', 'develop', 'generate', 'code', 'implement', 'write'];
+    return buildKeywords.some(k => lower.includes(k));
+  };
+
+  // THE ACTUAL BUILD FUNCTION - Calls LLM and creates REAL files
+  const executeBuild = async (mission) => {
+    setIsBuilding(true);
+    setGeneratedCode('');
+    setBuildResult(null);
+    setCertificationStatus(null);
+    
+    addTerminal('═══════════════════════════════════════', 'system');
+    addTerminal('FRANKLIN OS BUILD INITIATED', 'system');
+    addTerminal(`Mission: ${mission}`, 'info');
+    addTerminal('Calling AI to generate code...', 'info');
+
+    setFranklinChat(prev => [...prev, { role: 'franklin', content: `🚀 **BUILDING:** "${mission}"\n\nCalling AI to generate real code. This may take 30-60 seconds...` }]);
+    
+    try {
+      // Call the SIMPLE BUILD endpoint - this calls LLM and creates real files
+      const res = await axios.post(`${API}/api/build/create`, {
+        prompt: mission
+      }, { timeout: 180000 }); // 3 minute timeout for LLM
+
+      const { build_id, files, stats, tree, file_contents } = res.data;
+      
+      addTerminal('═══════════════════════════════════════', 'success');
+      addTerminal('REAL FILES CREATED ON SERVER', 'success');
+      addTerminal(`Build ID: ${build_id}`, 'success');
+      addTerminal(`Files: ${stats.files_created}`, 'success');
+      addTerminal(`Lines: ${stats.total_lines}`, 'success');
+      addTerminal(`Bytes: ${stats.total_bytes}`, 'success');
+      
+      // Show all generated code
+      const allCode = Object.entries(file_contents || {})
+        .map(([path, content]) => `// === ${path} ===\n${content}`)
+        .join('\n\n');
+      
+      setGeneratedCode(allCode || tree);
+      
+      setBuildResult({
+        success: true,
+        buildId: build_id,
+        code: allCode,
+        files: files,
+        stats: stats,
+        tree: tree,
+        fileContents: file_contents
+      });
+
+      setCertificationStatus({
+        certified: false,
+        buildId: build_id,
+        filesCreated: stats.files_created,
+        totalLines: stats.total_lines,
+        readyForCertification: true
+      });
+
+      setFranklinChat(prev => [...prev, { 
+        role: 'franklin', 
+        content: `✅ **BUILD COMPLETE - REAL FILES CREATED**\n\n**Build ID:** \`${build_id}\`\n**Files:** ${stats.files_created}\n**Lines:** ${stats.total_lines}\n**Bytes:** ${stats.total_bytes}\n\n**Project Structure:**\n\`\`\`\n${tree}\n\`\`\`\n\n📥 Click **DOWNLOAD ZIP** to get all files.\n🔍 Click **SEND TO CERTIFICATION** for 8-Gate validation.` 
+      }]);
+
+    } catch (err) {
+      const errorMsg = err.response?.data?.detail || err.message || 'Unknown error';
+      addTerminal('BUILD FAILED: ' + errorMsg, 'error');
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: `❌ Build failed: ${errorMsg}\n\nTry a simpler request or check the terminal for details.` }]);
+    }
+    
+    setIsBuilding(false);
+  };
+
+  // Generate code based on mission keywords
+  const generateCodeFromMission = (mission) => {
+    const lower = mission.toLowerCase();
+    
+    if (lower.includes('todo') || lower.includes('task')) {
+      return `\`\`\`python src/main.py
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from typing import List, Optional
+from uuid import uuid4
+
+app = FastAPI(title="Todo API")
+
+class Todo(BaseModel):
+    id: str = None
+    title: str
+    completed: bool = False
+
+todos: List[Todo] = []
+
+@app.post("/todos", response_model=Todo)
+def create_todo(todo: Todo):
+    todo.id = str(uuid4())
+    todos.append(todo)
+    return todo
+
+@app.get("/todos", response_model=List[Todo])
+def get_todos():
+    return todos
+
+@app.get("/todos/{todo_id}", response_model=Todo)
+def get_todo(todo_id: str):
+    for todo in todos:
+        if todo.id == todo_id:
+            return todo
+    raise HTTPException(status_code=404, detail="Todo not found")
+
+@app.put("/todos/{todo_id}", response_model=Todo)
+def update_todo(todo_id: str, updated: Todo):
+    for i, todo in enumerate(todos):
+        if todo.id == todo_id:
+            updated.id = todo_id
+            todos[i] = updated
+            return updated
+    raise HTTPException(status_code=404, detail="Todo not found")
+
+@app.delete("/todos/{todo_id}")
+def delete_todo(todo_id: str):
+    for i, todo in enumerate(todos):
+        if todo.id == todo_id:
+            todos.pop(i)
+            return {"message": "Deleted"}
+    raise HTTPException(status_code=404, detail="Todo not found")
+\`\`\`
+
+\`\`\`python requirements.txt
+fastapi==0.104.0
+uvicorn==0.24.0
+pydantic==2.5.0
+\`\`\`
+
+\`\`\`dockerfile Dockerfile
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY src/ ./src/
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+\`\`\``;
+    }
+    
+    if (lower.includes('calculator') || lower.includes('calc') || lower.includes('math')) {
+      return `\`\`\`python src/calculator.py
+from fastapi import FastAPI, HTTPException
+
+app = FastAPI(title="Calculator API")
+
+@app.get("/add")
+def add(a: float, b: float):
+    return {"result": a + b}
+
+@app.get("/subtract")
+def subtract(a: float, b: float):
+    return {"result": a - b}
+
+@app.get("/multiply")
+def multiply(a: float, b: float):
+    return {"result": a * b}
+
+@app.get("/divide")
+def divide(a: float, b: float):
+    if b == 0:
+        raise HTTPException(status_code=400, detail="Cannot divide by zero")
+    return {"result": a / b}
+
+@app.get("/power")
+def power(base: float, exp: float):
+    return {"result": base ** exp}
+\`\`\`
+
+\`\`\`python requirements.txt
+fastapi==0.104.0
+uvicorn==0.24.0
+\`\`\``;
+    }
+    
+    if (lower.includes('api') || lower.includes('rest') || lower.includes('crud')) {
+      return `\`\`\`python src/main.py
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from typing import List, Optional
+from uuid import uuid4
+
+app = FastAPI(title="REST API")
+
+class Item(BaseModel):
+    id: str = None
+    name: str
+    description: Optional[str] = None
+    price: float
+
+items: List[Item] = []
+
+@app.post("/items", response_model=Item)
+def create_item(item: Item):
+    item.id = str(uuid4())
+    items.append(item)
+    return item
+
+@app.get("/items", response_model=List[Item])
+def list_items():
+    return items
+
+@app.get("/items/{item_id}", response_model=Item)
+def get_item(item_id: str):
+    for item in items:
+        if item.id == item_id:
+            return item
+    raise HTTPException(status_code=404, detail="Item not found")
+
+@app.put("/items/{item_id}", response_model=Item)
+def update_item(item_id: str, updated: Item):
+    for i, item in enumerate(items):
+        if item.id == item_id:
+            updated.id = item_id
+            items[i] = updated
+            return updated
+    raise HTTPException(status_code=404, detail="Item not found")
+
+@app.delete("/items/{item_id}")
+def delete_item(item_id: str):
+    for i, item in enumerate(items):
+        if item.id == item_id:
+            items.pop(i)
+            return {"message": "Deleted"}
+    raise HTTPException(status_code=404, detail="Item not found")
+\`\`\`
+
+\`\`\`python requirements.txt
+fastapi==0.104.0
+uvicorn==0.24.0
+pydantic==2.5.0
+\`\`\``;
+    }
+    
+    // Default: hello world
+    return `\`\`\`python src/main.py
+def hello(name: str = "World") -> str:
+    """Return a greeting message."""
+    return f"Hello, {name}!"
+
+def main():
+    print(hello())
+    print(hello("Franklin"))
+
+if __name__ == "__main__":
+    main()
+\`\`\`
+
+\`\`\`python tests/test_main.py
+from src.main import hello
+
+def test_hello_default():
+    assert hello() == "Hello, World!"
+
+def test_hello_name():
+    assert hello("Franklin") == "Hello, Franklin!"
+\`\`\``;
+  };
+
+  // Send build to Workflow page for 8-Gate Certification
+  const sendToCertification = () => {
+    if (!buildResult?.buildId) return;
+    
+    // Store build data for Workflow page
+    localStorage.setItem('pending_certification', JSON.stringify({
+      buildId: buildResult.buildId,
+      mission: buildResult.spec?.slice(0, 100) || 'Build',
+      files: buildResult.files,
+      stats: buildResult.stats,
+      code: buildResult.code,
+      spec: buildResult.spec,
+      architecture: buildResult.architecture
+    }));
+    
+    addTerminal('Transferring to Workflow for 8-Gate Certification...', 'system');
+    onNavigate(PAGES.WORKFLOW);
+  };
+
   const handleFranklinSend = async () => {
-    if (!franklinInput.trim() || franklinLoading) return;
+    if (!franklinInput.trim() || franklinLoading || isBuilding) return;
     const input = franklinInput.trim();
     setFranklinInput('');
     setFranklinChat(prev => [...prev, { role: 'user', content: input }]);
     setFranklinLoading(true);
-    if (input.toLowerCase().startsWith('/genesis ')) {
-      const mission = input.replace(/^\/genesis\s+/i, '');
-      addTerminal(`GENESIS: ${mission}`, 'system');
-      setFranklinChat(prev => [...prev, { role: 'franklin', content: `Initiating build: "${mission}"` }]);
-      try {
-        const res = await axios.post(`${API}/api/build-orchestrator/build`, { mission });
-        if (res.data.output) res.data.output.forEach(e => { addTerminal(`[${e.phase}] ${e.message}`, e.type || 'info'); if (e.phase.toLowerCase().includes('grok')) setGrokChat(prev => [...prev, { role: 'grok', content: `[${e.phase}] ${e.message}` }]); });
-        if (res.data.success) addTerminal('BUILD COMPLETE ✓', 'success');
-      } catch (err) { addTerminal(`Error: ${err.message}`, 'error'); }
-      setFranklinLoading(false); return;
-    }
+
+    // Check for commands
     if (input.toLowerCase() === '/workflow') { onNavigate(PAGES.WORKFLOW); setFranklinLoading(false); return; }
-    if (input.toLowerCase() === '/clear') { setFranklinChat([{ role: 'franklin', content: 'Cleared.' }]); setGrokChat([]); setTerminalOutput([{ type: 'system', text: '> Cleared' }]); setFranklinLoading(false); return; }
-    if (input.toLowerCase() === '/save') { setSavedChats(prev => [...prev, { id: Date.now(), title: franklinChat[1]?.content?.slice(0, 25) + '...' || 'Chat', messages: franklinChat }]); setFranklinChat(prev => [...prev, { role: 'franklin', content: 'Saved!' }]); setFranklinLoading(false); return; }
+    if (input.toLowerCase() === '/clear') { 
+      setFranklinChat([{ role: 'franklin', content: 'Cleared. Ready to build.' }]); 
+      setGrokChat([]); 
+      setTerminalOutput([{ type: 'system', text: '> Cleared' }]); 
+      setGeneratedCode('');
+      setBuildResult(null);
+      setCertificationStatus(null);
+      setFranklinLoading(false); 
+      return; 
+    }
+    if (input.toLowerCase() === '/save') { 
+      setSavedChats(prev => [...prev, { id: Date.now(), title: franklinChat[1]?.content?.slice(0, 25) + '...' || 'Chat', messages: franklinChat }]); 
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: 'Chat saved!' }]); 
+      setFranklinLoading(false); 
+      return; 
+    }
+
+    // Detect build intent and execute
+    if (detectBuildIntent(input)) {
+      setFranklinLoading(false);
+      await executeBuild(input);
+      return;
+    }
+
+    // Regular chat
     try {
       const res = await axios.post(`${API}/api/build-orchestrator/chat`, { message: input });
-      setFranklinChat(prev => [...prev, { role: 'franklin', content: res.data.response || "I can help." }]);
-    } catch { setFranklinChat(prev => [...prev, { role: 'franklin', content: "Use /genesis <desc> to build." }]); }
+      const response = res.data.response || "I can help you build something. Just tell me what you want to create!";
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: response }]);
+      
+      // If the response suggests building, offer to start
+      if (res.data.ready_to_build) {
+        setFranklinChat(prev => [...prev, { role: 'franklin', content: "I can build that for you right now. Just say 'build it' or describe what you want more specifically." }]);
+      }
+    } catch { 
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: "I'm ready to build. Tell me what you want to create - a web app, API, tool, anything!" }]); 
+    }
     setFranklinLoading(false);
   };
 
@@ -182,7 +1021,44 @@ const IDEPage = ({ onNavigate }) => {
     setTerminalInput('');
     addTerminal(input, 'cmd');
     if (input === 'clear') setTerminalOutput([{ type: 'system', text: '> Cleared' }]);
-    else if (input === 'status') { addTerminal('FRANKLIN: Online', 'success'); addTerminal('GROK: Connected', 'success'); }
+    else if (input === 'status') { addTerminal('FRANKLIN: Online', 'success'); addTerminal('GROK: Connected', 'success'); addTerminal(`Build Status: ${isBuilding ? 'IN PROGRESS' : 'IDLE'}`, 'info'); }
+    else if (input === 'workflow' || input === '/workflow') onNavigate(PAGES.WORKFLOW);
+    else if (input === 'help') {
+      addTerminal('Available commands:', 'info');
+      addTerminal('  status   - System status', 'info');
+      addTerminal('  clear    - Clear terminal', 'info');
+      addTerminal('  workflow - Go to workflow', 'info');
+      addTerminal('  download - Download code', 'info');
+    }
+    else if (input === 'download' && generatedCode) {
+      downloadCode();
+    }
+  };
+
+  const downloadCode = () => {
+    if (!buildResult?.buildId) {
+      // Fallback: download text blob
+      if (!generatedCode) return;
+      const blob = new Blob([generatedCode], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `franklin-os-build-${Date.now()}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+      addTerminal('Code downloaded!', 'success');
+      return;
+    }
+    
+    // Download ZIP from Simple Build endpoint
+    window.open(`${API}/api/build/${buildResult.buildId}/download`, '_blank');
+    addTerminal('ZIP download started!', 'success');
+  };
+
+  const copyCode = () => {
+    if (!generatedCode) return;
+    navigator.clipboard.writeText(generatedCode);
+    addTerminal('Code copied to clipboard!', 'success');
   };
 
   return (
@@ -198,135 +1074,172 @@ const IDEPage = ({ onNavigate }) => {
       <div className="absolute top-0 left-0 right-0 h-12 z-50 bg-black/90 border-b border-white/20 flex items-center px-6">
         <span className="text-base font-mono text-white tracking-wider" style={{ fontFamily: "'Orbitron', sans-serif" }}>◈ FRANKLIN OS</span>
         <div className="flex-1" />
+        {isBuilding && (
+          <div className="mr-4 px-4 py-1.5 text-sm font-mono text-yellow-400 border border-yellow-500/50 rounded animate-pulse flex items-center gap-2">
+            <span className="animate-spin">◈</span> BUILDING...
+          </div>
+        )}
+        {certificationStatus?.readyForCertification && !certificationStatus?.certified && (
+          <button 
+            onClick={sendToCertification} 
+            className="mr-4 px-4 py-1.5 text-sm font-mono text-cyan-400 border border-cyan-500/50 rounded hover:bg-cyan-500/20 transition-all animate-pulse"
+            data-testid="send-to-cert-btn"
+          >
+            ▶ SEND TO CERTIFICATION
+          </button>
+        )}
+        {certificationStatus?.certified && (
+          <div className="mr-4 px-4 py-1.5 text-sm font-mono text-green-400 border border-green-500/50 rounded flex items-center gap-2">
+            ✓ CERTIFIED
+          </div>
+        )}
+        <button onClick={() => onNavigate(PAGES.WORKFLOW)} className="mr-4 px-4 py-1.5 text-sm font-mono text-purple-400 border border-purple-500/50 rounded hover:bg-purple-500/20 transition-all">
+          ◈ WORKFLOW
+        </button>
         <div className="flex items-center gap-6 text-xs font-mono">
-          <span className="text-green-400 flex items-center gap-2"><span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />SENTINEL: ACTIVE</span>
-          <span className="text-cyan-400">PQC: ONLINE</span>
-          <span className="text-purple-400">AUDIT: 1 entries</span>
-          <span className="text-green-400">AGENTS: 5</span>
+          <span className="text-green-400 flex items-center gap-2"><span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />ONLINE</span>
         </div>
       </div>
 
       {/* MAIN CONTENT - 3 COLUMNS */}
       <div className="absolute top-12 bottom-0 left-0 right-0 flex">
         
-        {/* LEFT COLUMN - FRANKLIN (25% width) */}
-        <div className="w-1/4 min-w-[300px] flex flex-col border-r border-white/20 bg-black/60">
-          {/* Header */}
+        {/* LEFT COLUMN - FRANKLIN */}
+        <div className="w-1/4 min-w-[280px] flex flex-col border-r border-white/20 bg-black/60">
           <div className="h-10 px-4 border-b border-white/20 flex items-center justify-between">
             <span className="text-sm font-mono text-cyan-400 font-semibold">◆ FRANKLIN</span>
-            <span className="text-xs font-mono text-white/40">COLLAPSE</span>
+            <span className="text-xs font-mono text-white/40">Builder</span>
           </div>
-          {/* Subheader */}
-          <div className="h-8 px-4 border-b border-white/10 flex items-center">
-            <span className="text-xs font-mono text-white/50">code area</span>
-            <span className="text-xs font-mono text-white/30 mx-2">|</span>
-            <span className="text-xs font-mono text-white/50">1 million context</span>
-          </div>
-          {/* FRANKLIN ONBOARD CHAT */}
-          <div className="h-8 px-4 border-b border-white/10 flex items-center justify-between">
-            <span className="text-xs font-mono text-white/60">FRANKLIN ONBOARD CHAT</span>
-            <span className="text-xs font-mono text-white/40 border border-white/20 px-2 py-0.5 rounded">⊞ EXPAND</span>
-          </div>
-          {/* Context Window label */}
-          <div className="px-4 py-1 text-xs font-mono text-white/30">Context Window</div>
-          {/* Chat */}
-          <div ref={franklinRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+          <div ref={franklinRef} className="flex-1 overflow-y-auto p-4 space-y-4">
             {franklinChat.map((msg, idx) => (
               <div key={idx}>
                 <span className="text-xs font-mono text-white/40">◈ {msg.role.toUpperCase()}</span>
-                <p className={`text-sm font-mono mt-1 leading-relaxed ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/80'}`}>{msg.content}</p>
+                <p className={`text-sm font-mono mt-1 leading-relaxed whitespace-pre-wrap ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/80'}`}>{msg.content}</p>
               </div>
             ))}
-            {franklinLoading && <div className="text-purple-400 text-sm flex items-center gap-2"><span className="animate-spin">◈</span> Processing...</div>}
+            {(franklinLoading || isBuilding) && <div className="text-purple-400 text-sm flex items-center gap-2"><span className="animate-spin">◈</span> {isBuilding ? 'Building...' : 'Processing...'}</div>}
           </div>
-          {/* 1 million context */}
-          <div className="h-8 px-4 border-t border-white/10 flex items-center justify-center">
-            <span className="text-xs font-mono text-cyan-400/70">1 million context</span>
-          </div>
-          {/* Franklin Prompt */}
           <div className="h-14 px-4 border-t border-cyan-500/40 bg-black/80 flex items-center gap-3">
-            <span className="text-sm font-mono text-cyan-400">Franklin Prompt</span>
-            <span className="text-cyan-400 text-lg">▶</span>
-            <input type="text" value={franklinInput} onChange={(e) => setFranklinInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleFranklinSend()} placeholder="Type here..." className="flex-1 bg-transparent text-sm font-mono text-white placeholder-white/40 focus:outline-none" data-testid="franklin-prompt" />
-          </div>
-          {/* Connectors */}
-          <div className="h-24 border-t border-white/20 bg-black/80">
-            <div className="px-4 py-2 text-xs font-mono text-red-400 border-b border-white/10">connectors</div>
-            <div className="px-4 py-2 space-y-1">
-              <div className="text-sm font-mono text-white/60 hover:text-white cursor-pointer">📁 Project Alpha</div>
-              <div className="text-sm font-mono text-white/60 hover:text-white cursor-pointer">📁 Franklin Demo</div>
-            </div>
+            <span className="text-sm font-mono text-cyan-400">▶</span>
+            <input 
+              type="text" 
+              value={franklinInput} 
+              onChange={(e) => setFranklinInput(e.target.value)} 
+              onKeyDown={(e) => e.key === 'Enter' && handleFranklinSend()} 
+              placeholder="Tell me what to build..." 
+              className="flex-1 bg-transparent text-sm font-mono text-white placeholder-white/40 focus:outline-none" 
+              data-testid="franklin-prompt" 
+              disabled={isBuilding}
+            />
           </div>
         </div>
 
-        {/* CENTER COLUMN - CODE AREA (50% width) */}
+        {/* CENTER COLUMN - CODE AREA */}
         <div className="flex-1 flex flex-col">
-          {/* Header */}
-          <div className="h-10 px-6 border-b border-white/20 bg-black/60 flex items-center">
-            <span className="text-sm font-mono text-cyan-400">code area</span>
-            <span className="text-sm font-mono text-white/30 mx-3">|</span>
-            <span className="text-sm font-mono text-white/50">1 million context</span>
-            <span className="ml-auto text-sm font-mono text-white/40">untitled.</span>
-          </div>
           {/* Tabs */}
-          <div className="h-10 px-6 border-b border-white/10 bg-black/50 flex items-center gap-8">
-            <span className="text-sm font-mono text-cyan-400 cursor-pointer">front end</span>
-            <span className="text-sm font-mono text-white/50 hover:text-white cursor-pointer">backend</span>
-            <span className="text-sm font-mono text-white/50 hover:text-white cursor-pointer">database</span>
-            <span className="text-sm font-mono text-white/50 hover:text-white cursor-pointer">deploy</span>
+          <div className="h-10 px-4 border-b border-white/20 bg-black/60 flex items-center gap-4">
+            <button 
+              onClick={() => setActiveTab('code')} 
+              className={`text-sm font-mono transition-all ${activeTab === 'code' ? 'text-cyan-400' : 'text-white/40 hover:text-white/60'}`}
+            >
+              CODE
+            </button>
+            <button 
+              onClick={() => setActiveTab('spec')} 
+              className={`text-sm font-mono transition-all ${activeTab === 'spec' ? 'text-cyan-400' : 'text-white/40 hover:text-white/60'}`}
+            >
+              SPEC
+            </button>
+            <button 
+              onClick={() => setActiveTab('arch')} 
+              className={`text-sm font-mono transition-all ${activeTab === 'arch' ? 'text-cyan-400' : 'text-white/40 hover:text-white/60'}`}
+            >
+              ARCHITECTURE
+            </button>
+            <div className="flex-1" />
+            {generatedCode && (
+              <>
+                <button onClick={copyCode} className="px-3 py-1 text-xs font-mono text-white/60 hover:text-white border border-white/20 rounded hover:bg-white/10 transition-all">
+                  COPY
+                </button>
+                <button onClick={downloadCode} className="px-3 py-1 text-xs font-mono text-green-400 border border-green-500/40 rounded hover:bg-green-500/20 transition-all">
+                  DOWNLOAD
+                </button>
+              </>
+            )}
           </div>
-          {/* Code content */}
-          <div className="flex-1 bg-black/40 p-6 overflow-auto relative">
-            <pre className="text-sm font-mono text-white/60 leading-relaxed">// Your code will appear here...{'\n'}// Use /genesis &lt;mission&gt; to start building</pre>
-            {/* Ghost lines */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-4 text-sm font-mono text-cyan-400/40">
-              <span>◄────</span><span>ghost lines</span><span>────►</span>
+          
+          {/* Certification Badge */}
+          {certificationStatus && (
+            <div className="h-10 px-4 border-b border-green-500/30 bg-green-500/10 flex items-center gap-4">
+              <span className="text-sm font-mono text-green-400">✓ FRANKLIN OS CERTIFIED</span>
+              <span className="text-xs font-mono text-white/40">|</span>
+              <span className="text-xs font-mono text-white/50">Signed: {certificationStatus.signedBy}</span>
+              <span className="text-xs font-mono text-white/40">|</span>
+              <span className="text-xs font-mono text-white/50">Agents: {certificationStatus.agents?.join(', ')}</span>
             </div>
+          )}
+          
+          {/* Code Display */}
+          <div className="flex-1 bg-black/40 p-4 overflow-auto">
+            {activeTab === 'code' && (
+              generatedCode ? (
+                <pre className="text-sm font-mono text-green-400/90 leading-relaxed whitespace-pre-wrap">{generatedCode}</pre>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center">
+                  <div className="text-6xl mb-4 opacity-20">◈</div>
+                  <p className="text-lg font-mono text-white/40">Tell Franklin what to build</p>
+                  <p className="text-sm font-mono text-white/25 mt-2">Example: "Build me a todo app API"</p>
+                  <p className="text-sm font-mono text-white/25">Example: "Create a user authentication system"</p>
+                </div>
+              )
+            )}
+            {activeTab === 'spec' && (
+              buildResult?.spec ? (
+                <pre className="text-sm font-mono text-white/80 leading-relaxed whitespace-pre-wrap">{buildResult.spec}</pre>
+              ) : (
+                <p className="text-sm font-mono text-white/40 text-center py-8">Specification will appear here after build</p>
+              )
+            )}
+            {activeTab === 'arch' && (
+              buildResult?.architecture ? (
+                <pre className="text-sm font-mono text-white/80 leading-relaxed whitespace-pre-wrap">{buildResult.architecture}</pre>
+              ) : (
+                <p className="text-sm font-mono text-white/40 text-center py-8">Architecture will appear here after build</p>
+              )
+            )}
           </div>
+          
           {/* Terminal */}
-          <div className="h-32 border-t border-white/20 bg-black/80 flex flex-col">
-            <div className="h-8 px-6 border-b border-white/10 flex items-center">
+          <div className="h-36 border-t border-white/20 bg-black/80 flex flex-col">
+            <div className="h-8 px-4 border-b border-white/10 flex items-center justify-between">
               <span className="text-sm font-mono text-purple-400">◆ TERMINAL</span>
-              <span className="text-sm font-mono text-white/30 mx-4">|</span>
-              <span className="text-xs font-mono text-white/40">SDK Cloud → Ubuntu/Linux → PowerShell</span>
+              {isBuilding && <span className="text-xs font-mono text-yellow-400 animate-pulse">Building...</span>}
             </div>
-            <div ref={terminalRef} className="flex-1 overflow-y-auto px-6 py-2">
+            <div ref={terminalRef} className="flex-1 overflow-y-auto px-4 py-2">
               {terminalOutput.map((line, idx) => (
-                <div key={idx} className={`text-sm font-mono ${line.type === 'error' ? 'text-red-400' : line.type === 'success' ? 'text-green-400' : line.type === 'system' ? 'text-purple-400' : line.type === 'cmd' ? 'text-cyan-400' : 'text-white/60'}`}>{line.text}</div>
+                <div key={idx} className={`text-xs font-mono ${line.type === 'error' ? 'text-red-400' : line.type === 'success' ? 'text-green-400' : line.type === 'system' ? 'text-purple-400' : line.type === 'cmd' ? 'text-cyan-400' : 'text-white/60'}`}>{line.text}</div>
               ))}
             </div>
-            <div className="h-8 px-6 border-t border-white/10 flex items-center">
-              <span className="text-sm font-mono text-purple-400 mr-3">/genesis mission...</span>
-              <input type="text" value={terminalInput} onChange={(e) => setTerminalInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleTerminalSend()} placeholder="Enter command..." className="flex-1 bg-transparent text-sm font-mono text-white placeholder-white/40 focus:outline-none" />
+            <div className="h-8 px-4 border-t border-white/10 flex items-center">
+              <span className="text-purple-400 mr-2">▶</span>
+              <input type="text" value={terminalInput} onChange={(e) => setTerminalInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleTerminalSend()} placeholder="help, status, download..." className="flex-1 bg-transparent text-xs font-mono text-white placeholder-white/40 focus:outline-none" />
             </div>
           </div>
         </div>
 
-        {/* RIGHT COLUMN - GROK (25% width) */}
-        <div className="w-1/4 min-w-[300px] flex flex-col border-l border-white/20 bg-black/60">
-          {/* Header */}
+        {/* RIGHT COLUMN - GROK */}
+        <div className="w-1/4 min-w-[280px] flex flex-col border-l border-white/20 bg-black/60">
           <div className="h-10 px-4 border-b border-white/20 flex items-center justify-between">
             <span className="text-sm font-mono text-green-400 font-semibold">◆ GROK</span>
-            <div className="flex items-center gap-2 text-xs font-mono text-white/40">
-              <span>untitled.</span>
-              <span>▶</span>
-              <span>ACADEMY</span>
-            </div>
+            <span className="text-xs font-mono text-white/40">Analyst</span>
           </div>
-          {/* SPARKLY BRAIN */}
-          <div className="h-40 border-b border-white/10 flex items-center justify-center relative">
-            <div className="w-32 h-32">
-              <NeuralBrain themeColor="#22c55e" isThinking={grokLoading} size="lg" />
-            </div>
-            <span className="absolute bottom-2 right-3 text-xs font-mono text-white/30">sparkly brain</span>
+          <div className="h-32 border-b border-white/10 flex items-center justify-center">
+            <div className="w-24 h-24"><NeuralBrain themeColor="#22c55e" isThinking={grokLoading} size="lg" /></div>
           </div>
-          {/* Grok chat */}
-          <div ref={grokRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+          <div ref={grokRef} className="flex-1 overflow-y-auto p-4 space-y-4">
             {grokChat.length === 0 ? (
-              <div className="text-sm font-mono text-white/40 text-center py-8">
-                <p>Grok responses appear here...</p>
-                <p className="mt-2">Use the input below to ask Grok</p>
-              </div>
+              <div className="text-sm font-mono text-white/40 text-center py-8">Ask Grok to analyze code or explain concepts...</div>
             ) : (
               grokChat.map((msg, idx) => (
                 <div key={idx}>
@@ -335,49 +1248,15 @@ const IDEPage = ({ onNavigate }) => {
                 </div>
               ))
             )}
-            {grokLoading && <div className="text-green-400 text-sm flex items-center gap-2"><span className="animate-spin">◈</span> Grok thinking...</div>}
+            {grokLoading && <div className="text-green-400 text-sm flex items-center gap-2"><span className="animate-spin">◈</span> Thinking...</div>}
           </div>
-          {/* 1 million context */}
-          <div className="h-8 px-4 border-t border-white/10 flex items-center justify-center">
-            <span className="text-xs font-mono text-green-400/70">1 million context</span>
-          </div>
-          {/* Saved chats */}
-          <div className="h-20 border-t border-white/20">
-            <div className="px-4 py-2 text-xs font-mono text-white/50">saved chats</div>
-            <div className="px-4 overflow-y-auto max-h-12">
-              {savedChats.length === 0 ? (
-                <div className="text-xs font-mono text-white/30">No saved chats. Use /save</div>
-              ) : (
-                savedChats.map(c => <div key={c.id} className="text-sm font-mono text-white/50 truncate cursor-pointer hover:text-white">{c.title}</div>)
-              )}
-            </div>
-          </div>
-          {/* Grok Prompt */}
           <div className="h-14 px-4 border-t border-green-500/40 bg-black/80 flex items-center gap-3">
-            <span className="text-sm font-mono text-green-400">Grok Prompt</span>
-            <span className="text-green-400 text-lg">▶</span>
-            <input type="text" value={grokInput} onChange={(e) => setGrokInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleGrokSend()} placeholder="Ask Grok anything..." className="flex-1 bg-transparent text-sm font-mono text-white placeholder-white/40 focus:outline-none" data-testid="grok-prompt" />
-          </div>
-          {/* CI/CD + Grok Response */}
-          <div className="h-24 border-t border-white/20 bg-black/80 flex">
-            <div className="w-1/2 p-2 border-r border-white/10">
-              <div className="text-xs font-mono text-yellow-400 mb-2">◈ CI/CD - MCP SERVER TOOLS</div>
-              <div className="grid grid-cols-2 gap-1">
-                {['🚀 Deploy', '🔄 Build', '📊 Monitor', '🔧 Config'].map(t => <button key={t} className="text-xs font-mono text-white/60 py-1 bg-white/5 hover:bg-white/10 rounded">{t}</button>)}
-              </div>
-            </div>
-            <div className="w-1/2 p-2">
-              <div className="text-xs font-mono text-green-400 mb-1">GROK RESPONSE</div>
-              <div className="text-xs font-mono text-white/40">Grok responses...</div>
-            </div>
+            <span className="text-sm font-mono text-green-400">▶</span>
+            <input type="text" value={grokInput} onChange={(e) => setGrokInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleGrokSend()} placeholder="Ask Grok..." className="flex-1 bg-transparent text-sm font-mono text-white placeholder-white/40 focus:outline-none" data-testid="grok-prompt" />
           </div>
         </div>
       </div>
 
-      {/* Workflow button */}
-      <button onClick={() => onNavigate(PAGES.WORKFLOW)} className="fixed top-2 right-6 z-50 px-3 py-1 text-xs font-mono text-purple-400 border border-purple-500/40 rounded hover:bg-purple-500/20">◈ WORKFLOW</button>
-      
-      {/* Made with Emergent */}
       <div className="fixed bottom-2 right-6 z-50 text-xs font-mono text-white/30">◎ Made with Emergent</div>
     </div>
   );
@@ -386,20 +1265,8 @@ const IDEPage = ({ onNavigate }) => {
 // MAIN APP
 function App() {
   const [currentPage, setCurrentPage] = useState(PAGES.LANDING);
-  const [workflowNodes,, onNodesChange] = useNodesState([
-    { id: '1', position: { x: 250, y: 50 }, data: { label: 'Genesis' } },
-    { id: '2', position: { x: 100, y: 150 }, data: { label: 'Architect' } },
-    { id: '3', position: { x: 400, y: 150 }, data: { label: 'Implementer' } },
-    { id: '4', position: { x: 250, y: 250 }, data: { label: 'Quality' } },
-  ]);
-  const [workflowEdges,, onEdgesChange] = useEdgesState([
-    { id: 'e1-2', source: '1', target: '2', animated: true },
-    { id: 'e1-3', source: '1', target: '3', animated: true },
-    { id: 'e2-4', source: '2', target: '4', animated: true },
-    { id: 'e3-4', source: '3', target: '4', animated: true },
-  ]);
   if (currentPage === PAGES.LANDING) return <LandingPage onEnterApp={() => setCurrentPage(PAGES.IDE)} />;
-  if (currentPage === PAGES.WORKFLOW) return <ElectricWorkflowPage onBack={() => setCurrentPage(PAGES.IDE)} workflowNodes={workflowNodes} workflowEdges={workflowEdges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} />;
+  if (currentPage === PAGES.WORKFLOW) return <ElectricWorkflowPage onBack={() => setCurrentPage(PAGES.IDE)} />;
   return <IDEPage onNavigate={setCurrentPage} />;
 }
 

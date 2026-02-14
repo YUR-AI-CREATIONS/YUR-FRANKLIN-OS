@@ -99,10 +99,15 @@ class FranklinOrchestrator:
     """
     
     def __init__(self):
+        # Use Emergent LLM Key for Anthropic
+        self.emergent_key = os.getenv("EMERGENT_LLM_KEY")
+        self.anthropic_key = os.getenv("ANTHROPIC_API_KEY")
         self.xai_api_key = os.getenv("XAI_API_KEY")
         self.xai_url = "https://api.x.ai/v1/chat/completions"
+        self.anthropic_url = "https://api.anthropic.com/v1/messages"
         self.sessions: Dict[str, BuildSession] = {}
         self.active_session: Optional[str] = None
+        self.llm_provider = os.getenv("LLM_PROVIDER", "anthropic")
         
         # Agent personas
         self.agents = {
@@ -136,7 +141,7 @@ class FranklinOrchestrator:
             }
         }
         
-        logger.info(">>> FRANKLIN ORCHESTRATOR ONLINE")
+        logger.info(f">>> FRANKLIN ORCHESTRATOR ONLINE (LLM Provider: {self.llm_provider})")
     
     def _generate_hash(self, content: str) -> str:
         """Generate audit hash for content"""
@@ -167,11 +172,122 @@ class FranklinOrchestrator:
         sid = session_id or self.active_session
         return self.sessions.get(sid) if sid else None
     
-    async def call_grok(self, system_prompt: str, user_prompt: str, 
+    async def call_llm(self, system_prompt: str, user_prompt: str, 
                         temperature: float = 0.7, max_tokens: int = 2000) -> Optional[str]:
-        """Call Grok API with perfect prompting"""
+        """
+        TRINITY ORCHESTRATION
+        Multi-layer LLM fallback: XAI (Grok) → Anthropic → OpenAI → Google
+        """
+        # Layer 1: XAI (Grok) - Primary
+        xai_key = os.getenv("XAI_API_KEY")
+        if xai_key:
+            try:
+                async with httpx.AsyncClient(timeout=90.0) as client:
+                    response = await client.post(
+                        "https://api.x.ai/v1/chat/completions",
+                        headers={
+                            "Authorization": f"Bearer {xai_key}",
+                            "Content-Type": "application/json"
+                        },
+                        json={
+                            "model": "grok-3",
+                            "messages": [
+                                {"role": "system", "content": system_prompt},
+                                {"role": "user", "content": user_prompt}
+                            ],
+                            "temperature": temperature,
+                            "max_tokens": max_tokens
+                        }
+                    )
+                    response.raise_for_status()
+                    result = response.json()
+                    logger.info("[TRINITY] XAI/Grok succeeded")
+                    return result["choices"][0]["message"]["content"]
+            except Exception as e:
+                logger.warning(f"[TRINITY] XAI failed: {e}, trying Anthropic...")
+        
+        # Layer 2: Anthropic (Claude)
+        anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+        if anthropic_key:
+            try:
+                async with httpx.AsyncClient(timeout=90.0) as client:
+                    response = await client.post(
+                        "https://api.anthropic.com/v1/messages",
+                        headers={
+                            "x-api-key": anthropic_key,
+                            "anthropic-version": "2023-06-01",
+                            "Content-Type": "application/json"
+                        },
+                        json={
+                            "model": "claude-sonnet-4-20250514",
+                            "max_tokens": max_tokens,
+                            "system": system_prompt,
+                            "messages": [{"role": "user", "content": user_prompt}]
+                        }
+                    )
+                    response.raise_for_status()
+                    result = response.json()
+                    logger.info("[TRINITY] Anthropic succeeded")
+                    return result["content"][0]["text"]
+            except Exception as e:
+                logger.warning(f"[TRINITY] Anthropic failed: {e}, trying OpenAI...")
+        
+        # Layer 3: OpenAI
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if openai_key:
+            try:
+                async with httpx.AsyncClient(timeout=90.0) as client:
+                    response = await client.post(
+                        "https://api.openai.com/v1/chat/completions",
+                        headers={
+                            "Authorization": f"Bearer {openai_key}",
+                            "Content-Type": "application/json"
+                        },
+                        json={
+                            "model": "gpt-4o",
+                            "messages": [
+                                {"role": "system", "content": system_prompt},
+                                {"role": "user", "content": user_prompt}
+                            ],
+                            "temperature": temperature,
+                            "max_tokens": max_tokens
+                        }
+                    )
+                    response.raise_for_status()
+                    result = response.json()
+                    logger.info("[TRINITY] OpenAI succeeded")
+                    return result["choices"][0]["message"]["content"]
+            except Exception as e:
+                logger.warning(f"[TRINITY] OpenAI failed: {e}, trying Google...")
+        
+        # Layer 4: Google (Gemini)
+        google_key = os.getenv("GOOGLE_API_KEY")
+        if google_key:
+            try:
+                async with httpx.AsyncClient(timeout=90.0) as client:
+                    response = await client.post(
+                        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={google_key}",
+                        headers={"Content-Type": "application/json"},
+                        json={
+                            "contents": [{"parts": [{"text": f"{system_prompt}\n\n{user_prompt}"}]}],
+                            "generationConfig": {"temperature": temperature, "maxOutputTokens": max_tokens}
+                        }
+                    )
+                    response.raise_for_status()
+                    result = response.json()
+                    logger.info("[TRINITY] Google succeeded")
+                    return result["candidates"][0]["content"]["parts"][0]["text"]
+            except Exception as e:
+                logger.error(f"[TRINITY] Google failed: {e}")
+        
+        logger.error("[TRINITY] All providers failed")
+        return None
+    
+    async def _fallback_xai(self, system_prompt: str, user_prompt: str,
+                           temperature: float = 0.7, max_tokens: int = 2000) -> Optional[str]:
+        """Fallback to XAI/Grok if primary LLM fails"""
         if not self.xai_api_key:
-            logger.warning("XAI_API_KEY not configured")
+            logger.warning("No fallback XAI key available")
             return None
         
         try:
@@ -196,8 +312,14 @@ class FranklinOrchestrator:
                 result = response.json()
                 return result["choices"][0]["message"]["content"]
         except Exception as e:
-            logger.error(f"[GROK ERROR] {str(e)}")
+            logger.error(f"[XAI FALLBACK ERROR] {str(e)}")
             return None
+    
+    # Alias for backward compatibility
+    async def call_grok(self, system_prompt: str, user_prompt: str, 
+                        temperature: float = 0.7, max_tokens: int = 2000) -> Optional[str]:
+        """Alias for call_llm - backward compatibility"""
+        return await self.call_llm(system_prompt, user_prompt, temperature, max_tokens)
     
     async def franklin_chat(self, user_message: str, session_id: str = None) -> Dict[str, Any]:
         """

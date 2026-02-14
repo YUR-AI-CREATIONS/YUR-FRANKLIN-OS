@@ -1,124 +1,95 @@
 # FRANKLIN OS - Product Requirements Document
 
 ## Original Problem Statement
-Build "FRANKLIN OS," a sophisticated, VS Code-style IDE for building, certifying, and deploying enterprise applications with a "galactic liquid glassmorphism" cyberpunk aesthetic. The core mission is to create a fully functional software factory where a user interacts with an AI agent (Franklin) to define a project, which is then executed by a team of specialized agents (Grok, Genesis, Architect, etc.).
+Build "FRANKLIN OS," a sophisticated, VS Code-style IDE for building, certifying, and deploying enterprise applications with a "galactic liquid glassmorphism" cyberpunk aesthetic. The user demands a fully functional software factory where telling the AI to "build X" results in actual generation of certified, downloadable source code - NOT mocked or simulated features.
 
-## User's Vision
-- Chrome FRANKLIN title with shimmer effect
-- Galactic starfield background with twinkling stars
-- 3-column IDE layout: Franklin (left) | Code Area (center) | Grok (right)
-- Transparent, resizable panels
-- "1 million context" labels on panels
-- Ghost lines connecting Franklin ↔ Code ↔ Grok
-- Terminal at bottom center
-- Projects/Folders tabs
-- Stripe integration for user subscriptions
+## User Persona
+Enterprise software developers who need a streamlined, AI-powered development environment that can:
+- Generate real, production-ready code from natural language descriptions
+- Provide 8-gate quality certification
+- Allow download of generated projects as ZIP files
 
-## Core Architecture
+## Core Requirements
+
+### P0 - Critical (Must Have)
+1. **Real Code Generation** - When user says "build X", real code files must be created on the server ✅ DONE
+2. **LLM Integration** - Reliable LLM calls that don't timeout ✅ DONE (Multi-provider fallback)
+3. **File Download** - Users must be able to download generated code as ZIP ✅ DONE
+4. **8-Gate Certification** - Real validation of generated code quality ⏳ EXISTS (needs E2E test)
+
+### P1 - High Priority
+1. **Chat Persistence** - Conversations should survive page refresh
+2. **Stripe Subscription Gating** - User authentication and subscription management
+3. **Code Refactoring** - Break down monolithic App.js and server.py
+
+### P2 - Medium Priority
+1. **Supabase Integration** - Fix PostgreSQL connection (needs valid credentials)
+2. **Whiteboard View** - Collaborative review feature
+3. **Workspace View** - Project management view
+
+### P3 - Low Priority
+1. **OCTANT FOUNDRY** - Financial models (Escrow, Social Currency)
+2. **IDE Layout** - Match original wireframe proportions
+
+---
+
+## What's Been Implemented (Feb 14, 2026)
+
+### Simple Build System (`/api/build/create`)
+- **New endpoint that takes a single prompt and generates real files**
+- Multi-provider LLM fallback: Anthropic → XAI → OpenAI → Google
+- Parses code blocks from LLM response into actual files
+- Creates project directory on server disk
+- Generates downloadable ZIP file
+- Returns file contents, stats, and tree structure
+
+### API Endpoints Working
+- `POST /api/build/create` - Create build from prompt
+- `GET /api/build/{id}` - Get build info
+- `GET /api/build/{id}/file/{path}` - Get specific file content
+- `GET /api/build/{id}/download` - Download as ZIP
+- `GET /api/build/health/check` - Service health check
+
+### Frontend Integration
+- IDE page calls `/api/build/create` when user types build request
+- Generated code displayed in editor
+- "SEND TO CERTIFICATION" and "DOWNLOAD" buttons available
+- Terminal shows real-time build progress
+
+---
+
+## Architecture
+
 ```
 /app/
 ├── backend/
-│   ├── server.py              # Main FastAPI app
-│   ├── franklin_routes.py     # Core API routes
-│   ├── franklin_orchestrator.py # User→Franklin→Grok→Agents workflow
-│   ├── persistence.py         # Chat persistence
-│   ├── payment_routes.py      # Stripe payment integration
-│   └── ...
+│   ├── simple_build.py          # NEW: Core build service (LLM + file generation)
+│   ├── simple_build_routes.py   # NEW: API routes for build
+│   ├── server.py                # Main FastAPI app (monolith - needs refactor)
+│   ├── certification_engine.py  # 8-gate validation
+│   └── .env                     # API keys
 ├── frontend/
 │   └── src/
-│       ├── App.js             # Main app with 3 pages
-│       └── components/
-│           └── LandingPage.jsx # Login + Pricing
-└── memory/
-    └── PRD.md
+│       └── App.js               # Main app (monolith - needs refactor)
+└── generated_projects/          # Where real files are created
 ```
 
-## What's Been Implemented
-
-### December 2025 - Latest Session
-
-**UI/UX:**
-- [x] 3-page application: Landing → IDE → Workflow
-- [x] Landing page with chrome FRANKLIN title, login form, pricing view
-- [x] IDE page matching user's wireframe:
-  - Left: Franklin panel (resizable, transparent)
-  - Center: Code area with ghost lines indicator
-  - Right: Grok panel (resizable, transparent)
-  - Bottom: Terminal + Projects/Folders sections
-  - Franklin Prompt and Grok Prompt aligned with panels
-  - "1 million context" labels on both panels
-- [x] Workflow page restored to original state (Electric Workflow with ReactFlow)
-- [x] Galactic background with twinkling stars
-- [x] Ghost FRANKLIN title visible through transparent panels
-
-**Stripe Integration:**
-- [x] Backend payment routes (`/api/payments/checkout`, `/api/payments/status`, `/api/payments/packages`)
-- [x] Webhook endpoint for Stripe events
-- [x] 4 subscription tiers: Free ($0), Starter ($9.99), Pro ($29.99), Enterprise ($99.99)
-- [x] Frontend pricing cards with Stripe checkout flow
-- [x] Payment status polling on success redirect
-
-**Agent Orchestration:**
-- [x] User → Franklin → Grok → Agents pipeline
-- [x] `/genesis` command for initiating builds
-- [x] Real-time terminal output
-- [x] Grok response panel
-
-**Chat & Persistence:**
-- [x] Franklin chat with localStorage persistence
-- [x] Grok responses with localStorage persistence
-- [x] Terminal output history
-- [x] Saved chats functionality
-
-## API Endpoints
-
-### Payment APIs
-- `GET /api/payments/packages` - Get subscription packages
-- `POST /api/payments/checkout` - Create Stripe checkout session
-- `GET /api/payments/status/{session_id}` - Get payment status
-- `GET /api/payments/user/{email}` - Get user subscription
-- `POST /api/webhook/stripe` - Stripe webhook handler
-
-### Agent APIs
-- `POST /api/build-orchestrator/build` - Start build with agents
-- `POST /api/build-orchestrator/chat` - Chat with Franklin
-- `POST /api/grok/chat` - Direct Grok conversation
-
-## Subscription Packages
-| Package | Price | Features |
-|---------|-------|----------|
-| Free | $0/mo | Basic access, 1 project, Community support |
-| Starter | $9.99/mo | Full IDE, 5 projects, Email support, 1M context |
-| Pro | $29.99/mo | Unlimited projects, Priority support, Team collaboration |
-| Enterprise | $99.99/mo | Custom deployment, Dedicated support, SLA guarantee |
-
-## Backlog / Future Tasks
-
-### P1 - High Priority
-- [ ] Implement "Whiteboard" view for collaborative code agreement
-- [ ] Implement "Workspace" view for auto-populated code sections
-- [ ] Make panels slide in/out smoothly with proper animation
-- [ ] Synchronize prompt box movements with panel resizing
-
-### P2 - Medium Priority
-- [ ] Implement remaining UI windows (Pulse, Matrix, Ledger, Archive)
-- [ ] Vector DB integration for "Memory Mesh"
-- [ ] Supabase database schema creation
-- [ ] Continuous workflow loop ("The Loop")
-
-### P3 - Low Priority / Refactoring
-- [ ] Break down App.js into smaller components
-- [ ] Create route-based sections (/studio, /agents, /academy)
-- [ ] Optimize React re-renders
-- [ ] Add proper TypeScript types
-
-## Technical Notes
-- Frontend: React with Tailwind CSS
-- Backend: FastAPI with MongoDB
-- Payments: Stripe via emergentintegrations library
-- LLM: Claude via Anthropic/Emergent integration
-- Workflow: ReactFlow for visual pipelines
+---
 
 ## Known Issues
-- App.js is still monolithic (~800 lines) but significantly reduced from 2000+
-- Some panel alignment may need fine-tuning based on screen size
+
+1. **Monolithic Files** - App.js and server.py are too large
+2. **Supabase Connection** - PostgreSQL auth failing (using MongoDB fallback)
+3. **Chat Persistence** - State lost on page refresh
+4. **Stripe Integration** - UI exists but not fully functional
+
+---
+
+## Test Results
+
+### Feb 14, 2026
+- ✅ Build endpoint creates real files on disk
+- ✅ LLM calls succeed (Anthropic provider)
+- ✅ ZIP download works
+- ✅ Frontend displays generated code
+- ⏳ 8-gate certification needs E2E test
