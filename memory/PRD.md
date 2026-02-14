@@ -1,109 +1,95 @@
 # FRANKLIN OS - Product Requirements Document
 
 ## Original Problem Statement
-Build "FRANKLIN OS," a sophisticated, VS Code-style IDE for building, certifying, and deploying enterprise applications with a "galactic liquid glassmorphism" cyberpunk aesthetic. The core mission is to create a fully functional software factory where a user interacts with an AI agent (Franklin) to define a project, which is then executed by a team of specialized agents (Grok, Genesis, Architect, etc.).
+Build "FRANKLIN OS," a sophisticated, VS Code-style IDE for building, certifying, and deploying enterprise applications with a "galactic liquid glassmorphism" cyberpunk aesthetic. The user demands a fully functional software factory where telling the AI to "build X" results in actual generation of certified, downloadable source code - NOT mocked or simulated features.
 
-## User's Vision
-- Chrome FRANKLIN title with shimmer effect
-- Galactic starfield background with twinkling stars
-- 3-column IDE layout: Franklin (left) | Code Area (center) | Grok (right)
-- Transparent, resizable panels
-- Ghost "FRANKLIN" text visible through panels
-- Terminal at bottom center
-- **Consistent Galaxy Black Glassmorphism across ALL pages**
-- **Franklin chat that ACTUALLY BUILDS and delivers code**
-- **FRANKLIN OS Certification for every build**
+## User Persona
+Enterprise software developers who need a streamlined, AI-powered development environment that can:
+- Generate real, production-ready code from natural language descriptions
+- Provide 8-gate quality certification
+- Allow download of generated projects as ZIP files
 
-## Current Status: WORKING ✅
+## Core Requirements
 
-### What Works NOW:
-1. **Tell Franklin what to build** → Type "build me X" in Franklin prompt
-2. **Genesis agents work on it** → Genesis, Architect, Implementer, Healer
-3. **Code is generated** → Displayed in center CODE panel
-4. **FRANKLIN OS CERTIFIED** → Badge shows certification status
-5. **COPY/DOWNLOAD** → Get the code immediately
-6. **Workflow page** → Navigate pipeline with chat commands
+### P0 - Critical (Must Have)
+1. **Real Code Generation** - When user says "build X", real code files must be created on the server ✅ DONE
+2. **LLM Integration** - Reliable LLM calls that don't timeout ✅ DONE (Multi-provider fallback)
+3. **File Download** - Users must be able to download generated code as ZIP ✅ DONE
+4. **8-Gate Certification** - Real validation of generated code quality ⏳ EXISTS (needs E2E test)
 
-## Core Architecture
+### P1 - High Priority
+1. **Chat Persistence** - Conversations should survive page refresh
+2. **Stripe Subscription Gating** - User authentication and subscription management
+3. **Code Refactoring** - Break down monolithic App.js and server.py
+
+### P2 - Medium Priority
+1. **Supabase Integration** - Fix PostgreSQL connection (needs valid credentials)
+2. **Whiteboard View** - Collaborative review feature
+3. **Workspace View** - Project management view
+
+### P3 - Low Priority
+1. **OCTANT FOUNDRY** - Financial models (Escrow, Social Currency)
+2. **IDE Layout** - Match original wireframe proportions
+
+---
+
+## What's Been Implemented (Feb 14, 2026)
+
+### Simple Build System (`/api/build/create`)
+- **New endpoint that takes a single prompt and generates real files**
+- Multi-provider LLM fallback: Anthropic → XAI → OpenAI → Google
+- Parses code blocks from LLM response into actual files
+- Creates project directory on server disk
+- Generates downloadable ZIP file
+- Returns file contents, stats, and tree structure
+
+### API Endpoints Working
+- `POST /api/build/create` - Create build from prompt
+- `GET /api/build/{id}` - Get build info
+- `GET /api/build/{id}/file/{path}` - Get specific file content
+- `GET /api/build/{id}/download` - Download as ZIP
+- `GET /api/build/health/check` - Service health check
+
+### Frontend Integration
+- IDE page calls `/api/build/create` when user types build request
+- Generated code displayed in editor
+- "SEND TO CERTIFICATION" and "DOWNLOAD" buttons available
+- Terminal shows real-time build progress
+
+---
+
+## Architecture
+
 ```
 /app/
 ├── backend/
-│   ├── server.py              # Main FastAPI app
-│   ├── franklin_routes.py     # Core API routes
-│   ├── franklin_orchestrator.py # Genesis→Architect→Implementer→Healer pipeline
-│   ├── payment_routes.py      # Stripe payment integration
-│   └── grok_agent.py          # Grok chat agent
+│   ├── simple_build.py          # NEW: Core build service (LLM + file generation)
+│   ├── simple_build_routes.py   # NEW: API routes for build
+│   ├── server.py                # Main FastAPI app (monolith - needs refactor)
+│   ├── certification_engine.py  # 8-gate validation
+│   └── .env                     # API keys
 ├── frontend/
 │   └── src/
-│       ├── App.js             # Main app with 3 pages
-│       └── components/
-│           └── LandingPage.jsx # Login + Pricing
-└── memory/
-    └── PRD.md
+│       └── App.js               # Main app (monolith - needs refactor)
+└── generated_projects/          # Where real files are created
 ```
 
-## What's Been Implemented
+---
 
-### February 2026 - Build System WORKING
+## Known Issues
 
-**The Build Pipeline:**
-- [x] User types "build me X" in Franklin prompt
-- [x] Frontend detects build intent and calls `/api/build-orchestrator/build`
-- [x] Backend orchestrator runs 4-agent pipeline:
-  - Genesis: Analyzes requirements, creates specification
-  - Architect: Designs system architecture
-  - Implementer: Writes production-ready code
-  - Healer: Reviews and validates code quality
-- [x] Franklin signs off with GENESIS_CERTIFIED stamp
-- [x] Code displayed in center panel
-- [x] COPY and DOWNLOAD buttons available
-- [x] Terminal shows real-time progress
-- [x] Certification badge in header
+1. **Monolithic Files** - App.js and server.py are too large
+2. **Supabase Connection** - PostgreSQL auth failing (using MongoDB fallback)
+3. **Chat Persistence** - State lost on page refresh
+4. **Stripe Integration** - UI exists but not fully functional
 
-**LLM Integration:**
-- [x] Uses Anthropic Claude via Emergent integration
-- [x] Fallback to XAI if needed
-- [x] 120s timeout for longer builds
+---
 
-### Previous Features (Still Working)
-- [x] 3-page application: Landing → IDE → Workflow
-- [x] Galaxy Black Glassmorphism on all pages
-- [x] Sparkly twinkling stars background
-- [x] Ghost "FRANKLIN" text
-- [x] Workflow page with functional chat commands
-- [x] Stripe pricing integration (UI)
+## Test Results
 
-## API Endpoints
-
-### Build APIs
-- `POST /api/build-orchestrator/build` - Build something (mission payload)
-- `POST /api/build-orchestrator/chat` - Chat with Franklin
-
-### Payment APIs
-- `GET /api/payments/packages` - Get subscription packages
-- `POST /api/payments/checkout` - Create Stripe checkout session
-
-## Backlog / Future Tasks
-
-### P1 - High Priority
-- [ ] Persist build results to database (survive page refresh)
-- [ ] Implement full Stripe authentication
-- [ ] Add code execution sandbox (run the generated code)
-
-### P2 - Medium Priority
-- [ ] OCTANT FOUNDRY 8-Gate Architecture (user blueprint)
-- [ ] Escrow payment model
-- [ ] Whiteboard/Workspace views
-- [ ] Refactor App.js into smaller components
-
-## Technical Notes
-- Frontend: React with Tailwind CSS
-- Backend: FastAPI with MongoDB
-- LLM: Claude (Anthropic) via Emergent integration
-- Payments: Stripe via emergentintegrations
-- Workflow: ReactFlow for visual pipelines
-
-## Design Philosophy
-- **Truth**: No hidden actions, all processes visible in terminal
-- **Trust**: Code is generated and certified before delivery
-- **Transparency**: Real-time feedback, no black boxes
+### Feb 14, 2026
+- ✅ Build endpoint creates real files on disk
+- ✅ LLM calls succeed (Anthropic provider)
+- ✅ ZIP download works
+- ✅ Frontend displays generated code
+- ⏳ 8-gate certification needs E2E test
