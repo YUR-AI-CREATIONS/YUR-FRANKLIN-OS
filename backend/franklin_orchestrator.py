@@ -174,33 +174,39 @@ class FranklinOrchestrator:
     
     async def call_llm(self, system_prompt: str, user_prompt: str, 
                         temperature: float = 0.7, max_tokens: int = 2000) -> Optional[str]:
-        """Call LLM API - uses Emergent integration"""
+        """Call LLM API via direct HTTP to Emergent proxy"""
         emergent_key = os.getenv("EMERGENT_LLM_KEY")
         
         if not emergent_key:
-            logger.warning("No Emergent LLM key configured")
+            logger.warning("No Emergent LLM key configured, trying XAI fallback")
             return await self._fallback_xai(system_prompt, user_prompt, temperature, max_tokens)
         
         try:
-            from emergentintegrations.llm.chat import LlmChat, UserMessage
-            import uuid
+            # Use Emergent's LiteLLM proxy
+            proxy_url = "https://ai-gateway.emergent.sh/v1/chat/completions"
             
-            session_id = str(uuid.uuid4())
-            llm = LlmChat(
-                api_key=emergent_key,
-                session_id=session_id,
-                system_message=system_prompt
-            ).with_model("anthropic", "claude-sonnet-4-20250514").with_params(
-                max_tokens=max_tokens,
-                temperature=temperature
-            )
-            
-            # send_message is async
-            response = await llm.send_message(UserMessage(text=user_prompt))
-            return response
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                response = await client.post(
+                    proxy_url,
+                    headers={
+                        "Authorization": f"Bearer {emergent_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "anthropic/claude-sonnet-4-20250514",
+                        "messages": [
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": user_prompt}
+                        ],
+                        "max_tokens": max_tokens,
+                        "temperature": temperature
+                    }
+                )
+                response.raise_for_status()
+                result = response.json()
+                return result["choices"][0]["message"]["content"]
         except Exception as e:
             logger.error(f"[LLM ERROR] {str(e)}")
-            # Try XAI fallback
             return await self._fallback_xai(system_prompt, user_prompt, temperature, max_tokens)
     
     async def _fallback_xai(self, system_prompt: str, user_prompt: str,
