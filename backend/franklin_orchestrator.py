@@ -195,7 +195,8 @@ class FranklinOrchestrator:
                 temperature=temperature
             )
             
-            response = llm.send_message(UserMessage(text=user_prompt))
+            # send_message is async
+            response = await llm.send_message(UserMessage(text=user_prompt))
             return response
         except Exception as e:
             logger.error(f"[LLM ERROR] {str(e)}")
