@@ -300,6 +300,13 @@ const ElectricWorkflowPage = ({ onBack }) => {
         highlightStage(command.stage);
         return `Moving to ${command.stageName} stage. This stage handles: ${GENESIS_STAGES[command.stage].desc}`;
       
+      case 'run_certification':
+        if (isCertifying) {
+          return 'Certification is already running. Please wait.';
+        }
+        runCertification();
+        return 'Starting 8-Gate Certification...';
+      
       case 'run_ouroboros':
         if (ouroborosActive) {
           return 'Ouroboros loop is already running. Please wait for it to complete.';
@@ -314,7 +321,8 @@ const ElectricWorkflowPage = ({ onBack }) => {
       
       case 'status':
         const stage = GENESIS_STAGES[currentStage];
-        return `Current Status:\n• Stage: ${stage.name} (${currentStage + 1}/8)\n• Description: ${stage.desc}\n• Convergence: ${convergence.toFixed(1)}%\n• Ouroboros: ${ouroborosActive ? 'ACTIVE' : 'STANDBY'}`;
+        const buildStatus = pendingBuild ? `Build: ${pendingBuild.buildId}` : 'No build loaded';
+        return `Current Status:\n• Stage: ${stage.name} (${currentStage + 1}/8)\n• Description: ${stage.desc}\n• Convergence: ${convergence.toFixed(1)}%\n• ${buildStatus}\n• Ouroboros: ${ouroborosActive ? 'ACTIVE' : 'STANDBY'}`;
       
       case 'reset':
         setCurrentStage(0);
