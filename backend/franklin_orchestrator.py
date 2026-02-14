@@ -174,40 +174,114 @@ class FranklinOrchestrator:
     
     async def call_llm(self, system_prompt: str, user_prompt: str, 
                         temperature: float = 0.7, max_tokens: int = 2000) -> Optional[str]:
-        """Call LLM API via direct HTTP to Emergent proxy"""
-        emergent_key = os.getenv("EMERGENT_LLM_KEY")
+        """
+        TRINITY ORCHESTRATION
+        Multi-layer LLM fallback: XAI (Grok) → Anthropic → OpenAI → Google
+        """
+        # Layer 1: XAI (Grok) - Primary
+        xai_key = os.getenv("XAI_API_KEY")
+        if xai_key:
+            try:
+                async with httpx.AsyncClient(timeout=90.0) as client:
+                    response = await client.post(
+                        "https://api.x.ai/v1/chat/completions",
+                        headers={
+                            "Authorization": f"Bearer {xai_key}",
+                            "Content-Type": "application/json"
+                        },
+                        json={
+                            "model": "grok-3",
+                            "messages": [
+                                {"role": "system", "content": system_prompt},
+                                {"role": "user", "content": user_prompt}
+                            ],
+                            "temperature": temperature,
+                            "max_tokens": max_tokens
+                        }
+                    )
+                    response.raise_for_status()
+                    result = response.json()
+                    logger.info("[TRINITY] XAI/Grok succeeded")
+                    return result["choices"][0]["message"]["content"]
+            except Exception as e:
+                logger.warning(f"[TRINITY] XAI failed: {e}, trying Anthropic...")
         
-        if not emergent_key:
-            logger.warning("No Emergent LLM key configured, trying XAI fallback")
-            return await self._fallback_xai(system_prompt, user_prompt, temperature, max_tokens)
+        # Layer 2: Anthropic (Claude)
+        anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+        if anthropic_key:
+            try:
+                async with httpx.AsyncClient(timeout=90.0) as client:
+                    response = await client.post(
+                        "https://api.anthropic.com/v1/messages",
+                        headers={
+                            "x-api-key": anthropic_key,
+                            "anthropic-version": "2023-06-01",
+                            "Content-Type": "application/json"
+                        },
+                        json={
+                            "model": "claude-sonnet-4-20250514",
+                            "max_tokens": max_tokens,
+                            "system": system_prompt,
+                            "messages": [{"role": "user", "content": user_prompt}]
+                        }
+                    )
+                    response.raise_for_status()
+                    result = response.json()
+                    logger.info("[TRINITY] Anthropic succeeded")
+                    return result["content"][0]["text"]
+            except Exception as e:
+                logger.warning(f"[TRINITY] Anthropic failed: {e}, trying OpenAI...")
         
-        try:
-            # Use Emergent's LiteLLM proxy
-            proxy_url = "https://ai-gateway.emergent.sh/v1/chat/completions"
-            
-            async with httpx.AsyncClient(timeout=120.0) as client:
-                response = await client.post(
-                    proxy_url,
-                    headers={
-                        "Authorization": f"Bearer {emergent_key}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": "anthropic/claude-sonnet-4-20250514",
-                        "messages": [
-                            {"role": "system", "content": system_prompt},
-                            {"role": "user", "content": user_prompt}
-                        ],
-                        "max_tokens": max_tokens,
-                        "temperature": temperature
-                    }
-                )
-                response.raise_for_status()
-                result = response.json()
-                return result["choices"][0]["message"]["content"]
-        except Exception as e:
-            logger.error(f"[LLM ERROR] {str(e)}")
-            return await self._fallback_xai(system_prompt, user_prompt, temperature, max_tokens)
+        # Layer 3: OpenAI
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if openai_key:
+            try:
+                async with httpx.AsyncClient(timeout=90.0) as client:
+                    response = await client.post(
+                        "https://api.openai.com/v1/chat/completions",
+                        headers={
+                            "Authorization": f"Bearer {openai_key}",
+                            "Content-Type": "application/json"
+                        },
+                        json={
+                            "model": "gpt-4o",
+                            "messages": [
+                                {"role": "system", "content": system_prompt},
+                                {"role": "user", "content": user_prompt}
+                            ],
+                            "temperature": temperature,
+                            "max_tokens": max_tokens
+                        }
+                    )
+                    response.raise_for_status()
+                    result = response.json()
+                    logger.info("[TRINITY] OpenAI succeeded")
+                    return result["choices"][0]["message"]["content"]
+            except Exception as e:
+                logger.warning(f"[TRINITY] OpenAI failed: {e}, trying Google...")
+        
+        # Layer 4: Google (Gemini)
+        google_key = os.getenv("GOOGLE_API_KEY")
+        if google_key:
+            try:
+                async with httpx.AsyncClient(timeout=90.0) as client:
+                    response = await client.post(
+                        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={google_key}",
+                        headers={"Content-Type": "application/json"},
+                        json={
+                            "contents": [{"parts": [{"text": f"{system_prompt}\n\n{user_prompt}"}]}],
+                            "generationConfig": {"temperature": temperature, "maxOutputTokens": max_tokens}
+                        }
+                    )
+                    response.raise_for_status()
+                    result = response.json()
+                    logger.info("[TRINITY] Google succeeded")
+                    return result["candidates"][0]["content"]["parts"][0]["text"]
+            except Exception as e:
+                logger.error(f"[TRINITY] Google failed: {e}")
+        
+        logger.error("[TRINITY] All providers failed")
+        return None
     
     async def _fallback_xai(self, system_prompt: str, user_prompt: str,
                            temperature: float = 0.7, max_tokens: int = 2000) -> Optional[str]:
