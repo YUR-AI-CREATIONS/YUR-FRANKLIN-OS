@@ -1835,6 +1835,9 @@ app.include_router(webhook_router)
 # LITHIUM - Real build system
 app.include_router(lithium_router)
 
+# SIMPLE BUILD - One prompt to real files
+app.include_router(simple_build_router)
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
