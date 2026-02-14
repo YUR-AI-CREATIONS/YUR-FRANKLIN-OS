@@ -235,26 +235,38 @@ class DatabaseManager:
     """
     Unified database manager for Franklin OS
     Handles both PostgreSQL (Supabase) and MongoDB
+    Falls back to MongoDB-only if PostgreSQL unavailable
     """
     
     def __init__(self):
         self.pg = PostgresDB()
         self.mongo = MongoDB()
         self._schema_initialized = False
+        self._pg_available = False
     
     async def initialize(self):
         """Initialize all database connections and schema"""
-        await self.pg.connect()
+        # Always connect MongoDB (local, reliable)
         await self.mongo.connect()
         
-        if not self._schema_initialized:
-            await self._init_schema()
-            self._schema_initialized = True
+        # Try PostgreSQL but don't fail if unavailable
+        try:
+            await self.pg.connect()
+            self._pg_available = True
+            if not self._schema_initialized:
+                await self._init_schema()
+                self._schema_initialized = True
+            logger.info("✓ PostgreSQL connected")
+        except Exception as e:
+            logger.warning(f"PostgreSQL unavailable, using MongoDB only: {e}")
+            self._pg_available = False
         
-        logger.info("✓ Database layer initialized")
+        logger.info(f"✓ Database layer initialized (PG: {self._pg_available}, Mongo: True)")
     
     async def _init_schema(self):
         """Create tables if they don't exist"""
+        if not self._pg_available:
+            return
         try:
             # Split and execute each statement
             for statement in SCHEMA_SQL.split(';'):
