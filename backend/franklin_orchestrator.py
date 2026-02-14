@@ -179,19 +179,23 @@ class FranklinOrchestrator:
         
         if not emergent_key:
             logger.warning("No Emergent LLM key configured")
-            return None
+            return await self._fallback_xai(system_prompt, user_prompt, temperature, max_tokens)
         
         try:
-            from emergentintegrations.llm.anthropic import get_chat_response
+            from emergentintegrations.llm.chat import LlmChat, UserMessage
+            import uuid
             
-            response = await get_chat_response(
+            session_id = str(uuid.uuid4())
+            llm = LlmChat(
                 api_key=emergent_key,
-                system_prompt=system_prompt,
-                user_message=user_prompt,
-                model="claude-sonnet-4-20250514",
+                session_id=session_id,
+                system_message=system_prompt
+            ).with_model("anthropic", "claude-sonnet-4-20250514").with_params(
                 max_tokens=max_tokens,
                 temperature=temperature
             )
+            
+            response = llm.send_message(UserMessage(text=user_prompt))
             return response
         except Exception as e:
             logger.error(f"[LLM ERROR] {str(e)}")
