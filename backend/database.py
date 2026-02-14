@@ -279,35 +279,54 @@ class DatabaseManager:
     
     async def shutdown(self):
         """Close all connections"""
-        await self.pg.disconnect()
+        if self._pg_available:
+            await self.pg.disconnect()
         await self.mongo.disconnect()
     
     # ========================================================================
-    # USER OPERATIONS
+    # USER OPERATIONS (MongoDB fallback)
     # ========================================================================
     
     async def create_user(self, email: str, password_hash: str = None) -> Dict:
         """Create a new user"""
         user_id = str(uuid4())
-        await self.pg.execute(
-            """INSERT INTO users (id, email, password_hash) VALUES ($1, $2, $3)""",
-            user_id, email, password_hash
-        )
+        if self._pg_available:
+            await self.pg.execute(
+                """INSERT INTO users (id, email, password_hash) VALUES ($1, $2, $3)""",
+                user_id, email, password_hash
+            )
+        else:
+            # MongoDB fallback
+            await self.mongo.db["users"].insert_one({
+                "id": user_id,
+                "email": email,
+                "password_hash": password_hash,
+                "subscription_tier": "free",
+                "created_at": datetime.now(timezone.utc)
+            })
         return {"id": user_id, "email": email}
     
     async def get_user_by_email(self, email: str) -> Optional[Dict]:
         """Get user by email"""
-        return await self.pg.fetchrow(
-            """SELECT id, email, subscription_tier, created_at FROM users WHERE email = $1""",
-            email
-        )
+        if self._pg_available:
+            return await self.pg.fetchrow(
+                """SELECT id, email, subscription_tier, created_at FROM users WHERE email = $1""",
+                email
+            )
+        else:
+            doc = await self.mongo.db["users"].find_one({"email": email})
+            return dict(doc) if doc else None
     
     async def get_user_by_id(self, user_id: str) -> Optional[Dict]:
         """Get user by ID"""
-        return await self.pg.fetchrow(
-            """SELECT id, email, subscription_tier, created_at FROM users WHERE id = $1::uuid""",
-            user_id
-        )
+        if self._pg_available:
+            return await self.pg.fetchrow(
+                """SELECT id, email, subscription_tier, created_at FROM users WHERE id = $1::uuid""",
+                user_id
+            )
+        else:
+            doc = await self.mongo.db["users"].find_one({"id": user_id})
+            return dict(doc) if doc else None
     
     # ========================================================================
     # PROJECT OPERATIONS
