@@ -124,10 +124,105 @@ const ElectricWorkflowPage = ({ onBack }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
+  // Load pending certification from IDE
+  useEffect(() => {
+    const pending = localStorage.getItem('pending_certification');
+    if (pending) {
+      try {
+        const data = JSON.parse(pending);
+        setPendingBuild(data);
+        setFranklinChat(prev => [...prev, { 
+          role: 'franklin', 
+          content: `📦 **BUILD LOADED**\n\nBuild ID: ${data.buildId}\nFiles: ${data.files?.length || 0}\nLines: ${data.stats?.total_lines || 0}\n\nSay "run certification" or click **RUN 8-GATE CERTIFICATION** to validate this build.`
+        }]);
+        addTerminal(`Build ${data.buildId} loaded from IDE`, 'system');
+        localStorage.removeItem('pending_certification');
+      } catch (e) {
+        console.error('Failed to load pending certification:', e);
+      }
+    }
+  }, []);
+
   useEffect(() => { if (franklinRef.current) franklinRef.current.scrollTop = franklinRef.current.scrollHeight; }, [franklinChat]);
   useEffect(() => { if (terminalRef.current) terminalRef.current.scrollTop = terminalRef.current.scrollHeight; }, [terminalOutput]);
 
   const addTerminal = (text, type = 'info') => setTerminalOutput(prev => [...prev, { type, text: `> ${text}` }]);
+
+  // Run real 8-Gate Certification
+  const runCertification = async () => {
+    if (!pendingBuild?.buildId) {
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: 'No build loaded. Go to IDE and build something first, then click "SEND TO CERTIFICATION".' }]);
+      return;
+    }
+
+    setIsCertifying(true);
+    addTerminal('═══════════════════════════════════════', 'system');
+    addTerminal('8-GATE CERTIFICATION INITIATED', 'system');
+    addTerminal(`Build ID: ${pendingBuild.buildId}`, 'info');
+    addTerminal('═══════════════════════════════════════', 'system');
+
+    setFranklinChat(prev => [...prev, { role: 'franklin', content: '🔍 **RUNNING 8-GATE CERTIFICATION**\n\nValidating your build against all 8 quality gates...' }]);
+
+    try {
+      const res = await axios.post(`${API}/api/lithium/certify`, {
+        build_id: pendingBuild.buildId
+      });
+
+      const { gates, all_gates_passed, total_score, certification_hash, certified_at } = res.data;
+      setCertificationResult(res.data);
+
+      // Update quality scores based on gate results
+      const gateNames = ['Intent', 'Data', 'Model', 'Vector', 'Orchestration', 'API', 'UI', 'Security'];
+      setQualityScores(gateNames.map((name, idx) => ({
+        name,
+        weight: 1.0,
+        score: gates[idx]?.score || 0
+      })));
+
+      // Log each gate result
+      gates.forEach((gate, idx) => {
+        setCurrentStage(idx);
+        const status = gate.passed ? '✓ PASSED' : '✗ FAILED';
+        const type = gate.passed ? 'success' : 'error';
+        addTerminal(`Gate ${idx + 1}: ${gate.gate_name} - ${status} (${gate.score.toFixed(0)}%)`, type);
+        
+        if (gate.errors?.length > 0) {
+          gate.errors.forEach(err => addTerminal(`  └─ ${err}`, 'error'));
+        }
+      });
+
+      setConvergence(total_score);
+
+      if (all_gates_passed) {
+        addTerminal('═══════════════════════════════════════', 'success');
+        addTerminal('✓ ALL GATES PASSED', 'success');
+        addTerminal('✓ FRANKLIN OS CERTIFIED', 'success');
+        addTerminal(`Hash: ${certification_hash?.slice(0, 16)}...`, 'success');
+        addTerminal(`Certified: ${certified_at}`, 'success');
+
+        setFranklinChat(prev => [...prev, { 
+          role: 'franklin', 
+          content: `✅ **CERTIFICATION COMPLETE**\n\n**Result:** ALL 8 GATES PASSED\n**Score:** ${total_score.toFixed(1)}%\n**Hash:** ${certification_hash}\n**Certified:** ${certified_at}\n\n🎉 Your build is now **FRANKLIN OS CERTIFIED** and ready for deployment!`
+        }]);
+      } else {
+        const failedGates = gates.filter(g => !g.passed).map(g => g.gate_name);
+        addTerminal('═══════════════════════════════════════', 'error');
+        addTerminal(`✗ CERTIFICATION FAILED - ${failedGates.length} gates did not pass`, 'error');
+
+        setFranklinChat(prev => [...prev, { 
+          role: 'franklin', 
+          content: `⚠️ **CERTIFICATION INCOMPLETE**\n\n**Score:** ${total_score.toFixed(1)}%\n**Failed Gates:** ${failedGates.join(', ')}\n\nReview the issues and fix them in the IDE, then re-submit for certification.`
+        }]);
+      }
+
+    } catch (err) {
+      addTerminal('CERTIFICATION FAILED', 'error');
+      addTerminal(err.message || 'Unknown error', 'error');
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: `❌ Certification failed: ${err.message}` }]);
+    }
+
+    setIsCertifying(false);
+  };
 
   // Parse natural language commands for pipeline control
   const parseCommand = (input) => {
