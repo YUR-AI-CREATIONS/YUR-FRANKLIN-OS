@@ -174,37 +174,28 @@ class FranklinOrchestrator:
     
     async def call_llm(self, system_prompt: str, user_prompt: str, 
                         temperature: float = 0.7, max_tokens: int = 2000) -> Optional[str]:
-        """Call LLM API - uses Anthropic via Emergent integration"""
-        api_key = self.emergent_key or self.anthropic_key
+        """Call LLM API - uses Emergent integration"""
+        emergent_key = os.getenv("EMERGENT_LLM_KEY")
         
-        if not api_key:
-            logger.warning("No LLM API key configured")
+        if not emergent_key:
+            logger.warning("No Emergent LLM key configured")
             return None
         
         try:
-            async with httpx.AsyncClient(timeout=120.0) as client:
-                response = await client.post(
-                    self.anthropic_url,
-                    headers={
-                        "x-api-key": api_key,
-                        "anthropic-version": "2023-06-01",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": "claude-sonnet-4-20250514",
-                        "max_tokens": max_tokens,
-                        "system": system_prompt,
-                        "messages": [
-                            {"role": "user", "content": user_prompt}
-                        ]
-                    }
-                )
-                response.raise_for_status()
-                result = response.json()
-                return result["content"][0]["text"]
+            from emergentintegrations.llm.anthropic import get_chat_response
+            
+            response = await get_chat_response(
+                api_key=emergent_key,
+                system_prompt=system_prompt,
+                user_message=user_prompt,
+                model="claude-sonnet-4-20250514",
+                max_tokens=max_tokens,
+                temperature=temperature
+            )
+            return response
         except Exception as e:
             logger.error(f"[LLM ERROR] {str(e)}")
-            # Fallback to XAI if Anthropic fails
+            # Try XAI fallback
             return await self._fallback_xai(system_prompt, user_prompt, temperature, max_tokens)
     
     async def _fallback_xai(self, system_prompt: str, user_prompt: str,
