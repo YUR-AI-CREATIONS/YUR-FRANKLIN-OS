@@ -52,6 +52,9 @@ from marketing_routes import marketing_router as marketing_content_router
 from deployment_routes import deploy_router
 from payment_routes import payment_router, webhook_router
 
+# Import LITHIUM routes (real build system)
+from lithium_routes import router as lithium_router
+
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
