@@ -101,13 +101,17 @@ async def download_build(build_id: str):
 @router.post("/certify")
 async def certify_build(request: CertifyRequest):
     """
-    Run 8-gate certification on a build
+    Run 8-gate certification on a build and save results to database
     """
     from pathlib import Path
+    from lithium_database import lithium_db
     
     project_dir = Path("/app/generated_projects") / request.build_id
     if not project_dir.exists():
         raise HTTPException(status_code=404, detail="Build not found")
+    
+    # Initialize database
+    await lithium_db.initialize()
     
     # Gather files
     files = []
@@ -127,14 +131,25 @@ async def certify_build(request: CertifyRequest):
             except Exception:
                 pass
     
+    # Get build info from database
+    build_info = await lithium_db.get_build(request.build_id)
+    mission = build_info.get("mission", "") if build_info else ""
+    
     # Run certification
     result = await certification_engine.run_all_gates(
         build_id=request.build_id,
-        mission="",  # We don't have mission stored, but gates will still run
+        mission=mission,
         spec="",
         architecture="",
         files=files
     )
+    
+    # Save certification to database
+    try:
+        await lithium_db.save_certification(result)
+        logger.info(f"Certification saved for build {request.build_id}")
+    except Exception as e:
+        logger.warning(f"Failed to save certification: {e}")
     
     return result
 
