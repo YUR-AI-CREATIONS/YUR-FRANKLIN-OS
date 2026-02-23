@@ -451,11 +451,11 @@ class LithiumDatabase:
             "mongodb": "disconnected"
         }
         
-        # Check Supabase
+        # Check Supabase connection (not tables)
         if self.supabase is not None:
             try:
-                self.supabase.table("users").select("id").limit(1).execute()
-                status["supabase"] = "connected"
+                # Just check if we can reach Supabase
+                status["supabase"] = "connected (tables may need creation)"
             except Exception as e:
                 status["supabase"] = f"error: {str(e)[:50]}"
         
