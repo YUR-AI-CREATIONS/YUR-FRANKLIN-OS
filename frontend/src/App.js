@@ -787,7 +787,7 @@ const IDEPage = ({ onNavigate }) => {
 
     try {
       addTerminal('Preparing ZIP download...', 'info');
-      const res = await axios.get(`${API}/api/simple-build/download/${buildResult.build_id}`, {
+      const res = await axios.get(`${API}/api/simple-build/build/${buildResult.build_id}/download`, {
         responseType: 'blob'
       });
       
