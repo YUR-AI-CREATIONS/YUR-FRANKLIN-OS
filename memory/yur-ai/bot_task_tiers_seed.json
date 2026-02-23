@@ -1,0 +1,55 @@
+[
+  {
+    "name": "Tier 1 - Scout Bot",
+    "tier_level": 1,
+    "description": "Lead discovery and bid/auction scanning with strict compliance controls.",
+    "min_usd": 0,
+    "max_usd": 2500,
+    "allowed_sources": ["public_bid_portals", "public_auctions", "open_procurement_feeds"],
+    "task_types": ["lead_scrape", "signal_capture", "basic_enrichment"],
+    "risk_controls": [
+      "respect_robots_txt",
+      "rate_limit",
+      "no_credentialed_access",
+      "pii_redaction"
+    ],
+    "evidence_requirements": ["source_urls", "timestamped_snapshots", "hashes"],
+    "metadata": {"autonomy_level": "low"}
+  },
+  {
+    "name": "Tier 2 - Qualifier Bot",
+    "tier_level": 2,
+    "description": "Qualifies leads, scores opportunities, and routes to agents.",
+    "min_usd": 2500,
+    "max_usd": 20000,
+    "allowed_sources": ["public_bid_portals", "public_auctions", "partner_feeds"],
+    "task_types": ["lead_scoring", "requirements_extraction", "opportunity_ranking"],
+    "risk_controls": ["rate_limit", "consent_required", "pii_redaction"],
+    "evidence_requirements": ["scoring_logs", "rules_snapshot", "source_urls"],
+    "metadata": {"autonomy_level": "medium"}
+  },
+  {
+    "name": "Tier 3 - Pipeline Bot",
+    "tier_level": 3,
+    "description": "Pipeline automation, bid packaging, and compliance pre-checks.",
+    "min_usd": 20000,
+    "max_usd": 300000,
+    "allowed_sources": ["public_bid_portals", "partner_feeds", "internal_crm"],
+    "task_types": ["bid_packaging", "compliance_precheck", "proposal_drafting"],
+    "risk_controls": ["human_approval_required", "audit_logging", "pii_redaction"],
+    "evidence_requirements": ["proposal_hash", "compliance_checklist", "approval_logs"],
+    "metadata": {"autonomy_level": "high"}
+  },
+  {
+    "name": "Elite Scalar - Market Orchestrator Bot",
+    "tier_level": 4,
+    "description": "High-value market orchestration with board oversight.",
+    "min_usd": 300000,
+    "max_usd": 10000000,
+    "allowed_sources": ["approved_partner_feeds", "internal_marketplace"],
+    "task_types": ["market_orchestration", "portfolio_coordination", "capital_routing"],
+    "risk_controls": ["board_approval_required", "audit_logging", "rate_limit"],
+    "evidence_requirements": ["board_signoff", "ledger_anchor", "risk_report"],
+    "metadata": {"autonomy_level": "sovereign"}
+  }
+]

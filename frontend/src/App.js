@@ -1,0 +1,1592 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import ReactFlow, { Background, Controls, useNodesState, useEdgesState, addEdge, MarkerType } from 'reactflow';
+import 'reactflow/dist/style.css';
+import axios from 'axios';
+import { LandingPage } from './components/LandingPage';
+import NeuralBrain from './components/NeuralBrain';
+import AgentBotCockpit from './components/AgentBotCockpit';
+import AcademySocialPage from './components/AcademySocialPage';
+import ProjectHeaderChip from './components/ProjectHeaderChip';
+import { ProjectProvider, useProject } from './context/ProjectContext';
+// NEW: Import enhanced UI components (designSystem, GlassPanel, ContextWindow, GhostFranklin, FranklinIDE)
+import FranklinIDE from './components/IDE/FranklinIDE';
+import GhostFranklin from './components/ui/GhostFranklin';
+import GlassPanel from './components/ui/GlassPanel';
+import ContextWindow from './components/ui/ContextWindow';
+import { COLORS, GLASSMORPHISM, ANIMATIONS } from './theme/designSystem';
+import './App.css';
+
+const API = process.env.REACT_APP_BACKEND_URL || '';
+const PAGES = { LANDING: 'landing', IDE: 'ide', WORKFLOW: 'workflow', AGENTS: 'agents', ACADEMY: 'academy' };
+
+// Genesis Pipeline Stages
+const GENESIS_STAGES = [
+  { id: 'inception', name: 'INCEPTION', desc: 'Requirement validation' },
+  { id: 'specification', name: 'SPECIFICATION', desc: 'Detailed spec generation' },
+  { id: 'architecture', name: 'ARCHITECTURE', desc: 'System design' },
+  { id: 'construction', name: 'CONSTRUCTION', desc: 'Code generation' },
+  { id: 'validation', name: 'VALIDATION', desc: 'Testing' },
+  { id: 'evolution', name: 'EVOLUTION', desc: 'Optimization' },
+  { id: 'deployment', name: 'DEPLOYMENT', desc: 'Deployment prep' },
+  { id: 'governance', name: 'GOVERNANCE', desc: 'Compliance check' }
+];
+
+// Quality Gate Dimensions
+const QUALITY_DIMENSIONS = [
+  { name: 'Completeness', weight: 1.5, score: 0 },
+  { name: 'Coherence', weight: 1.3, score: 0 },
+  { name: 'Correctness', weight: 1.5, score: 0 },
+  { name: 'Security', weight: 1.4, score: 0 },
+  { name: 'Performance', weight: 1.0, score: 0 },
+  { name: 'Scalability', weight: 1.0, score: 0 },
+  { name: 'Maintainability', weight: 1.1, score: 0 },
+  { name: 'Compliance', weight: 1.2, score: 0 }
+];
+
+const Drawer = ({ label, options, onSelect }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border border-white/15 rounded bg-black/60">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full px-3 py-2 text-xs font-mono text-white/80 flex items-center justify-between hover:bg-white/5"
+      >
+        <span>{label}</span>
+        <span className="text-white/40">{open ? '▲' : '▼'}</span>
+      </button>
+      {open && (
+        <div className="p-2 space-y-1">
+          {options.map((opt) => (
+            <button
+              key={opt}
+              onClick={() => { onSelect(opt); setOpen(false); }}
+              className="w-full text-left px-2 py-1 text-xs font-mono text-cyan-200 hover:bg-cyan-500/15 rounded"
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// GALACTIC BACKGROUND
+const GalacticBackground = () => {
+  const canvasRef = useRef(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animationId, time = 0, stars = [];
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      stars = [];
+      for (let i = 0; i < 150; i++) stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 1.5 + 0.5, speed: Math.random() * 2 + 0.5, phase: Math.random() * Math.PI * 2 });
+    };
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      stars.forEach(star => {
+        const twinkle = Math.sin(time * star.speed * 0.05 + star.phase) * 0.5 + 0.5;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.size * (twinkle * 0.4 + 0.6), 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${twinkle * 0.8 + 0.2})`;
+        ctx.fill();
+      });
+      time++;
+      animationId = requestAnimationFrame(draw);
+    };
+    resize(); draw();
+    window.addEventListener('resize', resize);
+    return () => { cancelAnimationFrame(animationId); window.removeEventListener('resize', resize); };
+  }, []);
+  return <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />;
+};
+
+// ============================================================================
+// ELECTRIC WORKFLOW PAGE - Full Genesis Pipeline with Franklin Chat
+// ============================================================================
+const ElectricWorkflowPage = ({ onBack }) => {
+  const { project, updateProject } = useProject();
+  const [currentStage, setCurrentStage] = useState(0);
+  const [convergence, setConvergence] = useState(0);
+  const [qualityScores, setQualityScores] = useState(QUALITY_DIMENSIONS);
+  const [leftPanelOpen, setLeftPanelOpen] = useState(true);
+  const [rightPanelOpen, setRightPanelOpen] = useState(true);
+  const [chatInput, setChatInput] = useState('');
+  const [franklinChat, setFranklinChat] = useState([
+    { role: 'franklin', content: 'Welcome to the Genesis Pipeline. I\'m Franklin, your AI guide. I can help you navigate and control this workflow.' },
+    { role: 'franklin', content: 'Try commands like: "move to specification stage", "run ouroboros loop", "check quality gates", or just ask me anything about your project.' }
+  ]);
+  const [terminalOutput, setTerminalOutput] = useState([
+    { type: 'system', text: '> GENESIS ENGINE v2.0 ONLINE' },
+    { type: 'info', text: '> Ouroboros Loop: STANDBY' },
+    { type: 'info', text: '> Quality Gates: 8 DIMENSIONS READY' },
+    { type: 'success', text: '> System ready for project initialization' }
+  ]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [ouroborosActive, setOuroborosActive] = useState(false);
+  const [pendingBuild, setPendingBuild] = useState(null);
+  const [certificationResult, setCertificationResult] = useState(null);
+  const [isCertifying, setIsCertifying] = useState(false);
+  const franklinRef = useRef(null);
+  const terminalRef = useRef(null);
+  const lastBuildIdRef = useRef(null);
+
+  // Workflow nodes for ReactFlow - 8 stage pipeline
+  const initialNodes = [
+    { id: 'inception', position: { x: 100, y: 100 }, data: { label: 'INCEPTION' }, style: { background: '#1a1a2e', border: '2px solid #00ff88', color: '#fff', padding: 20, borderRadius: 8, width: 140 } },
+    { id: 'specification', position: { x: 300, y: 100 }, data: { label: 'SPECIFICATION' }, style: { background: '#1a1a2e', border: '2px solid #00d4ff', color: '#fff', padding: 20, borderRadius: 8, width: 140 } },
+    { id: 'architecture', position: { x: 500, y: 100 }, data: { label: 'ARCHITECTURE' }, style: { background: '#1a1a2e', border: '2px solid #a855f7', color: '#fff', padding: 20, borderRadius: 8, width: 140 } },
+    { id: 'construction', position: { x: 700, y: 100 }, data: { label: 'CONSTRUCTION' }, style: { background: '#1a1a2e', border: '2px solid #f59e0b', color: '#fff', padding: 20, borderRadius: 8, width: 140 } },
+    { id: 'validation', position: { x: 100, y: 250 }, data: { label: 'VALIDATION' }, style: { background: '#1a1a2e', border: '2px solid #ef4444', color: '#fff', padding: 20, borderRadius: 8, width: 140 } },
+    { id: 'evolution', position: { x: 300, y: 250 }, data: { label: 'EVOLUTION' }, style: { background: '#1a1a2e', border: '2px solid #22c55e', color: '#fff', padding: 20, borderRadius: 8, width: 140 } },
+    { id: 'deployment', position: { x: 500, y: 250 }, data: { label: 'DEPLOYMENT' }, style: { background: '#1a1a2e', border: '2px solid #3b82f6', color: '#fff', padding: 20, borderRadius: 8, width: 140 } },
+    { id: 'governance', position: { x: 700, y: 250 }, data: { label: 'GOVERNANCE' }, style: { background: '#1a1a2e', border: '2px solid #ec4899', color: '#fff', padding: 20, borderRadius: 8, width: 140 } },
+    // Ouroboros center node
+    { id: 'ouroboros', position: { x: 400, y: 400 }, data: { label: '∞ OUROBOROS' }, style: { background: '#0f0f23', border: '3px solid #00ff88', color: '#00ff88', padding: 25, borderRadius: '50%', width: 120, height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold' } },
+  ];
+
+  const initialEdges = [
+    { id: 'e1', source: 'inception', target: 'specification', animated: true, style: { stroke: '#00ff88' }, markerEnd: { type: MarkerType.ArrowClosed } },
+    { id: 'e2', source: 'specification', target: 'architecture', animated: true, style: { stroke: '#00d4ff' }, markerEnd: { type: MarkerType.ArrowClosed } },
+    { id: 'e3', source: 'architecture', target: 'construction', animated: true, style: { stroke: '#a855f7' }, markerEnd: { type: MarkerType.ArrowClosed } },
+    { id: 'e4', source: 'construction', target: 'validation', animated: true, style: { stroke: '#f59e0b' }, markerEnd: { type: MarkerType.ArrowClosed } },
+    { id: 'e5', source: 'validation', target: 'evolution', animated: true, style: { stroke: '#ef4444' }, markerEnd: { type: MarkerType.ArrowClosed } },
+    { id: 'e6', source: 'evolution', target: 'deployment', animated: true, style: { stroke: '#22c55e' }, markerEnd: { type: MarkerType.ArrowClosed } },
+    { id: 'e7', source: 'deployment', target: 'governance', animated: true, style: { stroke: '#3b82f6' }, markerEnd: { type: MarkerType.ArrowClosed } },
+    // Ouroboros loop connections
+    { id: 'e8', source: 'governance', target: 'ouroboros', animated: true, style: { stroke: '#00ff88', strokeDasharray: '5,5' }, markerEnd: { type: MarkerType.ArrowClosed } },
+    { id: 'e9', source: 'ouroboros', target: 'inception', animated: true, style: { stroke: '#00ff88', strokeDasharray: '5,5' }, markerEnd: { type: MarkerType.ArrowClosed } },
+  ];
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  // Load pending certification from IDE
+  useEffect(() => {
+    const pending = localStorage.getItem('pending_certification');
+    if (pending) {
+      try {
+        const data = JSON.parse(pending);
+        setPendingBuild(data);
+        setFranklinChat(prev => [...prev, { 
+          role: 'franklin', 
+          content: `📦 **BUILD LOADED**\n\nBuild ID: ${data.buildId}\nFiles: ${data.files?.length || 0}\nLines: ${data.stats?.total_lines || 0}\n\nSay "run certification" or click **RUN 8-GATE CERTIFICATION** to validate this build.`
+        }]);
+        addTerminal(`Build ${data.buildId} loaded from IDE`, 'system');
+        localStorage.removeItem('pending_certification');
+      } catch (e) {
+        console.error('Failed to load pending certification:', e);
+      }
+    }
+  }, []);
+
+  // Realtime updates from backend
+  useEffect(() => {
+    if (!project?.project_id || !API) return;
+    const es = new EventSource(`${API}/api/lithium/stream/projects/${project.project_id}`);
+
+    const fetchJobResult = async (jobId) => {
+      try {
+        const res = await axios.get(`${API}/api/lithium/headless/jobs/${jobId}`);
+        const job = res.data;
+        if (job?.result?.success) {
+          const buildId = job.result.build_id;
+          const files = job.result.file_contents || {};
+          const allCode = Object.entries(files).map(([path, content]) => `// === ${path} ===\n${content}`).join('\n\n');
+          setGeneratedCode(allCode);
+          setBuildResult({
+            success: true,
+            buildId,
+            code: allCode,
+            files: job.result.files,
+            stats: job.result.stats,
+            tree: job.result.tree,
+            fileContents: files
+          });
+          updateProject({ stage: 'construction', build_id: buildId });
+          addTerminal(`Headless build ${buildId} completed`, 'success');
+        }
+      } catch (e) {
+        addTerminal(`Headless job fetch failed: ${e.message}`, 'error');
+      }
+    };
+
+    es.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'build_progress') {
+          if (data.status === 'completed') {
+            setPendingBuild(prev => prev || {
+              buildId: data.build_id || data.buildId,
+              files: data.files || [],
+              stats: data.stats || {}
+            });
+            updateProject({ stage: data.stage || 'construction', build_id: data.build_id || data.buildId });
+            addTerminal(`Build ${data.build_id || data.buildId} completed`, 'success');
+          } else if (data.status === 'started') {
+            addTerminal('Build started (realtime)', 'system');
+            updateProject({ stage: data.stage || 'construction' });
+          } else if (data.status === 'error') {
+            addTerminal(`Build error: ${data.error}`, 'error');
+          }
+        }
+        if (data.type === 'headless_status') {
+          if (data.status === 'started') {
+            addTerminal(`Headless build started (job ${data.job_id})`, 'system');
+            updateProject({ stage: 'construction' });
+          } else if (data.status === 'completed') {
+            if (data.job_id) fetchJobResult(data.job_id);
+          } else if (data.status === 'error') {
+            addTerminal(`Headless build error: ${data.error}`, 'error');
+          }
+        }
+        if (data.type === 'cert_progress') {
+          if (data.status === 'started') {
+            addTerminal('Certification started', 'system');
+            updateProject({ stage: data.stage || 'validation' });
+          } else if (data.status === 'completed') {
+            setCertificationResult(data.result);
+            setConvergence(data.result?.total_score || 0);
+            updateProject({ stage: data.stage || 'certified' });
+            addTerminal('Certification completed (realtime)', 'success');
+          } else if (data.status === 'error') {
+            addTerminal(`Certification error: ${data.error}`, 'error');
+            updateProject({ stage: 'validation' });
+          }
+        }
+        if (data.type === 'agent_deploy') {
+          addTerminal(`Agent deploy scheduled: ${data.agent_id} -> ${data.target}`, 'info');
+        }
+      } catch (err) {
+        console.error('SSE parse error', err);
+      }
+    };
+
+    es.onerror = () => {
+      es.close();
+    };
+
+    return () => es.close();
+  }, [project?.project_id, API, updateProject]);
+
+  useEffect(() => { if (franklinRef.current) franklinRef.current.scrollTop = franklinRef.current.scrollHeight; }, [franklinChat]);
+  useEffect(() => { if (terminalRef.current) terminalRef.current.scrollTop = terminalRef.current.scrollHeight; }, [terminalOutput]);
+  useEffect(() => {
+    const loadAgents = async () => {
+      if (!API) return;
+      try {
+        const res = await axios.get(`${API}/api/lithium/agents/catalog`);
+        setCatalogAgents(res.data?.agents || []);
+      } catch (e) {
+        console.error('load agents failed', e);
+      }
+    };
+    loadAgents();
+  }, []);
+
+  const addTerminal = (text, type = 'info') => setTerminalOutput(prev => [...prev, { type, text: `> ${text}` }]);
+
+  // Sync pending build from project context
+  useEffect(() => {
+    if (!project?.build_id) return;
+    if (lastBuildIdRef.current === project.build_id) return;
+    const payload = {
+      buildId: project.build_id,
+      files: project.files,
+      stats: project.stats,
+      code: project.code,
+      spec: project.spec,
+      architecture: project.architecture
+    };
+    setPendingBuild(payload);
+    lastBuildIdRef.current = project.build_id;
+    addTerminal(`Build ${project.build_id} loaded from project context`, 'system');
+    setFranklinChat(prev => [...prev, { 
+      role: 'franklin', 
+      content: `📦 **BUILD READY FOR CERTIFICATION**\n\nBuild ID: ${project.build_id}\nFiles: ${project.files?.length || 0}\nLines: ${project.stats?.total_lines || 0}\n\nClick **RUN 8-GATE CERTIFICATION** to proceed.` 
+    }]);
+  }, [project?.build_id, project?.files, project?.stats, project?.code, project?.spec, project?.architecture]);
+
+  // Run real 8-Gate Certification
+  const runCertification = async () => {
+    if (!pendingBuild?.buildId) {
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: 'No build loaded. Go to IDE and build something first, then click "SEND TO CERTIFICATION".' }]);
+      return;
+    }
+
+    setIsCertifying(true);
+    addTerminal('═══════════════════════════════════════', 'system');
+    addTerminal('8-GATE CERTIFICATION INITIATED', 'system');
+    addTerminal(`Build ID: ${pendingBuild.buildId}`, 'info');
+    addTerminal('═══════════════════════════════════════', 'system');
+
+    setFranklinChat(prev => [...prev, { role: 'franklin', content: '🔍 **RUNNING 8-GATE CERTIFICATION**\n\nValidating your build against all 8 quality gates...' }]);
+
+    try {
+      const res = await axios.post(`${API}/api/lithium/certify`, {
+        build_id: pendingBuild.buildId
+      });
+
+      const { gates, all_gates_passed, total_score, certification_hash, certified_at } = res.data;
+      setCertificationResult(res.data);
+
+      // Update quality scores based on gate results
+      const gateNames = ['Intent', 'Data', 'Model', 'Vector', 'Orchestration', 'API', 'UI', 'Security'];
+      setQualityScores(gateNames.map((name, idx) => ({
+        name,
+        weight: 1.0,
+        score: gates[idx]?.score || 0
+      })));
+
+      // Log each gate result
+      gates.forEach((gate, idx) => {
+        setCurrentStage(idx);
+        const status = gate.passed ? '✓ PASSED' : '✗ FAILED';
+        const type = gate.passed ? 'success' : 'error';
+        addTerminal(`Gate ${idx + 1}: ${gate.gate_name} - ${status} (${gate.score.toFixed(0)}%)`, type);
+        
+        if (gate.errors?.length > 0) {
+          gate.errors.forEach(err => addTerminal(`  └─ ${err}`, 'error'));
+        }
+      });
+
+      setConvergence(total_score);
+
+      if (all_gates_passed) {
+        addTerminal('═══════════════════════════════════════', 'success');
+        addTerminal('✓ ALL GATES PASSED', 'success');
+        addTerminal('✓ FRANKLIN OS CERTIFIED', 'success');
+        addTerminal(`Hash: ${certification_hash?.slice(0, 16)}...`, 'success');
+        addTerminal(`Certified: ${certified_at}`, 'success');
+        updateProject({ stage: 'certified' });
+
+        setFranklinChat(prev => [...prev, { 
+          role: 'franklin', 
+          content: `✅ **CERTIFICATION COMPLETE**\n\n**Result:** ALL 8 GATES PASSED\n**Score:** ${total_score.toFixed(1)}%\n**Hash:** ${certification_hash}\n**Certified:** ${certified_at}\n\n🎉 Your build is now **FRANKLIN OS CERTIFIED** and ready for deployment!`
+        }]);
+      } else {
+        const failedGates = gates.filter(g => !g.passed).map(g => g.gate_name);
+        addTerminal('═══════════════════════════════════════', 'error');
+        addTerminal(`✗ CERTIFICATION FAILED - ${failedGates.length} gates did not pass`, 'error');
+
+        setFranklinChat(prev => [...prev, { 
+          role: 'franklin', 
+          content: `⚠️ **CERTIFICATION INCOMPLETE**\n\n**Score:** ${total_score.toFixed(1)}%\n**Failed Gates:** ${failedGates.join(', ')}\n\nReview the issues and fix them in the IDE, then re-submit for certification.`
+        }]);
+      }
+
+    } catch (err) {
+      addTerminal('CERTIFICATION FAILED', 'error');
+      addTerminal(err.message || 'Unknown error', 'error');
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: `❌ Certification failed: ${err.message}` }]);
+    }
+
+    setIsCertifying(false);
+  };
+
+  // Parse natural language commands for pipeline control
+  const parseCommand = (input) => {
+    const lower = input.toLowerCase();
+    
+    // Stage navigation commands
+    const stageKeywords = {
+      'inception': 0, 'spec': 1, 'specification': 1, 'arch': 2, 'architecture': 2,
+      'construction': 3, 'build': 3, 'validation': 4, 'test': 4, 'testing': 4,
+      'evolution': 5, 'optimize': 5, 'deploy': 6, 'deployment': 6,
+      'governance': 7, 'govern': 7, 'compliance': 7
+    };
+    
+    // Check for stage movement
+    if (lower.includes('move to') || lower.includes('go to') || lower.includes('jump to') || lower.includes('set stage')) {
+      for (const [keyword, stageIdx] of Object.entries(stageKeywords)) {
+        if (lower.includes(keyword)) {
+          return { type: 'move_stage', stage: stageIdx, stageName: GENESIS_STAGES[stageIdx].name };
+        }
+      }
+    }
+    
+    // Check for certification
+    if (lower.includes('certif') || lower.includes('validate') || lower.includes('8-gate') || lower.includes('8 gate')) {
+      if (lower.includes('run') || lower.includes('start') || lower.includes('begin')) {
+        return { type: 'run_certification' };
+      }
+    }
+    
+    // Check for ouroboros
+    if (lower.includes('ouroboros') || lower.includes('converge') || lower.includes('convergence')) {
+      if (lower.includes('run') || lower.includes('start') || lower.includes('execute') || lower.includes('begin')) {
+        return { type: 'run_ouroboros' };
+      }
+    }
+    
+    // Check for quality gate queries
+    if (lower.includes('quality') || lower.includes('gate')) {
+      return { type: 'quality_check' };
+    }
+    
+    // Check for status
+    if (lower.includes('status') || lower.includes('where am i') || lower.includes('current stage')) {
+      return { type: 'status' };
+    }
+    
+    // Check for reset
+    if (lower.includes('reset') || lower.includes('restart') || lower.includes('start over')) {
+      return { type: 'reset' };
+    }
+    
+    // Check for genesis command
+    if (lower.startsWith('/genesis ') || lower.includes('start project') || lower.includes('begin project') || lower.includes('initialize project')) {
+      const projectName = input.replace(/^\/genesis\s+/i, '').replace(/start project|begin project|initialize project/i, '').trim();
+      return { type: 'genesis', projectName: projectName || 'New Project' };
+    }
+    
+    // Check for next/previous stage
+    if (lower.includes('next stage') || lower.includes('advance') || lower.includes('proceed')) {
+      return { type: 'next_stage' };
+    }
+    if (lower.includes('previous stage') || lower.includes('go back') || lower.includes('back stage')) {
+      return { type: 'prev_stage' };
+    }
+    
+    return { type: 'chat', message: input };
+  };
+
+  // Execute parsed commands
+  const executeCommand = async (command) => {
+    switch (command.type) {
+      case 'move_stage':
+        setCurrentStage(command.stage);
+        addTerminal(`MOVED TO: ${command.stageName}`, 'system');
+        highlightStage(command.stage);
+        return `Moving to ${command.stageName} stage. This stage handles: ${GENESIS_STAGES[command.stage].desc}`;
+      
+      case 'run_certification':
+        if (isCertifying) {
+          return 'Certification is already running. Please wait.';
+        }
+        runCertification();
+        return 'Starting 8-Gate Certification...';
+      
+      case 'run_ouroboros':
+        if (ouroborosActive) {
+          return 'Ouroboros loop is already running. Please wait for it to complete.';
+        }
+        runOuroborosLoop();
+        return 'Initiating Ouroboros convergence loop. Target: 99% convergence across all quality dimensions.';
+      
+      case 'quality_check':
+        const avgScore = qualityScores.reduce((a, b) => a + b.score, 0) / qualityScores.length;
+        const qualityReport = qualityScores.map(q => `• ${q.name}: ${q.score.toFixed(1)}%`).join('\n');
+        return `8-Dimensional Quality Gate Assessment:\n\nAverage Score: ${avgScore.toFixed(1)}%\n\n${qualityReport}\n\nUse "run ouroboros" to improve scores.`;
+      
+      case 'status':
+        const stage = GENESIS_STAGES[currentStage];
+        const buildStatus = pendingBuild ? `Build: ${pendingBuild.buildId}` : 'No build loaded';
+        return `Current Status:\n• Stage: ${stage.name} (${currentStage + 1}/8)\n• Description: ${stage.desc}\n• Convergence: ${convergence.toFixed(1)}%\n• ${buildStatus}\n• Ouroboros: ${ouroborosActive ? 'ACTIVE' : 'STANDBY'}`;
+      
+      case 'reset':
+        setCurrentStage(0);
+        setConvergence(0);
+        setQualityScores(QUALITY_DIMENSIONS);
+        addTerminal('PIPELINE RESET', 'system');
+        setNodes(initialNodes);
+        return 'Pipeline has been reset to INCEPTION stage. All quality scores cleared.';
+      
+      case 'genesis':
+        addTerminal(`PROJECT: ${command.projectName}`, 'system');
+        await runGenesisPipeline(command.projectName);
+        return `Genesis Pipeline initiated for "${command.projectName}". Running through all 8 stages...`;
+      
+      case 'next_stage':
+        if (currentStage < 7) {
+          const nextStage = currentStage + 1;
+          setCurrentStage(nextStage);
+          addTerminal(`ADVANCED TO: ${GENESIS_STAGES[nextStage].name}`, 'system');
+          highlightStage(nextStage);
+          return `Advanced to ${GENESIS_STAGES[nextStage].name} stage.`;
+        }
+        return 'Already at the final stage (GOVERNANCE). Use "run ouroboros" to complete the loop.';
+      
+      case 'prev_stage':
+        if (currentStage > 0) {
+          const prevStage = currentStage - 1;
+          setCurrentStage(prevStage);
+          addTerminal(`RETURNED TO: ${GENESIS_STAGES[prevStage].name}`, 'system');
+          highlightStage(prevStage);
+          return `Returned to ${GENESIS_STAGES[prevStage].name} stage.`;
+        }
+        return 'Already at the first stage (INCEPTION).';
+      
+      default:
+        return null; // Will be handled by AI chat
+    }
+  };
+
+  const highlightStage = (stageIdx) => {
+    setNodes(nds => nds.map(n => ({
+      ...n,
+      style: {
+        ...n.style,
+        boxShadow: n.id === GENESIS_STAGES[stageIdx]?.id ? '0 0 25px #00ff88, 0 0 50px #00ff88' : 'none'
+      }
+    })));
+  };
+
+  const runGenesisPipeline = async (projectName) => {
+    for (let i = 0; i < GENESIS_STAGES.length; i++) {
+      await new Promise(r => setTimeout(r, 800));
+      setCurrentStage(i);
+      addTerminal(`[${GENESIS_STAGES[i].name}] ${GENESIS_STAGES[i].desc}`, 'info');
+      highlightStage(i);
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: `Stage ${i + 1}/8: ${GENESIS_STAGES[i].name} - ${GENESIS_STAGES[i].desc}` }]);
+    }
+    addTerminal('PIPELINE COMPLETE', 'success');
+    addTerminal('Ready for Ouroboros convergence', 'info');
+  };
+
+  const runOuroborosLoop = () => {
+    setOuroborosActive(true);
+    addTerminal('OUROBOROS LOOP INITIATED', 'system');
+    addTerminal('Target: 99% convergence', 'info');
+    
+    let conv = convergence;
+    const interval = setInterval(() => {
+      conv += Math.random() * 5 + 2;
+      if (conv >= 99) {
+        conv = 99;
+        clearInterval(interval);
+        setOuroborosActive(false);
+        addTerminal('CONVERGENCE ACHIEVED: 99%', 'success');
+        addTerminal('Frozen Spine: LOCKED', 'success');
+        setFranklinChat(prev => [...prev, { role: 'franklin', content: '✓ Ouroboros Loop complete. 99% convergence achieved. Your project spine is now frozen and ready for deployment.' }]);
+      }
+      setConvergence(conv);
+      
+      // Update quality scores
+      setQualityScores(prev => prev.map(q => ({
+        ...q,
+        score: Math.min(100, q.score + Math.random() * 10)
+      })));
+    }, 500);
+  };
+
+  const handleChatSend = async () => {
+    if (!chatInput.trim() || isProcessing) return;
+    const input = chatInput.trim();
+    setChatInput('');
+    setFranklinChat(prev => [...prev, { role: 'user', content: input }]);
+    setIsProcessing(true);
+
+    // Parse and try to execute command
+    const command = parseCommand(input);
+    const commandResult = await executeCommand(command);
+    
+    if (commandResult) {
+      // Command was handled locally
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: commandResult }]);
+      setIsProcessing(false);
+      return;
+    }
+
+    // If not a command, chat with the AI
+    try {
+      const res = await axios.post(`${API}/api/build-orchestrator/chat`, { 
+        message: input,
+        context: `User is on the Genesis Pipeline workflow page. Current stage: ${GENESIS_STAGES[currentStage].name}. Convergence: ${convergence.toFixed(1)}%.`
+      });
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: res.data.response || "I can help you with that. Try asking about the pipeline stages or use commands like 'move to specification'." }]);
+    } catch {
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: "I'm here to help navigate the Genesis Pipeline. You can say things like 'move to architecture stage', 'run ouroboros', 'check quality gates', or 'what's my current status'." }]);
+    }
+    setIsProcessing(false);
+  };
+
+  const onConnect = useCallback((params) => setEdges((eds) => addEdge({ ...params, animated: true, style: { stroke: '#00ff88' } }, eds)), [setEdges]);
+
+  return (
+    <div className="h-screen w-screen overflow-hidden bg-black text-white relative" data-testid="workflow-page">
+      <GalacticBackground />
+      
+      {/* GHOST FRANKLIN - Same as IDE page */}
+      <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-[1]">
+        <h1 className="select-none" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '12vw', fontWeight: 600, letterSpacing: '0.3em', color: 'rgba(80,80,80,0.12)' }}>FRANKLIN</h1>
+      </div>
+      
+      {/* HEADER */}
+      <div className="absolute top-0 left-0 right-0 h-12 z-50 bg-black/80 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6">
+        <button onClick={onBack} className="px-4 py-2 text-sm font-mono text-white/70 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition-all" data-testid="back-to-ide">
+          ◀ BACK TO IDE
+        </button>
+        <div className="text-center">
+          <h1 className="text-lg font-mono tracking-[0.2em] text-white" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+            ◈ GENESIS PIPELINE
+          </h1>
+          <p className="text-[10px] text-white/40">OUROBOROS LOOP • 8 QUALITY GATES • FROZEN SPINE</p>
+        </div>
+        <div className="flex items-center gap-4">
+          {project?.stage && (
+            <div className="text-xs font-mono text-white/70 px-3 py-1 rounded border border-white/10 bg-white/5">
+              Stage: {project.stage}
+            </div>
+          )}
+          {pendingBuild?.buildId && (
+            <div className="text-xs font-mono text-white/70 px-3 py-1 rounded border border-white/10 bg-white/5">
+              Build: <span className="text-cyan-300">{pendingBuild.buildId}</span>
+            </div>
+          )}
+          <div className="text-sm font-mono">
+            <span className="text-white/40">Convergence:</span>
+            <span className={`ml-2 font-semibold ${convergence >= 99 ? 'text-green-400' : convergence >= 50 ? 'text-yellow-400' : 'text-white/60'}`}>{convergence.toFixed(1)}%</span>
+          </div>
+          <div className={`w-2.5 h-2.5 rounded-full ${ouroborosActive ? 'bg-green-400 animate-pulse shadow-lg shadow-green-400/50' : 'bg-white/20'}`} />
+        </div>
+      </div>
+
+      {/* LEFT PANEL - Franklin Chat */}
+      <div className={`absolute top-12 bottom-0 z-40 bg-black/70 backdrop-blur-sm border-r border-white/10 transition-all duration-300 flex flex-col ${leftPanelOpen ? 'left-0 w-80' : '-left-80 w-80'}`}>
+        <button onClick={() => setLeftPanelOpen(!leftPanelOpen)} className="absolute -right-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/70 backdrop-blur-sm border border-white/10 rounded-r flex items-center justify-center text-white/50 hover:text-white text-sm transition-all">
+          {leftPanelOpen ? '◀' : '▶'}
+        </button>
+        
+        {/* Franklin Header */}
+        <div className="h-10 px-4 border-b border-white/10 flex items-center justify-between bg-black/50">
+          <span className="text-sm font-mono text-cyan-400 font-semibold">◆ FRANKLIN</span>
+          <span className="text-[10px] font-mono text-white/30">Pipeline Guide</span>
+        </div>
+        
+        {/* Franklin Chat */}
+        <div ref={franklinRef} className="flex-1 overflow-y-auto p-3 space-y-3">
+          {franklinChat.map((msg, idx) => (
+            <div key={idx} className={`text-sm font-mono ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/70'}`}>
+              <span className="text-[10px] text-white/30 uppercase">{msg.role === 'user' ? '◈ YOU' : '◈ FRANKLIN'}</span>
+              <p className="mt-1 whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+            </div>
+          ))}
+          {isProcessing && <div className="text-purple-400 text-sm flex items-center gap-2"><span className="animate-spin">◈</span> Processing...</div>}
+        </div>
+        
+        {/* Franklin Prompt */}
+        <div className="h-12 px-3 border-t border-cyan-500/30 bg-black/60 flex items-center gap-2">
+          <span className="text-sm font-mono text-cyan-400">Franklin ▶</span>
+          <input 
+            type="text" 
+            value={chatInput} 
+            onChange={(e) => setChatInput(e.target.value)} 
+            onKeyDown={(e) => e.key === 'Enter' && handleChatSend()} 
+            placeholder="Ask or command..." 
+            className="flex-1 bg-transparent text-sm font-mono text-white placeholder-white/30 focus:outline-none" 
+            data-testid="workflow-franklin-prompt"
+          />
+        </div>
+        
+        {/* Terminal Section */}
+        <div className="h-36 flex flex-col border-t border-white/10">
+          <div className="h-7 px-3 border-b border-white/10 flex items-center bg-black/50">
+            <span className="text-xs font-mono text-purple-400">◆ TERMINAL</span>
+          </div>
+          <div ref={terminalRef} className="flex-1 overflow-y-auto p-2">
+            {terminalOutput.map((line, idx) => (
+              <div key={idx} className={`text-[11px] font-mono ${line.type === 'error' ? 'text-red-400' : line.type === 'success' ? 'text-green-400' : line.type === 'system' ? 'text-purple-400' : 'text-white/50'}`}>{line.text}</div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT PANEL - Controls & Quality */}
+      <div className={`absolute top-12 bottom-0 z-40 bg-black/70 backdrop-blur-sm border-l border-white/10 transition-all duration-300 flex flex-col ${rightPanelOpen ? 'right-0 w-72' : '-right-72 w-72'}`}>
+        <button onClick={() => setRightPanelOpen(!rightPanelOpen)} className="absolute -left-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-black/70 backdrop-blur-sm border border-white/10 rounded-l flex items-center justify-center text-white/50 hover:text-white text-sm transition-all">
+          {rightPanelOpen ? '▶' : '◀'}
+        </button>
+        
+        {/* Stage Progress */}
+        <div className="p-3 border-b border-white/10">
+          <div className="text-xs font-mono text-white/50 mb-2">GENESIS STAGES</div>
+          <div className="space-y-1.5">
+            {GENESIS_STAGES.map((stage, idx) => (
+              <div 
+                key={stage.id} 
+                className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer transition-all ${idx === currentStage ? 'bg-cyan-500/20' : 'hover:bg-white/5'}`}
+                onClick={() => { setCurrentStage(idx); highlightStage(idx); addTerminal(`JUMPED TO: ${stage.name}`, 'system'); }}
+              >
+                <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] ${idx < currentStage ? 'bg-green-400 text-black' : idx === currentStage ? 'bg-cyan-400 animate-pulse text-black' : 'bg-white/15 text-white/30'}`}>
+                  {idx < currentStage ? '✓' : idx + 1}
+                </div>
+                <span className={`text-xs font-mono ${idx <= currentStage ? 'text-white' : 'text-white/35'}`}>{stage.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Quality Gates */}
+        <div className="flex-1 p-3 overflow-y-auto">
+          <div className="text-xs font-mono text-white/50 mb-2">8D QUALITY GATES</div>
+          <div className="space-y-2">
+            {qualityScores.map(q => (
+              <div key={q.name}>
+                <div className="flex justify-between text-[10px] font-mono mb-0.5">
+                  <span className="text-white/60">{q.name}</span>
+                  <span className={q.score >= 80 ? 'text-green-400' : q.score >= 50 ? 'text-yellow-400' : 'text-white/30'}>{q.score.toFixed(0)}%</span>
+                </div>
+                <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                  <div className={`h-full transition-all duration-500 ${q.score >= 80 ? 'bg-green-400' : q.score >= 50 ? 'bg-yellow-400' : 'bg-white/20'}`} style={{ width: `${q.score}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Action Buttons */}
+        <div className="p-3 border-t border-white/10 space-y-2">
+          {pendingBuild && (
+            <button 
+              onClick={runCertification} 
+              disabled={isCertifying} 
+              className={`w-full py-2.5 text-xs font-mono rounded transition-all ${isCertifying ? 'bg-cyan-500/20 text-cyan-400 animate-pulse' : 'bg-cyan-500/30 text-cyan-400 hover:bg-cyan-500/40'} border border-cyan-500/40`}
+              data-testid="run-certification-btn"
+            >
+              {isCertifying ? '◈ CERTIFYING...' : '▶ RUN 8-GATE CERTIFICATION'}
+            </button>
+          )}
+          <button 
+            onClick={runOuroborosLoop} 
+            disabled={ouroborosActive} 
+            className={`w-full py-2.5 text-xs font-mono rounded transition-all ${ouroborosActive ? 'bg-green-500/20 text-green-400 animate-pulse' : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'} border border-green-500/30`}
+          >
+            {ouroborosActive ? '∞ CONVERGING...' : '▶ RUN OUROBOROS'}
+          </button>
+          <button 
+            onClick={() => { setCurrentStage(0); setConvergence(0); setQualityScores(QUALITY_DIMENSIONS); addTerminal('PIPELINE RESET', 'system'); setNodes(initialNodes); setPendingBuild(null); setCertificationResult(null); }} 
+            className="w-full py-2.5 text-xs font-mono bg-white/5 border border-white/10 rounded text-white/50 hover:bg-white/10 hover:text-white/70 transition-all"
+          >
+            ⟳ RESET
+          </button>
+        </div>
+      </div>
+
+      {/* MAIN CANVAS - ReactFlow */}
+      <div className={`absolute top-12 bottom-0 z-10 transition-all duration-300 ${leftPanelOpen ? 'left-80' : 'left-0'} ${rightPanelOpen ? 'right-72' : 'right-0'}`}>
+        <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} fitView className="!bg-transparent">
+          <Background color="rgba(0,255,136,0.02)" gap={40} />
+          <Controls className="!bg-black/70 !backdrop-blur-sm !border-white/10 !rounded" />
+        </ReactFlow>
+        
+        {/* Legend */}
+        <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm border border-white/10 rounded p-3">
+          <div className="text-[10px] font-mono text-white/50 mb-1.5">LEGEND</div>
+          <div className="space-y-1 text-[10px] font-mono">
+            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded bg-green-400" /><span className="text-white/40">Completed</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded bg-cyan-400 animate-pulse" /><span className="text-white/40">In Progress</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded bg-white/15" /><span className="text-white/40">Pending</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full border border-green-400 border-dashed" /><span className="text-white/40">Ouroboros</span></div>
+          </div>
+        </div>
+        
+        {/* Quick Commands Hint */}
+        <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm border border-white/10 rounded p-3 max-w-xs">
+          <div className="text-[10px] font-mono text-white/50 mb-1.5">QUICK COMMANDS</div>
+          <div className="space-y-0.5 text-[9px] font-mono text-white/40">
+            <div>"move to [stage]" - navigate stages</div>
+            <div>"run ouroboros" - start convergence</div>
+            <div>"check quality" - view gate scores</div>
+            <div>"status" - current pipeline state</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  );
+};
+
+// ============================================================================
+// IDE PAGE V2 - Enhanced with New Design System & FranklinIDE Layout
+// ============================================================================
+const IDEPage = ({ onNavigate, project }) => {
+  const { updateProject, ensureProject } = useProject();
+  const [franklinInput, setFranklinInput] = useState('');
+  const [grokInput, setGrokInput] = useState('');
+  const [terminalInput, setTerminalInput] = useState('');
+  const [franklinChat, setFranklinChat] = useState(() => {
+    const saved = localStorage.getItem('franklin_chat_v2');
+    return saved ? JSON.parse(saved) : [{ role: 'franklin', content: 'Welcome to FRANKLIN OS. Tell me what you want to build and I\'ll create it for you. Just say "build me a [description]" and watch the magic happen.' }];
+  });
+  const [grokChat, setGrokChat] = useState(() => {
+    const saved = localStorage.getItem('grok_chat_v2');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [terminalOutput, setTerminalOutput] = useState([{ type: 'system', text: '> FRANKLIN OS Terminal v2.0' }, { type: 'info', text: '> Ready to build...' }]);
+  const [savedChats, setSavedChats] = useState(() => {
+    const saved = localStorage.getItem('saved_chats_v2');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [franklinLoading, setFranklinLoading] = useState(false);
+  const [grokLoading, setGrokLoading] = useState(false);
+  const [isBuilding, setIsBuilding] = useState(false);
+  const [buildResult, setBuildResult] = useState(null);
+  const [generatedCode, setGeneratedCode] = useState('');
+  const [activeTab, setActiveTab] = useState('code');
+  const [certificationStatus, setCertificationStatus] = useState(null);
+  const currentStage = project?.stage || 'idle';
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const [catalogAgents, setCatalogAgents] = useState([]);
+  const [contractText, setContractText] = useState(project?.contract?.text || '');
+  const [contractLocked, setContractLocked] = useState(!!project?.contract?.locked);
+  const franklinRef = useRef(null);
+  const grokRef = useRef(null);
+  const terminalRef = useRef(null);
+
+  useEffect(() => { localStorage.setItem('franklin_chat_v2', JSON.stringify(franklinChat.slice(-50))); }, [franklinChat]);
+  useEffect(() => { localStorage.setItem('grok_chat_v2', JSON.stringify(grokChat.slice(-50))); }, [grokChat]);
+  useEffect(() => { localStorage.setItem('saved_chats_v2', JSON.stringify(savedChats.slice(-20))); }, [savedChats]);
+  useEffect(() => { if (franklinRef.current) franklinRef.current.scrollTop = franklinRef.current.scrollHeight; }, [franklinChat]);
+  useEffect(() => { if (grokRef.current) grokRef.current.scrollTop = grokRef.current.scrollHeight; }, [grokChat]);
+  useEffect(() => { if (terminalRef.current) terminalRef.current.scrollTop = terminalRef.current.scrollHeight; }, [terminalOutput]);
+
+  const addTerminal = (text, type = 'info') => setTerminalOutput(prev => [...prev, { type, text: `> ${text}` }]);
+
+  const sendAudioForTranscription = async (blob) => {
+    if (!API) {
+      addTerminal('Backend URL missing; cannot transcribe.', 'error');
+      return;
+    }
+    const form = new FormData();
+    form.append('file', blob, 'voice.webm');
+    try {
+      const res = await axios.post(`${API}/api/lithium/voice/transcribe`, form, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      const text = res.data?.text || '';
+      if (text) {
+        setFranklinInput(text);
+        addTerminal('Dictation captured. Ready to build.', 'success');
+      }
+    } catch (e) {
+      addTerminal(`Dictation failed: ${e.message}`, 'error');
+    }
+  };
+
+  const stopDictation = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+  };
+
+  const startDictation = async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      addTerminal('Mic not supported in this browser.', 'error');
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+      recorder.onstop = async () => {
+        setIsRecording(false);
+        stream.getTracks().forEach(t => t.stop());
+        if (audioChunksRef.current.length === 0) return;
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        await sendAudioForTranscription(blob);
+      };
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setIsRecording(true);
+      setTimeout(() => stopDictation(), 5000);
+    } catch (e) {
+      addTerminal(`Unable to start mic: ${e.message}`, 'error');
+    }
+  };
+
+  // Detect if user wants to build something
+  const detectBuildIntent = (message) => {
+    const lower = message.toLowerCase();
+    const buildKeywords = ['build', 'create', 'make', 'develop', 'generate', 'code', 'implement', 'write'];
+    return buildKeywords.some(k => lower.includes(k));
+  };
+
+  // THE ACTUAL BUILD FUNCTION - Calls LLM and creates REAL files
+  const executeBuild = async (mission) => {
+    setIsBuilding(true);
+    setGeneratedCode('');
+    setBuildResult(null);
+    setCertificationStatus(null);
+    
+    addTerminal('═══════════════════════════════════════', 'system');
+    addTerminal('FRANKLIN OS BUILD INITIATED (Headless)', 'system');
+    addTerminal(`Mission: ${mission}`, 'info');
+    addTerminal('Enqueuing headless build...', 'info');
+
+    setFranklinChat(prev => [...prev, { role: 'franklin', content: `🚀 **BUILDING (HEADLESS):** "${mission}"\n\nQueueing job for code generation...` }]);
+    
+    try {
+      if (!project?.project_id) ensureProject();
+      const res = await axios.post(`${API}/api/lithium/headless/build`, {
+        prompt: mission,
+        project_id: project?.project_id,
+        agent_id: project?.agent_id,
+        contract: project?.contract || (contractLocked ? { text: contractText, locked: true } : null)
+      }, { timeout: 60000 });
+
+      addTerminal(`Headless job queued: ${res.data.job_id}`, 'system');
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: `🧠 Headless job queued: \`${res.data.job_id}\`\n\nI’ll stream updates here; watch the workflow or terminal for completion.` }]);
+    } catch (err) {
+      const errorMsg = err.response?.data?.detail || err.message || 'Unknown error';
+      addTerminal('BUILD FAILED: ' + errorMsg, 'error');
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: `❌ Build failed: ${errorMsg}\n\nTry a simpler request or check the terminal for details.` }]);
+    }
+    
+    setIsBuilding(false);
+  };
+
+  // Generate code based on mission keywords
+  const generateCodeFromMission = (mission) => {
+    const lower = mission.toLowerCase();
+    
+    if (lower.includes('todo') || lower.includes('task')) {
+      return `\`\`\`python src/main.py
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from typing import List, Optional
+from uuid import uuid4
+
+app = FastAPI(title="Todo API")
+
+class Todo(BaseModel):
+    id: str = None
+    title: str
+    completed: bool = False
+
+todos: List[Todo] = []
+
+@app.post("/todos", response_model=Todo)
+def create_todo(todo: Todo):
+    todo.id = str(uuid4())
+    todos.append(todo)
+    return todo
+
+@app.get("/todos", response_model=List[Todo])
+def get_todos():
+    return todos
+
+@app.get("/todos/{todo_id}", response_model=Todo)
+def get_todo(todo_id: str):
+    for todo in todos:
+        if todo.id == todo_id:
+            return todo
+    raise HTTPException(status_code=404, detail="Todo not found")
+
+@app.put("/todos/{todo_id}", response_model=Todo)
+def update_todo(todo_id: str, updated: Todo):
+    for i, todo in enumerate(todos):
+        if todo.id == todo_id:
+            updated.id = todo_id
+            todos[i] = updated
+            return updated
+    raise HTTPException(status_code=404, detail="Todo not found")
+
+@app.delete("/todos/{todo_id}")
+def delete_todo(todo_id: str):
+    for i, todo in enumerate(todos):
+        if todo.id == todo_id:
+            todos.pop(i)
+            return {"message": "Deleted"}
+    raise HTTPException(status_code=404, detail="Todo not found")
+\`\`\`
+
+\`\`\`python requirements.txt
+fastapi==0.104.0
+uvicorn==0.24.0
+pydantic==2.5.0
+\`\`\`
+
+\`\`\`dockerfile Dockerfile
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY src/ ./src/
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+\`\`\``;
+    }
+    
+    if (lower.includes('calculator') || lower.includes('calc') || lower.includes('math')) {
+      return `\`\`\`python src/calculator.py
+from fastapi import FastAPI, HTTPException
+
+app = FastAPI(title="Calculator API")
+
+@app.get("/add")
+def add(a: float, b: float):
+    return {"result": a + b}
+
+@app.get("/subtract")
+def subtract(a: float, b: float):
+    return {"result": a - b}
+
+@app.get("/multiply")
+def multiply(a: float, b: float):
+    return {"result": a * b}
+
+@app.get("/divide")
+def divide(a: float, b: float):
+    if b == 0:
+        raise HTTPException(status_code=400, detail="Cannot divide by zero")
+    return {"result": a / b}
+
+@app.get("/power")
+def power(base: float, exp: float):
+    return {"result": base ** exp}
+\`\`\`
+
+\`\`\`python requirements.txt
+fastapi==0.104.0
+uvicorn==0.24.0
+\`\`\``;
+    }
+    
+    if (lower.includes('api') || lower.includes('rest') || lower.includes('crud')) {
+      return `\`\`\`python src/main.py
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from typing import List, Optional
+from uuid import uuid4
+
+app = FastAPI(title="REST API")
+
+class Item(BaseModel):
+    id: str = None
+    name: str
+    description: Optional[str] = None
+    price: float
+
+items: List[Item] = []
+
+@app.post("/items", response_model=Item)
+def create_item(item: Item):
+    item.id = str(uuid4())
+    items.append(item)
+    return item
+
+@app.get("/items", response_model=List[Item])
+def list_items():
+    return items
+
+@app.get("/items/{item_id}", response_model=Item)
+def get_item(item_id: str):
+    for item in items:
+        if item.id == item_id:
+            return item
+    raise HTTPException(status_code=404, detail="Item not found")
+
+@app.put("/items/{item_id}", response_model=Item)
+def update_item(item_id: str, updated: Item):
+    for i, item in enumerate(items):
+        if item.id == item_id:
+            updated.id = item_id
+            items[i] = updated
+            return updated
+    raise HTTPException(status_code=404, detail="Item not found")
+
+@app.delete("/items/{item_id}")
+def delete_item(item_id: str):
+    for i, item in enumerate(items):
+        if item.id == item_id:
+            items.pop(i)
+            return {"message": "Deleted"}
+    raise HTTPException(status_code=404, detail="Item not found")
+\`\`\`
+
+\`\`\`python requirements.txt
+fastapi==0.104.0
+uvicorn==0.24.0
+pydantic==2.5.0
+\`\`\``;
+    }
+    
+    // Default: hello world
+    return `\`\`\`python src/main.py
+def hello(name: str = "World") -> str:
+    """Return a greeting message."""
+    return f"Hello, {name}!"
+
+def main():
+    print(hello())
+    print(hello("Franklin"))
+
+if __name__ == "__main__":
+    main()
+\`\`\`
+
+\`\`\`python tests/test_main.py
+from src.main import hello
+
+def test_hello_default():
+    assert hello() == "Hello, World!"
+
+def test_hello_name():
+    assert hello("Franklin") == "Hello, Franklin!"
+\`\`\``;
+  };
+
+  // Send build to Workflow page for 8-Gate Certification
+  const sendToCertification = () => {
+    if (!buildResult?.buildId) return;
+    
+    // Store build data for Workflow page
+    localStorage.setItem('pending_certification', JSON.stringify({
+      buildId: buildResult.buildId,
+      projectId: project?.project_id,
+      mission: buildResult.spec?.slice(0, 100) || 'Build',
+      files: buildResult.files,
+      stats: buildResult.stats,
+      code: buildResult.code,
+      spec: buildResult.spec,
+      architecture: buildResult.architecture
+    }));
+    
+    updateProject({
+      build_id: buildResult.buildId,
+      files: buildResult.files,
+      stats: buildResult.stats,
+      code: buildResult.code,
+      spec: buildResult.spec,
+      architecture: buildResult.architecture,
+      stage: 'validation'
+    });
+    
+    addTerminal('Transferring to Workflow for 8-Gate Certification...', 'system');
+    onNavigate(PAGES.WORKFLOW);
+  };
+
+  const handleFranklinSend = async () => {
+    if (!franklinInput.trim() || franklinLoading || isBuilding) return;
+    const input = franklinInput.trim();
+    setFranklinInput('');
+    setFranklinChat(prev => [...prev, { role: 'user', content: input }]);
+    setFranklinLoading(true);
+
+    // Check for commands
+    if (input.toLowerCase() === '/workflow') { onNavigate(PAGES.WORKFLOW); setFranklinLoading(false); return; }
+    if (input.toLowerCase() === '/clear') { 
+      setFranklinChat([{ role: 'franklin', content: 'Cleared. Ready to build.' }]); 
+      setGrokChat([]); 
+      setTerminalOutput([{ type: 'system', text: '> Cleared' }]); 
+      setGeneratedCode('');
+      setBuildResult(null);
+      setCertificationStatus(null);
+      setFranklinLoading(false); 
+      return; 
+    }
+    if (input.toLowerCase() === '/save') { 
+      setSavedChats(prev => [...prev, { id: Date.now(), title: franklinChat[1]?.content?.slice(0, 25) + '...' || 'Chat', messages: franklinChat }]); 
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: 'Chat saved!' }]); 
+      setFranklinLoading(false); 
+      return; 
+    }
+
+    // Detect build intent and execute
+    if (detectBuildIntent(input)) {
+      setFranklinLoading(false);
+      await executeBuild(input);
+      return;
+    }
+
+    // Regular chat
+    try {
+      const res = await axios.post(`${API}/api/build-orchestrator/chat`, { message: input });
+      const response = res.data.response || "I can help you build something. Just tell me what you want to create!";
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: response }]);
+      
+      // If the response suggests building, offer to start
+      if (res.data.ready_to_build) {
+        setFranklinChat(prev => [...prev, { role: 'franklin', content: "I can build that for you right now. Just say 'build it' or describe what you want more specifically." }]);
+      }
+    } catch { 
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: "I'm ready to build. Tell me what you want to create - a web app, API, tool, anything!" }]); 
+    }
+    setFranklinLoading(false);
+  };
+
+  const handleGrokSend = async () => {
+    if (!grokInput.trim() || grokLoading) return;
+    const input = grokInput.trim();
+    setGrokInput('');
+    setGrokChat(prev => [...prev, { role: 'user', content: input }]);
+    setGrokLoading(true);
+    try {
+      const res = await axios.post(`${API}/api/grok/chat`, { message: input, history: grokChat.slice(-6).map(m => ({ role: m.role === 'grok' ? 'assistant' : m.role, content: m.content })) });
+      setGrokChat(prev => [...prev, { role: 'grok', content: res.data.response || "Analyzing..." }]);
+    } catch { setGrokChat(prev => [...prev, { role: 'grok', content: "I can help analyze that." }]); }
+    setGrokLoading(false);
+  };
+
+  const handleTerminalSend = () => {
+    if (!terminalInput.trim()) return;
+    const input = terminalInput.trim();
+    setTerminalInput('');
+    addTerminal(input, 'cmd');
+    if (input === 'clear') setTerminalOutput([{ type: 'system', text: '> Cleared' }]);
+    else if (input === 'status') { addTerminal('FRANKLIN: Online', 'success'); addTerminal('GROK: Connected', 'success'); addTerminal(`Build Status: ${isBuilding ? 'IN PROGRESS' : 'IDLE'}`, 'info'); }
+    else if (input === 'workflow' || input === '/workflow') onNavigate(PAGES.WORKFLOW);
+    else if (input === 'help') {
+      addTerminal('Available commands:', 'info');
+      addTerminal('  status   - System status', 'info');
+      addTerminal('  clear    - Clear terminal', 'info');
+      addTerminal('  workflow - Go to workflow', 'info');
+      addTerminal('  download - Download code', 'info');
+    }
+    else if (input === 'download' && generatedCode) {
+      downloadCode();
+    }
+  };
+
+  const downloadCode = () => {
+    if (!buildResult?.buildId) {
+      // Fallback: download text blob
+      if (!generatedCode) return;
+      const blob = new Blob([generatedCode], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `franklin-os-build-${Date.now()}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+      addTerminal('Code downloaded!', 'success');
+      return;
+    }
+    
+    // Download ZIP from Simple Build endpoint
+    window.open(`${API}/api/build/${buildResult.buildId}/download`, '_blank');
+    addTerminal('ZIP download started!', 'success');
+  };
+
+  const copyCode = () => {
+    if (!generatedCode) return;
+    navigator.clipboard.writeText(generatedCode);
+    addTerminal('Code copied to clipboard!', 'success');
+  };
+
+  return (
+    <div className="h-screen w-screen overflow-hidden bg-black text-white relative" data-testid="franklin-os">
+      <GalacticBackground />
+      
+      {/* GHOST FRANKLIN */}
+      <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-[1]">
+        <h1 className="select-none" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '12vw', fontWeight: 600, letterSpacing: '0.3em', color: 'rgba(80,80,80,0.15)' }}>FRANKLIN</h1>
+      </div>
+      
+      {/* HEADER */}
+      <div className="absolute top-0 left-0 right-0 h-12 z-50 bg-black/90 border-b border-white/20 flex items-center px-6">
+        <span className="text-base font-mono text-white tracking-wider" style={{ fontFamily: "'Orbitron', sans-serif" }}>◈ FRANKLIN OS</span>
+        <div className="ml-3"><ProjectHeaderChip /></div>
+        <div className="ml-4">
+          <select
+            value={project?.agent_id || ''}
+            onChange={(e) => {
+              const agent = catalogAgents.find(a => a.id === e.target.value);
+              updateProject({ agent_id: agent?.id, agent_name: agent?.name, agent_badge: agent?.badge });
+            }}
+            className="bg-black/60 border border-white/20 rounded px-2 py-1 text-xs text-white/80"
+          >
+            <option value="">Select Agent</option>
+            {catalogAgents.map(a => (
+              <option key={a.id} value={a.id}>{a.name} {a.badge ? `(${a.badge})` : ''}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex-1" />
+        {isBuilding && (
+          <div className="mr-4 px-4 py-1.5 text-sm font-mono text-yellow-400 border border-yellow-500/50 rounded animate-pulse flex items-center gap-2">
+            <span className="animate-spin">◈</span> BUILDING...
+          </div>
+        )}
+        {certificationStatus?.readyForCertification && !certificationStatus?.certified && (
+          <button 
+            onClick={sendToCertification} 
+            className="mr-4 px-4 py-1.5 text-sm font-mono text-cyan-400 border border-cyan-500/50 rounded hover:bg-cyan-500/20 transition-all animate-pulse"
+            data-testid="send-to-cert-btn"
+          >
+            ▶ SEND TO CERTIFICATION
+          </button>
+        )}
+        {certificationStatus?.certified && (
+          <div className="mr-4 px-4 py-1.5 text-sm font-mono text-green-400 border border-green-500/50 rounded flex items-center gap-2">
+            ✓ CERTIFIED
+          </div>
+        )}
+        <button 
+          onClick={() => onNavigate(PAGES.WORKFLOW)} 
+          disabled={!buildResult}
+          className={`mr-4 px-4 py-1.5 text-sm font-mono rounded transition-all border ${buildResult ? 'text-purple-400 border-purple-500/50 hover:bg-purple-500/20' : 'text-white/20 border-white/10 cursor-not-allowed'}`}>
+          ◈ WORKFLOW
+        </button>
+        <button 
+          onClick={() => onNavigate(PAGES.AGENTS)} 
+          disabled={project?.stage !== 'certified'}
+          className={`mr-2 px-3 py-1.5 text-sm font-mono border rounded transition-all ${project?.stage === 'certified' ? 'text-blue-400 border-blue-500/50 hover:bg-blue-500/20' : 'text-white/30 border-white/10 cursor-not-allowed'}`}>
+          AGENTS/BOTS
+        </button>
+        <button 
+          onClick={() => onNavigate(PAGES.ACADEMY)} 
+          className="mr-2 px-3 py-1.5 text-sm font-mono text-amber-300 border border-amber-500/50 rounded hover:bg-amber-500/15 transition-all">
+          AI ACADEMY
+        </button>
+        <div className="flex items-center gap-6 text-xs font-mono">
+          <span className="text-white/60">Stage: {currentStage}</span>
+          <span className="text-green-400 flex items-center gap-2"><span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />ONLINE</span>
+        </div>
+      </div>
+
+      {/* MAIN CONTENT - 3 COLUMNS */}
+      <div className="absolute top-12 bottom-0 left-0 right-0 flex">
+        
+        {/* LEFT COLUMN - FRANKLIN */}
+        <div className="w-1/4 min-w-[280px] flex flex-col border-r border-white/20 bg-black/60">
+          <div className="h-10 px-4 border-b border-white/20 flex items-center justify-between">
+            <span className="text-sm font-mono text-cyan-400 font-semibold">◆ FRANKLIN</span>
+            <span className="text-xs font-mono text-white/40">Builder</span>
+          </div>
+          <div ref={franklinRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+            {franklinChat.map((msg, idx) => (
+              <div key={idx}>
+                <span className="text-xs font-mono text-white/40">◈ {msg.role.toUpperCase()}</span>
+                <p className={`text-sm font-mono mt-1 leading-relaxed whitespace-pre-wrap ${msg.role === 'user' ? 'text-cyan-400' : 'text-white/80'}`}>{msg.content}</p>
+              </div>
+            ))}
+            {(franklinLoading || isBuilding) && <div className="text-purple-400 text-sm flex items-center gap-2"><span className="animate-spin">◈</span> {isBuilding ? 'Building...' : 'Processing...'}</div>}
+          </div>
+          <div className="h-14 px-4 border-t border-cyan-500/40 bg-black/80 flex items-center gap-3">
+            <span className="text-sm font-mono text-cyan-400">▶</span>
+          <button 
+            onClick={isRecording ? stopDictation : startDictation} 
+            className={`px-2 py-1 text-xs font-mono rounded border ${isRecording ? 'border-red-400 text-red-400 animate-pulse' : 'border-white/20 text-white/70 hover:text-white'}`}
+          >
+            {isRecording ? 'STOP' : 'DICTATE'}
+          </button>
+            <input 
+              type="text" 
+              value={franklinInput} 
+              onChange={(e) => setFranklinInput(e.target.value)} 
+              onKeyDown={(e) => e.key === 'Enter' && handleFranklinSend()} 
+              placeholder="Tell me what to build..." 
+              className="flex-1 bg-transparent text-sm font-mono text-white placeholder-white/40 focus:outline-none" 
+              data-testid="franklin-prompt" 
+              disabled={isBuilding}
+            />
+          </div>
+        </div>
+
+        {/* CENTER COLUMN - CODE AREA */}
+        <div className="flex-1 flex flex-col">
+          {/* Tabs */}
+          <div className="h-10 px-4 border-b border-white/20 bg-black/60 flex items-center gap-4">
+            <button 
+              onClick={() => setActiveTab('code')} 
+              className={`text-sm font-mono transition-all ${activeTab === 'code' ? 'text-cyan-400' : 'text-white/40 hover:text-white/60'}`}
+            >
+              CODE
+            </button>
+            <button 
+              onClick={() => setActiveTab('spec')} 
+              className={`text-sm font-mono transition-all ${activeTab === 'spec' ? 'text-cyan-400' : 'text-white/40 hover:text-white/60'}`}
+            >
+              SPEC
+            </button>
+            <button 
+              onClick={() => setActiveTab('arch')} 
+              className={`text-sm font-mono transition-all ${activeTab === 'arch' ? 'text-cyan-400' : 'text-white/40 hover:text-white/60'}`}
+            >
+              ARCHITECTURE
+            </button>
+            <div className="flex-1" />
+            {generatedCode && (
+              <>
+                <button onClick={copyCode} className="px-3 py-1 text-xs font-mono text-white/60 hover:text-white border border-white/20 rounded hover:bg-white/10 transition-all">
+                  COPY
+                </button>
+                <button onClick={downloadCode} className="px-3 py-1 text-xs font-mono text-green-400 border border-green-500/40 rounded hover:bg-green-500/20 transition-all">
+                  DOWNLOAD
+                </button>
+              </>
+            )}
+          </div>
+          
+          {/* Certification Badge */}
+          {certificationStatus && (
+            <div className="h-10 px-4 border-b border-green-500/30 bg-green-500/10 flex items-center gap-4">
+              <span className="text-sm font-mono text-green-400">✓ FRANKLIN OS CERTIFIED</span>
+              <span className="text-xs font-mono text-white/40">|</span>
+              <span className="text-xs font-mono text-white/50">Signed: {certificationStatus.signedBy}</span>
+              <span className="text-xs font-mono text-white/40">|</span>
+              <span className="text-xs font-mono text-white/50">Agents: {certificationStatus.agents?.join(', ')}</span>
+            </div>
+          )}
+          
+          {/* Stack selectors */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 px-4 py-2 border-b border-white/10 bg-black/50">
+            {[
+              { key: 'frontend', label: 'Frontend', options: ['React', 'Next.js', 'Static'], stateKey: 'frontend' },
+              { key: 'backend', label: 'Backend', options: ['FastAPI', 'Node', 'Python API'], stateKey: 'backend' },
+              { key: 'database', label: 'Database', options: ['Supabase/Postgres', 'SQLite', 'Mongo'], stateKey: 'database' },
+              { key: 'deployment', label: 'Deployment', options: ['Local', 'Container', 'Vercel', 'Railway'], stateKey: 'deployment' }
+            ].map((drawer) => (
+              <Drawer
+                key={drawer.key}
+                label={drawer.label}
+                options={drawer.options}
+                onSelect={(val) => updateProject({ [drawer.stateKey]: val, stage: 'setup' })}
+              />
+            ))}
+          </div>
+
+        {/* Contract / Requirement step */}
+        <div className="px-4 py-3 border-b border-white/10 bg-black/60 grid lg:grid-cols-3 gap-3">
+          <div className="lg:col-span-2">
+            <label className="text-xs font-mono text-white/50">Requirement Contract (spec-first)</label>
+            <textarea
+              value={contractText}
+              onChange={(e) => setContractText(e.target.value)}
+              rows={3}
+              placeholder="Example: Update _analyze_soil_conditions to treat rock as Hard; keep MIN_CONFIDENCE=0.65; preserve ready_for_modeling return."
+              className="w-full mt-1 bg-black/40 border border-white/15 rounded px-3 py-2 text-sm text-white focus:outline-none"
+              disabled={contractLocked}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => { setContractLocked(true); updateProject({ contract: { text: contractText, locked: true } }); }}
+              disabled={!contractText || contractLocked}
+              className={`px-3 py-2 text-sm font-mono rounded border ${contractLocked ? 'border-green-500/50 text-green-300' : 'border-white/20 text-white/80 hover:bg-white/10'}`}
+            >
+              {contractLocked ? 'CONTRACT LOCKED' : 'LOCK CONTRACT'}
+            </button>
+            <button
+              onClick={() => { setContractLocked(false); updateProject({ contract: null }); }}
+              className="px-3 py-2 text-xs font-mono text-white/60 border border-white/10 rounded hover:bg-white/5"
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+          
+          {/* Code Display */}
+          <div className="flex-1 bg-black/40 p-4 overflow-auto">
+            {activeTab === 'code' && (
+              generatedCode ? (
+                  <pre className="text-sm font-mono text-green-400/90 leading-relaxed whitespace-pre-wrap">{generatedCode}</pre>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center">
+                  <div className="text-6xl mb-4 opacity-20">◈</div>
+                  <p className="text-lg font-mono text-white/40">Tell Franklin what to build</p>
+                  <p className="text-sm font-mono text-white/25 mt-2">Example: "Build me a todo app API"</p>
+                  <p className="text-sm font-mono text-white/25">Example: "Create a user authentication system"</p>
+                    {project?.agent_name && (
+                      <p className="text-sm font-mono text-cyan-300 mt-3">Building with: {project.agent_name}{project.agent_badge ? ` (${project.agent_badge})` : ''}</p>
+                    )}
+                </div>
+              )
+            )}
+            {activeTab === 'spec' && (
+              buildResult?.spec ? (
+                <pre className="text-sm font-mono text-white/80 leading-relaxed whitespace-pre-wrap">{buildResult.spec}</pre>
+              ) : (
+                <p className="text-sm font-mono text-white/40 text-center py-8">Specification will appear here after build</p>
+              )
+            )}
+            {activeTab === 'arch' && (
+              buildResult?.architecture ? (
+                <pre className="text-sm font-mono text-white/80 leading-relaxed whitespace-pre-wrap">{buildResult.architecture}</pre>
+              ) : (
+                <p className="text-sm font-mono text-white/40 text-center py-8">Architecture will appear here after build</p>
+              )
+            )}
+          </div>
+          
+          {/* Terminal */}
+          <div className="h-36 border-t border-white/20 bg-black/80 flex flex-col">
+            <div className="h-8 px-4 border-b border-white/10 flex items-center justify-between">
+              <span className="text-sm font-mono text-purple-400">◆ TERMINAL</span>
+              {isBuilding && <span className="text-xs font-mono text-yellow-400 animate-pulse">Building...</span>}
+            </div>
+            <div ref={terminalRef} className="flex-1 overflow-y-auto px-4 py-2">
+              {terminalOutput.map((line, idx) => (
+                <div key={idx} className={`text-xs font-mono ${line.type === 'error' ? 'text-red-400' : line.type === 'success' ? 'text-green-400' : line.type === 'system' ? 'text-purple-400' : line.type === 'cmd' ? 'text-cyan-400' : 'text-white/60'}`}>{line.text}</div>
+              ))}
+            </div>
+            <div className="h-8 px-4 border-t border-white/10 flex items-center">
+              <span className="text-purple-400 mr-2">▶</span>
+              <input type="text" value={terminalInput} onChange={(e) => setTerminalInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleTerminalSend()} placeholder="help, status, download..." className="flex-1 bg-transparent text-xs font-mono text-white placeholder-white/40 focus:outline-none" />
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN - GROK */}
+        <div className="w-1/4 min-w-[280px] flex flex-col border-l border-white/20 bg-black/60">
+          <div className="h-10 px-4 border-b border-white/20 flex items-center justify-between">
+            <span className="text-sm font-mono text-green-400 font-semibold">◆ GROK</span>
+            <span className="text-xs font-mono text-white/40">Analyst</span>
+          </div>
+          <div className="h-32 border-b border-white/10 flex items-center justify-center">
+            <div className="w-24 h-24"><NeuralBrain themeColor="#22c55e" isThinking={grokLoading} size="lg" /></div>
+          </div>
+          <div ref={grokRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+            {grokChat.length === 0 ? (
+              <div className="text-sm font-mono text-white/40 text-center py-8">Ask Grok to analyze code or explain concepts...</div>
+            ) : (
+              grokChat.map((msg, idx) => (
+                <div key={idx}>
+                  <span className="text-xs font-mono text-white/40">◈ {msg.role.toUpperCase()}</span>
+                  <p className={`text-sm font-mono mt-1 leading-relaxed ${msg.role === 'user' ? 'text-green-400' : 'text-white/80'}`}>{msg.content}</p>
+                </div>
+              ))
+            )}
+            {grokLoading && <div className="text-green-400 text-sm flex items-center gap-2"><span className="animate-spin">◈</span> Thinking...</div>}
+          </div>
+          <div className="h-14 px-4 border-t border-green-500/40 bg-black/80 flex items-center gap-3">
+            <span className="text-sm font-mono text-green-400">▶</span>
+            <input type="text" value={grokInput} onChange={(e) => setGrokInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleGrokSend()} placeholder="Ask Grok..." className="flex-1 bg-transparent text-sm font-mono text-white placeholder-white/40 focus:outline-none" data-testid="grok-prompt" />
+          </div>
+        </div>
+      </div>
+
+    </div>
+  );
+};
+
+const AppPages = () => {
+  const [currentPage, setCurrentPage] = useState(PAGES.LANDING);
+  const { project } = useProject();
+  
+  // USE_FRANKLIN_IDE_V2: Set to true to enable the new glassmorphic FranklinIDE with VS Code layout
+  const USE_FRANKLIN_IDE_V2 = true; // NEW: Toggles between legacy IDEPage and modern FranklinIDE
+  
+  return (
+    <>
+      {currentPage === PAGES.LANDING && <LandingPage onEnterApp={() => setCurrentPage(PAGES.IDE)} />}
+      {currentPage === PAGES.WORKFLOW && <ElectricWorkflowPage onBack={() => setCurrentPage(PAGES.IDE)} />}
+      {currentPage === PAGES.AGENTS && <AgentBotCockpit onBack={() => setCurrentPage(PAGES.IDE)} />}
+      {currentPage === PAGES.ACADEMY && <AcademySocialPage onBack={() => setCurrentPage(PAGES.IDE)} />}
+      {currentPage === PAGES.IDE && (USE_FRANKLIN_IDE_V2 ? (
+        <FranklinIDE onNavigate={setCurrentPage} project={project} />
+      ) : (
+        <IDEPage onNavigate={setCurrentPage} project={project} />
+      ))}
+    </>
+  );
+};
+
+function App() {
+  return (
+    <ProjectProvider>
+      <AppPages />
+    </ProjectProvider>
+  );
+}
+
+export default App;

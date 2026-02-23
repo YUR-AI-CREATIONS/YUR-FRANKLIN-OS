@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="trinity-api-url" content="">
+    <meta name="trinity-api-key" content="">
+    <title>Trinity Admin Console</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: "Segoe UI", system-ui, sans-serif;
+            background: #0b0f16;
+            color: #e8f0ff;
+        }
+        header {
+            padding: 20px 32px;
+            background: rgba(12, 18, 30, 0.8);
+            border-bottom: 1px solid rgba(120, 170, 255, 0.2);
+        }
+        main {
+            padding: 24px 32px;
+            display: grid;
+            gap: 20px;
+        }
+        .card {
+            background: rgba(15, 22, 38, 0.9);
+            border: 1px solid rgba(120, 170, 255, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+        }
+        h1, h2 {
+            margin: 0 0 12px 0;
+            letter-spacing: 0.1rem;
+        }
+        .grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+        .pill {
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(36, 52, 80, 0.6);
+            display: inline-block;
+            font-size: 0.75rem;
+            letter-spacing: 0.1rem;
+            text-transform: uppercase;
+        }
+        .log {
+            font-family: "Courier New", monospace;
+            font-size: 0.8rem;
+            white-space: pre-wrap;
+            background: rgba(8, 12, 20, 0.6);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(120, 170, 255, 0.15);
+            max-height: 240px;
+            overflow-y: auto;
+        }
+        button {
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(120, 170, 255, 0.4);
+            background: rgba(36, 52, 80, 0.6);
+            color: #e8f0ff;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            font-size: 0.7rem;
+        }
+        input {
+            background: rgba(8, 12, 20, 0.6);
+            border: 1px solid rgba(120, 170, 255, 0.2);
+            border-radius: 8px;
+            color: #e8f0ff;
+            padding: 8px 10px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Trinity Admin Console</h1>
+        <span class="pill" id="networkLabel">Ledger: pending</span>
+    </header>
+    <main>
+        <div class="card">
+            <h2>Ledger Summary</h2>
+            <div class="grid" id="ledgerSummary"></div>
+        </div>
+        <div class="card">
+            <h2>Latest Ledger Events</h2>
+            <div class="log" id="ledgerEvents">Loading...</div>
+        </div>
+        <div class="card">
+            <h2>Monthly Audit</h2>
+            <div class="grid">
+                <input id="auditMonth" placeholder="YYYY-MM">
+                <button id="createAuditBtn">Create Audit</button>
+            </div>
+            <div class="log" id="auditLog"></div>
+        </div>
+        <div class="card">
+            <h2>Anchor Ledger</h2>
+            <div class="grid">
+                <input id="anchorStart" placeholder="Start date (YYYY-MM-DD)">
+                <input id="anchorEnd" placeholder="End date (YYYY-MM-DD)">
+                <button id="anchorBtn">Create Anchor</button>
+            </div>
+            <div class="log" id="anchorLog"></div>
+        </div>
+    </main>
+
+    <script>
+        const apiMeta = document.querySelector('meta[name="trinity-api-url"]');
+        const apiKeyMeta = document.querySelector('meta[name="trinity-api-key"]');
+        const apiKey = apiKeyMeta && apiKeyMeta.content ? apiKeyMeta.content : "";
+        let apiBase = window.location.origin;
+        if (apiMeta && apiMeta.content) {
+            apiBase = apiMeta.content.endsWith("/execute")
+                ? apiMeta.content.replace(/\/execute$/, "")
+                : apiMeta.content.replace(/\/$/, "");
+        }
+
+        async function apiFetch(path, options = {}) {
+            const headers = new Headers(options.headers || {});
+            if (apiKey) {
+                headers.set("X-API-Key", apiKey);
+            }
+            if (options.json !== undefined) {
+                headers.set("Content-Type", "application/json");
+                options.body = JSON.stringify(options.json);
+            }
+            const response = await fetch(`${apiBase}${path}`, {
+                method: options.method || "GET",
+                headers,
+                body: options.body,
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.detail || response.statusText);
+            }
+            return data;
+        }
+
+        function renderSummary(summary) {
+            const container = document.getElementById("ledgerSummary");
+            container.innerHTML = "";
+            Object.entries(summary.totals || {}).forEach(([key, value]) => {
+                const card = document.createElement("div");
+                card.className = "pill";
+                card.textContent = `${key}: ${value}`;
+                container.appendChild(card);
+            });
+        }
+
+        async function loadLedger() {
+            try {
+                const summary = await apiFetch("/ledger/summary");
+                renderSummary(summary);
+                const events = await apiFetch("/ledger/events?limit=20");
+                document.getElementById("ledgerEvents").textContent = JSON.stringify(events.events, null, 2);
+            } catch (error) {
+                document.getElementById("ledgerEvents").textContent = error.message;
+            }
+        }
+
+        async function createAudit() {
+            const month = document.getElementById("auditMonth").value;
+            if (!month) return;
+            try {
+                const audit = await apiFetch("/audits/monthly", {
+                    method: "POST",
+                    json: { month_label: month },
+                });
+                document.getElementById("auditLog").textContent = JSON.stringify(audit, null, 2);
+            } catch (error) {
+                document.getElementById("auditLog").textContent = error.message;
+            }
+        }
+
+        async function createAnchor() {
+            const start = document.getElementById("anchorStart").value;
+            const end = document.getElementById("anchorEnd").value;
+            try {
+                const anchor = await apiFetch("/ledger/anchor", {
+                    method: "POST",
+                    json: { period_start: start || null, period_end: end || null },
+                });
+                document.getElementById("anchorLog").textContent = JSON.stringify(anchor, null, 2);
+            } catch (error) {
+                document.getElementById("anchorLog").textContent = error.message;
+            }
+        }
+
+        document.getElementById("createAuditBtn").addEventListener("click", createAudit);
+        document.getElementById("anchorBtn").addEventListener("click", createAnchor);
+        loadLedger();
+    </script>
+</body>
+</html>

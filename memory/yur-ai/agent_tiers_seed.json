@@ -1,0 +1,66 @@
+[
+  {
+    "name": "Tier 1 - Associate Agent",
+    "tier_level": 1,
+    "description": "Entry-level execution with strict human review and limited autonomy.",
+    "min_usd": 0,
+    "max_usd": 2500,
+    "required_certifications": [],
+    "required_badges": [],
+    "autonomy_level": "low",
+    "allowed_domains": ["all"],
+    "review_requirements": {"human_review": true, "board_review": false, "consensus_required": true},
+    "metadata": {
+      "task_types": ["data_capture", "summarization", "checklists"],
+      "graduation_gate": "academy_core_complete"
+    }
+  },
+  {
+    "name": "Tier 2 - Specialist Agent",
+    "tier_level": 2,
+    "description": "Domain specialist with peer review and evidence-backed delivery.",
+    "min_usd": 2500,
+    "max_usd": 20000,
+    "required_certifications": ["domain_certification"],
+    "required_badges": ["trust_gold"],
+    "autonomy_level": "medium",
+    "allowed_domains": ["all"],
+    "review_requirements": {"human_review": true, "board_review": false, "consensus_required": true},
+    "metadata": {
+      "task_types": ["domain_analysis", "audit_support", "risk_screening"],
+      "graduation_gate": "specialist_exam_passed"
+    }
+  },
+  {
+    "name": "Tier 3 - Principal Agent",
+    "tier_level": 3,
+    "description": "Principal delivery with advanced certification and governance spot checks.",
+    "min_usd": 20000,
+    "max_usd": 300000,
+    "required_certifications": ["platinum_domain_certification"],
+    "required_badges": ["trust_platinum"],
+    "autonomy_level": "high",
+    "allowed_domains": ["all"],
+    "review_requirements": {"human_review": true, "board_review": true, "consensus_required": true},
+    "metadata": {
+      "task_types": ["lead_audit", "governance_review", "portfolio_signoff"],
+      "graduation_gate": "principal_board_review"
+    }
+  },
+  {
+    "name": "Elite Scalar - Sovereign Agent",
+    "tier_level": 4,
+    "description": "Elite agent for highest value missions with board-level approval.",
+    "min_usd": 300000,
+    "max_usd": 10000000,
+    "required_certifications": ["sovereign_clearance"],
+    "required_badges": ["trust_platinum", "board_endorsed"],
+    "autonomy_level": "sovereign",
+    "allowed_domains": ["all"],
+    "review_requirements": {"human_review": true, "board_review": true, "consensus_required": true},
+    "metadata": {
+      "task_types": ["enterprise_deployment", "capital_structuring", "sovereign_audit"],
+      "graduation_gate": "monthly_governance_panel"
+    }
+  }
+]

@@ -1,0 +1,85 @@
+%PDF-1.4
+1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj
+2 0 obj << /Type /Pages /Count 1 /Kids [3 0 R] >> endobj
+3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj
+4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj
+5 0 obj << /Length 1890 >> stream
+BT
+/F1 10 Tf 12 TL
+48 760 Td
+(VAULT SEAL REPORT) Tj
+T*
+(=================) Tj
+T*
+(timestamp_utc: 2026-01-30T18:43:19.532669Z) Tj
+T*
+(branch: main) Tj
+T*
+(commit: 0e6e0a96b4fcd6cb67d96f7d8b65893a5c37a5b7) Tj
+T*
+() Tj
+T*
+(Critical file inventory \(sha256\):) Tj
+T*
+(- spine/neo3/neo3_core.py: 2b99db2c44041daadd9ddbf4b72ff5e1f4e5c8be82c12faac2c238b522307f5d) Tj
+T*
+(- spine/neo3/orchestration.py: 4d3a307e8487a6b90f10479ae40ba2dea3e6ed0459d4d05cb314ffc2def2654c) Tj
+T*
+(- trinity.py: 642a10f978fba2824e112fbc88c4593a23b465b50ba71cd3d99d70abd0627452) Tj
+T*
+(- spine/neo3/governance.py: e9ea993f3e077006f0ba50e9c80fb5ad3157cc8cd8f93356c018393d6801fa8c) Tj
+T*
+(- abs_ui/src/services/realAIService.ts: 0503317e8e8e6eb66b20eb103332e5bca76da70f977f83ec11817b96aff1aa75) Tj
+T*
+(- abs_ui/src/services/trinityApi.ts: 0e39d9070374d94002607cc7ecd139f52f1a90c008725735aeb02bf53f1087ef) Tj
+T*
+(- abs_ui/src/components/GovernanceStatusPanel.tsx: d7215845186de3b65452c8bef12db4559b969525676a2aa0b17c3dde5b1ed9b0) Tj
+T*
+(- abs_ui/src/components/DigitalGarage.tsx: 50db55a6a11c4f3975a3260cfcf16f02207dd9cdc6f20e24cc65ec009dd57e5c) Tj
+T*
+(- abs_ui/src/components/OraclePrimeWireframe.tsx: e78df6c8e128922e5d3680efb77b1ec449cfd73704621416565d64644c697950) Tj
+T*
+(- abs_ui/public/franklin_garage_shell.html: dcb4af4e6f800108f399dae259e87550481449a2a809346b79df31b0a853a66b) Tj
+T*
+() Tj
+T*
+(Launch evidence packages:) Tj
+T*
+(- launch_evidence) Tj
+T*
+(  manifest_present: True) Tj
+T*
+(  files: 96) Tj
+T*
+(  bundle_sha256: None) Tj
+T*
+(- launch_evidence_clean_20260127T194525Z) Tj
+T*
+(  manifest_present: True) Tj
+T*
+(  files: 101) Tj
+T*
+(  bundle_sha256: 2f1a542973bf0e110ff10ec45e3322971ddd2e085f5a07d6ed0db47292671674) Tj
+T*
+() Tj
+T*
+(Notes:) Tj
+T*
+(- Governance spine and UI are frozen; modify only under incident control.) Tj
+T*
+(- UI may observe governance outcomes; enforcement remains server-side.) Tj
+T*
+ET
+endstream endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000311 00000 n 
+trailer << /Size 6 /Root 1 0 R >>
+startxref
+2253
+%%EOF

@@ -1,0 +1,58 @@
+name: agent-training-pipeline
+description: Train and evaluate agents with performance benchmarking
+
+config:
+  concurrency: 1  # Sequential training to avoid resource conflicts
+
+tasks:
+  - id: prepare-training-data
+    command: "python ../services/data_preparation.py --agent {AGENT_NAME} --output ../memory/training_data"
+    description: Prepare and validate training datasets
+    env:
+      AGENT_NAME: ${AGENT_NAME}
+
+  - id: load-base-model
+    command: "python ../backend/model_loader.py --agent {AGENT_NAME} --base-model {BASE_MODEL}"
+    description: Load base model for agent training
+    depends_on: [prepare-training-data]
+    env:
+      AGENT_NAME: ${AGENT_NAME}
+      BASE_MODEL: ${BASE_MODEL:-gpt-4}
+
+  - id: fine-tune-agent
+    command: "python ../services/agent_trainer.py --agent {AGENT_NAME} --data ../memory/training_data --epochs 10"
+    description: Fine-tune agent on specialized tasks
+    depends_on: [load-base-model]
+    env:
+      AGENT_NAME: ${AGENT_NAME}
+
+  - id: run-evaluation
+    command: "python ../tests/agent_evaluator.py --agent {AGENT_NAME} --test-suite standard"
+    description: Run comprehensive evaluation tests
+    depends_on: [fine-tune-agent]
+    env:
+      AGENT_NAME: ${AGENT_NAME}
+
+  - id: benchmark-performance
+    command: "python ../services/benchmarking.py --agent {AGENT_NAME} --metrics accuracy,latency,cost"
+    description: Benchmark agent performance metrics
+    depends_on: [run-evaluation]
+    env:
+      AGENT_NAME: ${AGENT_NAME}
+
+  - id: generate-certification
+    command: "python ../services/certification_generator.py --agent {AGENT_NAME} --report ../test_reports/{AGENT_NAME}_cert.pdf"
+    description: Generate agent certification and recommendations
+    depends_on: [benchmark-performance]
+    env:
+      AGENT_NAME: ${AGENT_NAME}
+
+  - id: update-registry
+    command: "python ../services/agent_registry.py --action update --agent {AGENT_NAME} --status certified"
+    description: Update agent registry with certification status
+    depends_on: [generate-certification]
+    env:
+      AGENT_NAME: ${AGENT_NAME}
+    depends_on: [generate-certification]
+    env:
+      AGENT_NAME: ${AGENT_NAME}

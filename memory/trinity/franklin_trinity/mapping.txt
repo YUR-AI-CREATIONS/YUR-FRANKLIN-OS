@@ -1,0 +1,17 @@
+```text
+[FRANKLIN BID MAPPING PROTOCOL]
+
+1. LAND DUE DILIGENCE:
+   - Always check zoning requirements first.
+   - Calculate setbacks based on county code.
+
+2. TAKEOFF FORMULAS:
+   - Concrete: Length x Width x Depth / 27 = Cubic Yards.
+   - Add 10% waste factor to all lumber calculations.
+
+3. BID FORMATTING:
+   - All bids must include a line item for overhead and profit.
+   - Separate material and labor costs.
+```
+
+---

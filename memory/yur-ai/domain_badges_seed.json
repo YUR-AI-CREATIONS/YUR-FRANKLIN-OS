@@ -1,0 +1,65 @@
+[
+  {
+    "domain_name": "Construction Auditing",
+    "name": "Gold Standard Audit",
+    "description": "Validated against zoning, permitting, and RSMeans benchmarks.",
+    "level": "gold",
+    "criteria": {
+      "trust_score": 85,
+      "compliance_score": 90,
+      "consensus": 0.35
+    }
+  },
+  {
+    "domain_name": "Insurance Auditing",
+    "name": "Claims Integrity Seal",
+    "description": "Claims reviewed with evidence-backed underwriting and fairness checks.",
+    "level": "gold",
+    "criteria": {
+      "trust_score": 85,
+      "compliance_score": 90
+    }
+  },
+  {
+    "domain_name": "Finance & Underwriting",
+    "name": "Underwriting Assurance",
+    "description": "Underwriting outputs validated with AML, KYC, and disclosure checks.",
+    "level": "platinum",
+    "criteria": {
+      "trust_score": 88,
+      "compliance_score": 92,
+      "consensus": 0.4
+    }
+  },
+  {
+    "domain_name": "Government Grants & Bonds",
+    "name": "Public Accountability Mark",
+    "description": "Procurement and eligibility reviewed to public-sector standards.",
+    "level": "platinum",
+    "criteria": {
+      "trust_score": 88,
+      "compliance_score": 92,
+      "consensus": 0.4
+    }
+  },
+  {
+    "domain_name": "Crypto & Digital Assets Auditing",
+    "name": "Digital Asset Risk Shield",
+    "description": "Custody and AML controls verified for digital asset audits.",
+    "level": "gold",
+    "criteria": {
+      "trust_score": 82,
+      "compliance_score": 88
+    }
+  },
+  {
+    "domain_name": "Real Estate Portfolio Auditing",
+    "name": "Portfolio Integrity Badge",
+    "description": "Valuation and disclosure checks passed for portfolio audits.",
+    "level": "gold",
+    "criteria": {
+      "trust_score": 82,
+      "compliance_score": 88
+    }
+  }
+]

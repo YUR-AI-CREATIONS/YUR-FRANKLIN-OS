@@ -1,0 +1,80 @@
+[
+  {
+    "domain_name": "Construction Auditing",
+    "name": "Construction Audit Compliance v1",
+    "validator_instructions": "Verify zoning, permitting, scope alignment, RSMeans cost consistency, contractor licensing, and safety compliance.",
+    "policy_rules": [
+      "Confirm zoning and permitting requirements are addressed.",
+      "Validate cost estimates against RSMeans or comparable benchmarks.",
+      "Require documented contractor licensing and insurance coverage.",
+      "Flag missing environmental or safety compliance steps."
+    ],
+    "severity": "high",
+    "tags": ["construction", "audit", "permitting"]
+  },
+  {
+    "domain_name": "Insurance Auditing",
+    "name": "Insurance Audit Compliance v1",
+    "validator_instructions": "Validate underwriting rationale, claims evidence, exclusions, and non-discrimination requirements.",
+    "policy_rules": [
+      "Confirm claims decisions are supported by documented evidence.",
+      "Validate policy exclusions are cited when used.",
+      "Check for underwriting fairness and non-discrimination language.",
+      "Flag missing regulatory disclosures or policy references."
+    ],
+    "severity": "high",
+    "tags": ["insurance", "audit", "claims"]
+  },
+  {
+    "domain_name": "Finance & Underwriting",
+    "name": "Finance Underwriting Compliance v1",
+    "validator_instructions": "Verify KYC/AML checks, underwriting criteria, risk disclosures, and audit trail completeness.",
+    "policy_rules": [
+      "Confirm KYC/AML checks are referenced where applicable.",
+      "Require underwriting criteria and risk scoring explanation.",
+      "Flag missing loan or bond disclosure summaries.",
+      "Ensure audit trail references for approvals."
+    ],
+    "severity": "critical",
+    "tags": ["finance", "underwriting", "aml"]
+  },
+  {
+    "domain_name": "Government Grants & Bonds",
+    "name": "Public Sector Compliance v1",
+    "validator_instructions": "Validate procurement, eligibility, conflict of interest checks, and reporting obligations.",
+    "policy_rules": [
+      "Confirm eligibility criteria are satisfied.",
+      "Check procurement steps are documented and transparent.",
+      "Flag conflicts of interest or missing disclosure statements.",
+      "Ensure reporting timelines and obligations are included."
+    ],
+    "severity": "critical",
+    "tags": ["grants", "public-sector", "procurement"]
+  },
+  {
+    "domain_name": "Crypto & Digital Assets Auditing",
+    "name": "Digital Asset Compliance v1",
+    "validator_instructions": "Verify custody controls, chain-of-custody, transaction monitoring, and AML disclosures.",
+    "policy_rules": [
+      "Confirm custody model and key management references.",
+      "Require chain-of-custody and transaction monitoring notes.",
+      "Flag missing AML or sanctions screening statements.",
+      "Require risk disclosures for volatility and counterparty exposure."
+    ],
+    "severity": "high",
+    "tags": ["crypto", "custody", "aml"]
+  },
+  {
+    "domain_name": "Real Estate Portfolio Auditing",
+    "name": "Real Estate Portfolio Compliance v1",
+    "validator_instructions": "Validate appraisal methodology, valuation comps, and regulatory disclosures.",
+    "policy_rules": [
+      "Require appraisal method and comp reference.",
+      "Flag missing valuation assumptions or cap rate rationale.",
+      "Check for disclosure of liens or encumbrances.",
+      "Ensure portfolio risk factors are documented."
+    ],
+    "severity": "high",
+    "tags": ["real-estate", "valuation", "portfolio"]
+  }
+]

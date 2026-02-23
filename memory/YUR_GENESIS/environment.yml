@@ -1,0 +1,11 @@
+name: yur_genesis_env
+channels:
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+    - openai>=1.0.0
+    - python-dotenv
+    - colorama
+    - termcolor

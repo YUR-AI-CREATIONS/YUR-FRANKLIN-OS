@@ -1,0 +1,17 @@
+{
+  "phases": {
+    "setup": {
+      "nixPkgs": ["python3"],
+      "aptPkgs": []
+    },
+    "install": {
+      "cmds": []
+    },
+    "build": {
+      "cmds": []
+    }
+  },
+  "start": {
+    "cmd": "python3 web_interface.py"
+  }
+}

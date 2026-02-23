@@ -1,0 +1,55 @@
+name: agent-mission-executor
+description: Orchestrate multi-agent missions with dependencies and coordination
+
+config:
+  concurrency: 3
+
+tasks:
+  - id: initialize-mission
+    command: "python ../services/mission_manager.py --action init --mission {MISSION_ID}"
+    description: Initialize mission context and load agent profiles
+    env:
+      MISSION_ID: ${MISSION_ID}
+      AGENT_MODE: production
+
+  - id: legal-agent-analyze
+    command: "python ../Superagents/legal_agent.py --task analyze --mission {MISSION_ID}"
+    description: Legal agent analyzes requirements and compliance
+    depends_on: [initialize-mission]
+    env:
+      MISSION_ID: ${MISSION_ID}
+
+  - id: financial-agent-assess
+    command: "python ../Superagents/financial_agent.py --task assess --mission {MISSION_ID}"
+    description: Financial agent assesses costs and budgets
+    depends_on: [initialize-mission]
+    env:
+      MISSION_ID: ${MISSION_ID}
+
+  - id: technical-agent-plan
+    command: "python ../Superagents/technical_agent.py --task plan --mission {MISSION_ID}"
+    description: Technical agent creates implementation plan
+    depends_on: [initialize-mission]
+    env:
+      MISSION_ID: ${MISSION_ID}
+
+  - id: coordination-synthesis
+    command: "python ../services/agent_coordinator.py --action synthesize --mission {MISSION_ID}"
+    description: Synthesize agent outputs into unified recommendations
+    depends_on: [legal-agent-analyze, financial-agent-assess, technical-agent-plan]
+    env:
+      MISSION_ID: ${MISSION_ID}
+
+  - id: generate-report
+    command: "python ../backend/report_generator.py --mission {MISSION_ID} --output ../generated/mission_report.pdf"
+    description: Generate comprehensive mission report
+    depends_on: [coordination-synthesis]
+    env:
+      MISSION_ID: ${MISSION_ID}
+
+  - id: notify-completion
+    command: "python ../services/notification_service.py --type mission-complete --mission {MISSION_ID}"
+    description: Send completion notifications to stakeholders
+    depends_on: [generate-report]
+    env:
+      MISSION_ID: ${MISSION_ID}

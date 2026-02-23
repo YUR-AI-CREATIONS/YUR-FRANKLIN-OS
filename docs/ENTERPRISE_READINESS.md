@@ -1,0 +1,24 @@
+# Enterprise Readiness Checklist
+
+- **Auth & Access**
+  - API token required when `API_TOKEN` is set (Authorization: Bearer / x-api-key).
+  - Role/tenant scoping (future): enforce per-project ACLs.
+- **Observability**
+  - Request logging for build/cert/deploy actions.
+  - Add metrics & traces when backend APM is available.
+- **Rate Limiting**
+  - Placeholder in-memory limiter; replace with gateway (NGINX/Envoy) or Redis.
+- **Data & Storage**
+  - Generated projects persisted to filesystem; DB optional. Backup cadence required.
+  - Secrets via environment only; never commit keys.
+- **Security**
+  - Frozen Spine principle: no destructive actions without explicit user consent.
+  - Agents must be certified before deployment; uncertified agents are blocked.
+- **Build & Cert**
+  - 8-gate certification required before deployment; stage updates streamed via SSE.
+- **Voice / Dictation**
+  - `/api/lithium/voice/transcribe` supports pluggable ASR. Provide provider key to enable real transcription.
+- **Deploy**
+  - Agent deploy endpoint accepts targets (railway/vercel/k8s/vm). Add real target credentials via env.
+- **Env Vars**
+  - `API_TOKEN` (optional auth), `ASR_PROVIDER`, `ASR_API_KEY`, deploy target tokens, `GENERATED_PROJECTS_DIR`, DB URLs.

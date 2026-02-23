@@ -1,0 +1,134 @@
+[
+  {
+    "title": "QMC Foundations for Agent Optimization",
+    "summary": "Core theory and practical setup for quasi-Monte Carlo workflows.",
+    "level": "advanced",
+    "status": "active",
+    "content": {
+      "objectives": [
+        "Explain QMC variance reduction",
+        "Compare Sobol sequences with pseudo-random sampling",
+        "Apply QMC to multi-dimensional risk models"
+      ],
+      "lessons": [
+        "QMC fundamentals",
+        "Sobol sequence generation",
+        "Error bounds and convergence"
+      ],
+      "labs": ["Build a Sobol-driven estimator", "Compare QMC vs Monte Carlo output"],
+      "assessments": ["QMC concept quiz", "Variance reduction report"]
+    },
+    "tags": ["qmc", "education", "optimization"],
+    "metadata": {"track": "QMC Turbo Teaching"}
+  },
+  {
+    "title": "QPyMC Service Integration Lab",
+    "summary": "Hands-on integration with the QPyMC service stack.",
+    "level": "advanced",
+    "status": "active",
+    "content": {
+      "objectives": [
+        "Deploy the QPyMC service",
+        "Invoke QMC endpoints",
+        "Interpret integration results"
+      ],
+      "lessons": [
+        "Service deployment",
+        "API request patterns",
+        "Result validation"
+      ],
+      "labs": ["Deploy QPyMC container", "Run qmc-integrator test cases"],
+      "assessments": ["Service readiness checklist"]
+    },
+    "tags": ["qpymc", "qmc", "integration"],
+    "metadata": {"track": "QMC Turbo Teaching"}
+  },
+  {
+    "title": "Turbo Teaching Loop - Observe, Simulate, Correct",
+    "summary": "Accelerated learning cycle for agents using QMC simulation feedback.",
+    "level": "advanced",
+    "status": "active",
+    "content": {
+      "objectives": [
+        "Operate the turbo teaching loop",
+        "Generate adaptive lessons from simulation outcomes",
+        "Validate improvement with assessments"
+      ],
+      "lessons": [
+        "Loop architecture",
+        "Simulation-driven feedback",
+        "Adaptive lesson generation"
+      ],
+      "labs": ["Run a turbo teaching cycle", "Score improvements across iterations"],
+      "assessments": ["Turbo teaching report"]
+    },
+    "tags": ["qmc", "education", "self-evolution"],
+    "metadata": {"track": "QMC Turbo Teaching"}
+  },
+  {
+    "title": "Self-Evolution Protocol - Hypothesis to Deployment",
+    "summary": "Full lifecycle of self-evolution with governance guardrails.",
+    "level": "expert",
+    "status": "active",
+    "content": {
+      "objectives": [
+        "Draft evolution proposals",
+        "Run sandbox + red-team validation",
+        "Prepare board-ready deployment packages"
+      ],
+      "lessons": [
+        "Hypothesis generation",
+        "Risk gating and validation",
+        "Deployment and rollback"
+      ],
+      "labs": ["Create an evolution proposal", "Run a sandbox report"],
+      "assessments": ["Board readiness review"]
+    },
+    "tags": ["self-evolution", "governance", "safety"],
+    "metadata": {"track": "Sovereign Evolution"}
+  },
+  {
+    "title": "Monthly Governance & Audit Alliance",
+    "summary": "Human + AI alliance protocol for monthly audits and board governance.",
+    "level": "expert",
+    "status": "active",
+    "content": {
+      "objectives": [
+        "Execute monthly evidence collection",
+        "Run AI pre-audit validation",
+        "Publish ledger-anchored audit report"
+      ],
+      "lessons": [
+        "Evidence bundle integrity",
+        "Board scoring process",
+        "Ledger anchoring"
+      ],
+      "labs": ["Compile evidence registry", "Draft monthly report"],
+      "assessments": ["Audit alliance checklist"]
+    },
+    "tags": ["governance", "audit", "alliance"],
+    "metadata": {"track": "Governance Alliance"}
+  },
+  {
+    "title": "Agent Graduation & Classification",
+    "summary": "Criteria for agent graduation, certification, and tier placement.",
+    "level": "intermediate",
+    "status": "active",
+    "content": {
+      "objectives": [
+        "Apply tier criteria",
+        "Validate certifications",
+        "Maintain graduation evidence"
+      ],
+      "lessons": [
+        "Tier requirements",
+        "Certification mapping",
+        "Ongoing evaluation"
+      ],
+      "labs": ["Tier placement case study"],
+      "assessments": ["Graduation rubric review"]
+    },
+    "tags": ["academy", "certification", "tiers"],
+    "metadata": {"track": "Agent Lifecycle"}
+  }
+]

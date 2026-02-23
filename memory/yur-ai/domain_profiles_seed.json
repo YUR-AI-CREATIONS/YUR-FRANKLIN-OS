@@ -1,0 +1,98 @@
+[
+  {
+    "name": "Construction Auditing",
+    "description": "Land procurement, civil construction, residential and mixed-use audits.",
+    "compliance_threshold": 90,
+    "trust_threshold": 85,
+    "consensus_threshold": 0.35,
+    "required_certifications": ["PE", "ICC", "RSMeans", "PMP"],
+    "policy_tags": ["construction", "civil", "permitting", "zoning"],
+    "packages": [
+      "Roosevelt Franklin OS A-to-Z Package",
+      "Unbreakable Trust Layer A-to-Z Package",
+      "Unified Compliance Dashboard A-to-Z Package",
+      "Sovereign Compliance Response A-to-Z Package",
+      "Sovereign Regenerative Protocol A-to-Z Package"
+    ]
+  },
+  {
+    "name": "Insurance Auditing",
+    "description": "Life, homeowners, auto, business, and workers comp audit controls.",
+    "compliance_threshold": 90,
+    "trust_threshold": 85,
+    "consensus_threshold": 0.35,
+    "required_certifications": ["CPCU", "ARM", "CPA"],
+    "policy_tags": ["insurance", "claims", "underwriting", "risk"],
+    "packages": [
+      "Unbreakable Trust Layer A-to-Z Package",
+      "Unified Compliance Dashboard A-to-Z Package",
+      "Sovereign Compliance Response A-to-Z Package",
+      "Vault Fortification Liquidity A-to-Z Package"
+    ]
+  },
+  {
+    "name": "Finance & Underwriting",
+    "description": "Bond, loan approvals, treasury, underwriting, and portfolio audits.",
+    "compliance_threshold": 90,
+    "trust_threshold": 85,
+    "consensus_threshold": 0.35,
+    "required_certifications": ["CPA", "CFA", "FRM"],
+    "policy_tags": ["finance", "underwriting", "bond", "loan"],
+    "packages": [
+      "Tokenization Matrix A-to-Z Package",
+      "Vault Fortification Liquidity A-to-Z Package",
+      "WAV Tax Router A-to-Z Package",
+      "Unified Compliance Dashboard A-to-Z Package",
+      "Unbreakable Trust Layer A-to-Z Package",
+      "World Auto Vault (WAV) Final Sovereign System Package",
+      "Unified Tokenomics & Treasury Governance - Roosevelt Ventures - Complete A-to-Z Package"
+    ]
+  },
+  {
+    "name": "Government Grants & Bonds",
+    "description": "Grant compliance, procurement workflows, and bond issuance audits.",
+    "compliance_threshold": 92,
+    "trust_threshold": 88,
+    "consensus_threshold": 0.4,
+    "required_certifications": ["CPA", "PMP", "CDAA"],
+    "policy_tags": ["grants", "procurement", "public-sector", "bond"],
+    "packages": [
+      "Unified Compliance Dashboard A-to-Z Package",
+      "Sovereign Compliance Response A-to-Z Package",
+      "Unbreakable Trust Layer A-to-Z Package",
+      "Roosevelt Ventures Master Portfolio Binder",
+      "World Auto Vault (WAV) Final Sovereign System Package",
+      "Unified Tokenomics & Treasury Governance - Roosevelt Ventures - Complete A-to-Z Package"
+    ]
+  },
+  {
+    "name": "Crypto & Digital Assets Auditing",
+    "description": "Crypto, tokenized assets, and digital portfolio risk audits.",
+    "compliance_threshold": 88,
+    "trust_threshold": 82,
+    "consensus_threshold": 0.33,
+    "required_certifications": ["CAMS", "CFE", "CISA"],
+    "policy_tags": ["crypto", "digital-assets", "tokenization", "custody"],
+    "packages": [
+      "Tokenization Matrix A-to-Z Package",
+      "Vault Fortification Liquidity A-to-Z Package",
+      "Unbreakable Trust Layer A-to-Z Package",
+      "WAV Quantum Protection Layer A-to-Z Package"
+    ]
+  },
+  {
+    "name": "Real Estate Portfolio Auditing",
+    "description": "Residential, retail, multifamily, and mixed-use portfolio audits.",
+    "compliance_threshold": 88,
+    "trust_threshold": 82,
+    "consensus_threshold": 0.33,
+    "required_certifications": ["MAI", "ASA", "CPA"],
+    "policy_tags": ["real-estate", "portfolio", "valuation"],
+    "packages": [
+      "Roosevelt Franklin OS A-to-Z Package",
+      "Unified Compliance Dashboard A-to-Z Package",
+      "Unbreakable Trust Layer A-to-Z Package",
+      "Sovereign Regenerative Protocol A-to-Z Package"
+    ]
+  }
+]

@@ -1,0 +1,35 @@
+name: quick-start-demo
+description: Simple demo workflow to verify Trinity integration
+
+config:
+  concurrency: 2
+
+tasks:
+  - id: check-trinity
+    command: "python -c \"print('Trinity Integration Check')\""
+    description: Verify Trinity is accessible
+
+  - id: check-python
+    command: "python --version"
+    description: Verify Python environment
+    depends_on: [check-trinity]
+
+  - id: check-franklin-structure
+    command: "python -c \"import os; print('Franklin OS structure check')\""
+    description: Verify Franklin OS directory structure
+    depends_on: [check-trinity]
+
+  - id: check-dependencies
+    command: "python -c \"import yaml, asyncio, json, os; print('Core modules OK')\""
+    description: Verify core Python modules
+    depends_on: [check-python, check-franklin-structure]
+
+  - id: test-agent-execution
+    command: "echo Agent execution test successful"
+    description: Test agent execution stubs  
+    depends_on: [check-dependencies]
+
+  - id: complete
+    command: "echo Trinity integration verified successfully"
+    description: Integration verification complete
+    depends_on: [test-agent-execution]

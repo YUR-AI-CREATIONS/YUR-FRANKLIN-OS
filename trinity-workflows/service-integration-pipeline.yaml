@@ -1,0 +1,49 @@
+name: service-integration-pipeline
+description: Orchestrate backend services and integrations
+
+config:
+  concurrency: 4  # High concurrency for independent services
+
+tasks:
+  - id: check-dependencies
+    command: "python -c \"import sys, os, yaml, asyncio; print('Dependencies OK')\""
+    description: Verify all dependencies are installed
+    env:
+      PYTHONPATH: ../backend:../services
+
+  - id: start-database
+    command: "python ../backend/database_manager.py --action start --wait"
+    description: Start and verify database connection
+    depends_on: [check-dependencies]
+
+  - id: start-cache
+    command: "python ../backend/cache_manager.py --action start --wait"
+    description: Start and verify cache service
+    depends_on: [check-dependencies]
+
+  - id: start-message-queue
+    command: "python ../backend/queue_manager.py --action start --wait"
+    description: Start message queue for async processing
+    depends_on: [check-dependencies]
+
+  - id: initialize-agents
+    command: "python ../services/agent_initializer.py --all --mode production"
+    description: Initialize all registered agents
+    depends_on: [start-database, start-cache]
+
+  - id: start-api-gateway
+    command: "python ../backend/api_gateway.py --port 8000 --host 0.0.0.0"
+    description: Start API gateway for client requests
+    depends_on: [initialize-agents, start-message-queue]
+    env:
+      API_PORT: 8000
+
+  - id: run-health-check
+    command: "python ../tests/health_checker.py --services all --timeout 30"
+    description: Verify all services are healthy
+    depends_on: [start-api-gateway]
+
+  - id: generate-status-report
+    command: "python ../services/status_reporter.py --output ../docs/service_status.md"
+    description: Generate service status report
+    depends_on: [run-health-check]

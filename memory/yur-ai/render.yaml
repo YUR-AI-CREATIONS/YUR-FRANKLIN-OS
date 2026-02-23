@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: yur-ai-api
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn trinity:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: GEMINI_KEY
+        sync: false
+      - key: OPENAI_KEY
+        sync: false
+      - key: XAI_KEY
+        sync: false
+      - key: ANTHROPIC_KEY
+        sync: false
+      - key: TRINITY_ALLOWED_ORIGINS
+        sync: false
+      - key: TRINITY_API_KEY
+        sync: false

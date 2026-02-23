@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+supabase
+google-generativeai
+openai
+python-multipart
+python-dotenv
+stripe
+reportlab
+anthropic

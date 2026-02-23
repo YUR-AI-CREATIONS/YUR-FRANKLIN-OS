@@ -1,0 +1,33 @@
+VAULT SEAL REPORT
+=================
+timestamp_utc: 2026-01-30T18:43:19.532669Z
+branch: main
+commit: 0e6e0a96b4fcd6cb67d96f7d8b65893a5c37a5b7
+
+Critical file inventory (sha256):
+- spine/neo3/neo3_core.py: redacted
+- spine/neo3/orchestration.py: redacted
+- trinity.py: redacted
+- spine/neo3/governance.py: redacted
+- abs_ui/src/services/realAIService.ts: redacted
+- abs_ui/src/services/trinityApi.ts: redacted
+- abs_ui/src/components/GovernanceStatusPanel.tsx: redacted
+- abs_ui/src/components/DigitalGarage.tsx: redacted
+- abs_ui/src/components/OraclePrimeWireframe.tsx: redacted
+- abs_ui/public/franklin_garage_shell.html: redacted
+
+Launch evidence packages:
+- launch_evidence
+  manifest_present: True
+  files: 96
+  bundle_sha256: redacted
+- launch_evidence_clean_20260127T194525Z
+  manifest_present: True
+  files: 101
+  bundle_sha256: redacted
+
+Notes:
+- Governance spine and UI are frozen; modify only under incident control.
+- UI may observe governance outcomes; enforcement remains server-side.
+
+Public redaction: 10 file hashes redacted.

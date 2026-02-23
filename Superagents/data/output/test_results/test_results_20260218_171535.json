@@ -1,0 +1,65 @@
+{
+  "execution_timestamp": "2026-02-18T17:15:34.806993",
+  "project_root": "F:\\Superagents",
+  "tests": [
+    {
+      "name": "Test A: Delta Verification Understanding",
+      "query": "How does delta verification work?",
+      "status": "FAIL",
+      "latency_seconds": 0.208904,
+      "response": "",
+      "response_length": 0,
+      "expected_keywords": [
+        "delta",
+        "verification",
+        "hash",
+        "comparison",
+        "Genesis"
+      ],
+      "keywords_found": [],
+      "accuracy_score": 0.0,
+      "timestamp": "2026-02-18T17:15:34.807455",
+      "return_code": 1,
+      "full_output": "Traceback (most recent call last):\n  File \"F:\\Superagents\\src\\core\\cognitive_query.py\", line 12, in <module>\n    import faiss\nModuleNotFoundError: No module named 'faiss'\n"
+    },
+    {
+      "name": "Test B: Hashing Algorithm Discovery",
+      "query": "What cryptographic hashing algorithm is used for birthmarks and why was it chosen?",
+      "status": "FAIL",
+      "latency_seconds": 0.182494,
+      "response": "",
+      "response_length": 0,
+      "expected_keywords": [
+        "SHA",
+        "256",
+        "hash",
+        "algorithm"
+      ],
+      "keywords_found": [],
+      "accuracy_score": 0.0,
+      "timestamp": "2026-02-18T17:15:35.017105",
+      "return_code": 1,
+      "full_output": "Traceback (most recent call last):\n  File \"F:\\Superagents\\src\\core\\cognitive_query.py\", line 12, in <module>\n    import faiss\nModuleNotFoundError: No module named 'faiss'\n"
+    },
+    {
+      "name": "Test C: Multi-Artifact Synthesis",
+      "query": "Explain how the XML serialization strategy integrates with blake birthmarking and why Base64 encoding was chosen over CDATA",
+      "status": "FAIL",
+      "latency_seconds": 0.201535,
+      "response": "",
+      "response_length": 0,
+      "expected_keywords": [
+        "XML",
+        "Base64",
+        "serialization",
+        "birthmark",
+        "CDATA"
+      ],
+      "keywords_found": [],
+      "accuracy_score": 0.0,
+      "timestamp": "2026-02-18T17:15:35.200526",
+      "return_code": 1,
+      "full_output": "Traceback (most recent call last):\n  File \"F:\\Superagents\\src\\core\\cognitive_query.py\", line 12, in <module>\n    import faiss\nModuleNotFoundError: No module named 'faiss'\n"
+    }
+  ]
+}

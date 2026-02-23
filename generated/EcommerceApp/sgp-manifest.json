@@ -1,0 +1,76 @@
+{
+  "id": "203c151a-a7c1-41ef-b40b-e395c566c992",
+  "project_name": "EcommerceApp",
+  "tech_stack": {
+    "frontend_framework": "nextjs",
+    "backend_framework": "fastapi",
+    "database": "postgresql",
+    "css_framework": "tailwindcss"
+  },
+  "deployment_config": {},
+  "environment_variables": {
+    "NODE_ENV": "production",
+    "API_URL": "https://api.example.com",
+    "DATABASE_URL": "postgresql://user:password@host:5432/dbname"
+  },
+  "created_at": "2026-02-07T03:38:17.271062+00:00",
+  "total_files": 14,
+  "files": [
+    {
+      "path": "EcommerceApp/frontend/package.json",
+      "language": "json"
+    },
+    {
+      "path": "EcommerceApp/frontend/app/layout.tsx",
+      "language": "typescript"
+    },
+    {
+      "path": "EcommerceApp/frontend/app/page.tsx",
+      "language": "typescript"
+    },
+    {
+      "path": "EcommerceApp/frontend/tailwind.config.ts",
+      "language": "typescript"
+    },
+    {
+      "path": "EcommerceApp/backend/requirements.txt",
+      "language": "text"
+    },
+    {
+      "path": "EcommerceApp/backend/app/main.py",
+      "language": "python"
+    },
+    {
+      "path": "EcommerceApp/backend/app/models.py",
+      "language": "python"
+    },
+    {
+      "path": "EcommerceApp/backend/app/routes.py",
+      "language": "python"
+    },
+    {
+      "path": "EcommerceApp/database/schema.sql",
+      "language": "sql"
+    },
+    {
+      "path": "EcommerceApp/backend/Dockerfile",
+      "language": "dockerfile"
+    },
+    {
+      "path": "EcommerceApp/frontend/Dockerfile",
+      "language": "dockerfile"
+    },
+    {
+      "path": "EcommerceApp/docker-compose.yml",
+      "language": "yaml"
+    },
+    {
+      "path": "EcommerceApp/.github/workflows/ci.yml",
+      "language": "yaml"
+    },
+    {
+      "path": "EcommerceApp/.github/workflows/deploy.yml",
+      "language": "yaml"
+    }
+  ]
+}

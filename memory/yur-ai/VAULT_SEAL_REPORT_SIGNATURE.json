@@ -1,0 +1,9 @@
+{
+  "algorithm": "hmac-sha256",
+  "commit": "32108bf24fef192f302beac0eb7604755610adc0",
+  "key_hint": "commit-hash",
+  "sha256": "f2c4e3d75eeabf8ffa9f524ed3c5e9f70e17e895a030b3b0c6e2483c7666b7f4",
+  "signature": "279c1072005826e4f4a80d91289075ac1f788bcc66185e8f501a4e3895a87b16",
+  "signed_at": "2026-01-30T18:55:03.954850Z",
+  "target": "VAULT_SEAL_REPORT.txt"
+}

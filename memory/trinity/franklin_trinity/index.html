@@ -1,0 +1,186 @@
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- THIS LINE FIXES THE TINY CORNER ISSUE -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FRANKLIN TRINITY OS</title>
+    <style>
+        /* RESET & CORE LAYOUT */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; 
+            padding: 0;
+            background: #000; 
+            color: #fff; 
+            font-family: 'Segoe UI', sans-serif; 
+            height: 100dvh; /* dvh handles mobile address bars better */
+            width: 100vw;
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+        }
+
+        #snow-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+        
+        /* HEADER */
+        .header-container { 
+            text-align: center; 
+            padding: 15px; 
+            z-index: 10; 
+            background: rgba(0,0,0,0.6); 
+            border-bottom: 1px solid #333;
+            flex-shrink: 0; /* Prevents squishing */
+        }
+        h1.franklin-logo { 
+            font-size: 3rem; 
+            margin: 0; 
+            text-transform: uppercase; 
+            letter-spacing: 5px; 
+            background: linear-gradient(110deg, #333 10%, #fff 25%, #0ff 50%, #f0f 55%, #333 80%);
+            background-size: 200% auto; 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent;
+            animation: shine 4s linear infinite; 
+        }
+        @keyframes shine { to { background-position: 200% center; } }
+
+        /* MAIN WORKSPACE */
+        .workspace { 
+            display: flex; 
+            flex: 1; 
+            padding: 15px; 
+            gap: 15px; 
+            z-index: 5; 
+            overflow: hidden; /* Contains scrollbars inside boxes */
+        }
+
+        /* SIDEBAR (FILES) */
+        .sidebar { 
+            width: 250px; 
+            background: rgba(15,15,15,0.85); 
+            border: 1px solid #333; 
+            border-radius: 12px; 
+            padding: 15px; 
+            display: flex; 
+            flex-direction: column; 
+        }
+        .drop-zone { border: 2px dashed #444; padding: 20px; text-align: center; color: #666; border-radius: 8px; margin-bottom: 10px; font-size: 0.8rem; }
+        .drop-zone.active { border-color: #0ff; background: rgba(0,255,255,0.1); color: #fff; }
+        .file-list { flex: 1; overflow-y: auto; }
+        .file-item { background: #222; padding: 8px; margin-bottom: 5px; border-radius: 4px; font-size: 0.8rem; color: #ccc; border: 1px solid #333; }
+
+        /* RESPONSE BOX */
+        .response-box { 
+            flex: 1; 
+            background: rgba(18,18,18,0.9); 
+            border: 1px solid #333; 
+            border-radius: 12px; 
+            padding: 20px; 
+            overflow-y: auto; 
+            font-family: 'Courier New', monospace; 
+        }
+        .msg { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #222; }
+        .msg-name { font-weight: bold; display: block; margin-bottom: 5px; letter-spacing: 1px; font-size: 0.9rem; }
+
+        /* FOOTER (INPUT) */
+        .footer { 
+            height: 80px; 
+            padding: 15px; 
+            z-index: 10; 
+            background: rgba(0,0,0,0.8); 
+            display: flex; 
+            justify-content: center; 
+            flex-shrink: 0;
+        }
+        .input-group { width: 100%; max-width: 800px; display: flex; gap: 10px; }
+        textarea { flex: 1; background: #111; border: 1px solid #444; color: #fff; border-radius: 8px; padding: 10px; font-size: 1rem; resize: none; outline: none; }
+        textarea:focus { border-color: #888; background: #080808; }
+        button { width: 100px; background: #222; color: #fff; border: 1px solid #444; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        
+        /* SCROLLBARS */
+        ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #111; } ::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+
+        /* --- MOBILE MODE (The Fix) --- */
+        @media (max-width: 768px) {
+            h1.franklin-logo { font-size: 2rem; letter-spacing: 2px; }
+            .workspace { flex-direction: column; padding: 10px; gap: 10px; }
+            
+            /* Put files at top, small height */
+            .sidebar { width: 100%; height: 120px; flex-shrink: 0; }
+            .drop-zone { padding: 10px; }
+            
+            /* Response box takes all remaining space */
+            .response-box { width: 100%; flex: 1; }
+            
+            .footer { height: 70px; padding: 10px; }
+            button { width: 80px; font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="snow-canvas"></canvas>
+    
+    <div class="header-container">
+        <h1 class="franklin-logo">FRANKLIN</h1>
+    </div>
+
+    <div class="workspace">
+        <div class="sidebar">
+            <div class="drop-zone" id="dropZone">📂 DRAG FILES</div>
+            <div class="file-list" id="fileList"></div>
+        </div>
+        
+        <div class="response-box" id="responseBox">
+            <div class="msg"><span class="msg-name" style="color: #888;">SYSTEM</span>Trinity Online. Awaiting Mission.</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="input-group">
+            <textarea id="userInput" placeholder="Command..."></textarea>
+            <button id="sendBtn">ENGAGE</button>
+        </div>
+    </div>
+
+    <script>
+        // SNOW
+        const cvs=document.getElementById('snow-canvas'), ctx=cvs.getContext('2d');
+        let w,h,flakes=[]; function resize(){w=cvs.width=window.innerWidth;h=cvs.height=window.innerHeight;}
+        function init(){flakes=[];for(let i=0;i<100;i++)flakes.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*2,s:Math.random()+0.5});}
+        function draw(){ctx.clearRect(0,0,w,h);ctx.fillStyle="rgba(255,255,255,0.7)";ctx.beginPath();
+        flakes.forEach(f=>{ctx.moveTo(f.x,f.y);ctx.arc(f.x,f.y,f.r,0,Math.PI*2);f.y+=f.s;if(f.y>h){f.y=0;f.x=Math.random()*w;}});ctx.fill();requestAnimationFrame(draw);}
+        window.onresize=()=>{resize();init();};resize();init();draw();
+
+        // LOGIC
+        let staged=[]; const drop=document.getElementById('dropZone'), list=document.getElementById('fileList');
+        drop.ondragover=e=>{e.preventDefault();drop.classList.add('active');};
+        drop.ondragleave=()=>drop.classList.remove('active');
+        drop.ondrop=e=>{e.preventDefault();drop.classList.remove('active');[...e.dataTransfer.files].forEach(f=>{staged.push(f);const d=document.createElement('div');d.className='file-item';d.innerText="📄 "+f.name;list.appendChild(d);});};
+
+        document.getElementById('sendBtn').onclick=async()=>{
+            const txt=document.getElementById('userInput'), box=document.getElementById('responseBox'), btn=document.getElementById('sendBtn');
+            if(!txt.value&&!staged.length)return;
+            
+            btn.innerText="..."; btn.disabled=true;
+            const msg=(n,t,c)=>{const d=document.createElement('div');d.className='msg';d.innerHTML=`<span class="msg-name" style="color:${c}">${n}</span>${t}`;box.appendChild(d);};
+            msg("COMMAND",txt.value,"#fff");
+
+            const fd=new FormData(); fd.append('prompt',txt.value); staged.forEach(f=>fd.append('files',f));
+            
+            ```javascript
+              const RAILWAY_URL = "https://yur-ai-production.up.railway.app/execute"
+            ```
+            try { const req=await fetch(RAILWAY_URL, {method:'POST',body:fd});
+                const res=await req.json();
+                msg("GEMINI",res.gemini,"#0ff"); msg("GPT-4",res.gpt,"#0f0"); msg("GROK",res.grok,"#f0f");
+                staged=[]; list.innerHTML="";
+            } catch(e){ msg("ERROR","Connection Failed. Check Railway URL.","red"); }
+            btn.innerText="ENGAGE"; btn.disabled=false; txt.value=""; box.scrollTop=box.scrollHeight;
+        };
+    </script>
+</body>
+</html>
+```

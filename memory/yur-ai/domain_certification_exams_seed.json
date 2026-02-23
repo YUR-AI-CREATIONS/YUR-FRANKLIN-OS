@@ -1,0 +1,116 @@
+[
+  {
+    "domain_name": "Construction Auditing",
+    "title": "Construction Audit Certification",
+    "description": "Validates zoning, permitting, and cost benchmarking competency.",
+    "pass_score": 90,
+    "certification_level": "Gold",
+    "rubric": {
+      "zoning_permitting": 0.3,
+      "cost_validation": 0.3,
+      "risk_controls": 0.2,
+      "documentation": 0.2
+    },
+    "questions": [
+      {"prompt": "Outline zoning and permit validation steps.", "weight": 0.3},
+      {"prompt": "Demonstrate RSMeans benchmark validation.", "weight": 0.3},
+      {"prompt": "Identify top construction audit risks.", "weight": 0.2},
+      {"prompt": "Provide audit documentation checklist.", "weight": 0.2}
+    ]
+  },
+  {
+    "domain_name": "Insurance Auditing",
+    "title": "Insurance Audit Certification",
+    "description": "Validates claims integrity, underwriting fairness, and policy compliance.",
+    "pass_score": 90,
+    "certification_level": "Gold",
+    "rubric": {
+      "claims_evidence": 0.35,
+      "policy_compliance": 0.25,
+      "fairness_controls": 0.2,
+      "risk_documentation": 0.2
+    },
+    "questions": [
+      {"prompt": "Describe claims evidence validation steps.", "weight": 0.35},
+      {"prompt": "Explain policy exclusion compliance.", "weight": 0.25},
+      {"prompt": "Outline fairness and non-discrimination checks.", "weight": 0.2},
+      {"prompt": "Provide audit risk documentation checklist.", "weight": 0.2}
+    ]
+  },
+  {
+    "domain_name": "Finance & Underwriting",
+    "title": "Underwriting Compliance Certification",
+    "description": "Validates AML, KYC, underwriting criteria, and disclosure rigor.",
+    "pass_score": 92,
+    "certification_level": "Platinum",
+    "rubric": {
+      "aml_kyc": 0.3,
+      "underwriting_criteria": 0.3,
+      "disclosures": 0.2,
+      "audit_trail": 0.2
+    },
+    "questions": [
+      {"prompt": "List AML/KYC requirements for underwriting.", "weight": 0.3},
+      {"prompt": "Document underwriting scoring criteria.", "weight": 0.3},
+      {"prompt": "Summarize required disclosures.", "weight": 0.2},
+      {"prompt": "Describe audit trail expectations.", "weight": 0.2}
+    ]
+  },
+  {
+    "domain_name": "Government Grants & Bonds",
+    "title": "Public Sector Compliance Certification",
+    "description": "Validates procurement integrity, eligibility checks, and reporting compliance.",
+    "pass_score": 92,
+    "certification_level": "Platinum",
+    "rubric": {
+      "procurement": 0.3,
+      "eligibility": 0.25,
+      "conflict_checks": 0.2,
+      "reporting": 0.25
+    },
+    "questions": [
+      {"prompt": "Outline procurement compliance steps.", "weight": 0.3},
+      {"prompt": "Describe eligibility verification.", "weight": 0.25},
+      {"prompt": "Explain conflict of interest handling.", "weight": 0.2},
+      {"prompt": "Detail reporting requirements.", "weight": 0.25}
+    ]
+  },
+  {
+    "domain_name": "Crypto & Digital Assets Auditing",
+    "title": "Digital Asset Audit Certification",
+    "description": "Validates custody, AML, and chain-of-custody controls.",
+    "pass_score": 88,
+    "certification_level": "Gold",
+    "rubric": {
+      "custody_controls": 0.3,
+      "aml_controls": 0.25,
+      "transaction_monitoring": 0.25,
+      "risk_disclosure": 0.2
+    },
+    "questions": [
+      {"prompt": "Describe custody and key management controls.", "weight": 0.3},
+      {"prompt": "Explain AML monitoring steps.", "weight": 0.25},
+      {"prompt": "Define chain-of-custody requirements.", "weight": 0.25},
+      {"prompt": "List required risk disclosures.", "weight": 0.2}
+    ]
+  },
+  {
+    "domain_name": "Real Estate Portfolio Auditing",
+    "title": "Portfolio Audit Certification",
+    "description": "Validates valuation methods, comp analysis, and portfolio disclosures.",
+    "pass_score": 88,
+    "certification_level": "Gold",
+    "rubric": {
+      "valuation_method": 0.35,
+      "comp_analysis": 0.25,
+      "disclosures": 0.2,
+      "risk_controls": 0.2
+    },
+    "questions": [
+      {"prompt": "Explain valuation method selection.", "weight": 0.35},
+      {"prompt": "Provide comp analysis checklist.", "weight": 0.25},
+      {"prompt": "List mandatory disclosures.", "weight": 0.2},
+      {"prompt": "Identify portfolio risk controls.", "weight": 0.2}
+    ]
+  }
+]

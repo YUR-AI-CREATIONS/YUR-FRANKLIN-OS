@@ -1,0 +1,75 @@
+{
+  "id": "d952d178-e2d7-4900-b695-f457fb63d9f1",
+  "project_name": "TodoApp",
+  "tech_stack": {
+    "frontend_framework": "nextjs",
+    "backend_framework": "fastapi",
+    "database": "postgresql"
+  },
+  "deployment_config": {},
+  "environment_variables": {
+    "NODE_ENV": "production",
+    "API_URL": "https://api.example.com",
+    "DATABASE_URL": "postgresql://user:password@host:5432/dbname"
+  },
+  "created_at": "2026-02-07T10:22:17.915789+00:00",
+  "total_files": 14,
+  "files": [
+    {
+      "path": "TodoApp/frontend/package.json",
+      "language": "json"
+    },
+    {
+      "path": "TodoApp/frontend/app/layout.tsx",
+      "language": "typescript"
+    },
+    {
+      "path": "TodoApp/frontend/app/page.tsx",
+      "language": "typescript"
+    },
+    {
+      "path": "TodoApp/frontend/tailwind.config.ts",
+      "language": "typescript"
+    },
+    {
+      "path": "TodoApp/backend/requirements.txt",
+      "language": "text"
+    },
+    {
+      "path": "TodoApp/backend/app/main.py",
+      "language": "python"
+    },
+    {
+      "path": "TodoApp/backend/app/models.py",
+      "language": "python"
+    },
+    {
+      "path": "TodoApp/backend/app/routes.py",
+      "language": "python"
+    },
+    {
+      "path": "TodoApp/database/schema.sql",
+      "language": "sql"
+    },
+    {
+      "path": "TodoApp/backend/Dockerfile",
+      "language": "dockerfile"
+    },
+    {
+      "path": "TodoApp/frontend/Dockerfile",
+      "language": "dockerfile"
+    },
+    {
+      "path": "TodoApp/docker-compose.yml",
+      "language": "yaml"
+    },
+    {
+      "path": "TodoApp/.github/workflows/ci.yml",
+      "language": "yaml"
+    },
+    {
+      "path": "TodoApp/.github/workflows/deploy.yml",
+      "language": "yaml"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Hallucination Risk",
+    "description": "Potential for fabricated or unverifiable claims.",
+    "category": "risk",
+    "weight_default": 25
+  },
+  {
+    "name": "Decision Explainability",
+    "description": "Clarity and traceability of reasoning and assumptions.",
+    "category": "explainability",
+    "weight_default": 20
+  },
+  {
+    "name": "Policy Alignment",
+    "description": "Alignment with stated policies, certifications, and domain requirements.",
+    "category": "governance",
+    "weight_default": 20
+  },
+  {
+    "name": "Human Intuition Score",
+    "description": "Expert intuition on judgment quality and real-world plausibility.",
+    "category": "human",
+    "weight_default": 15
+  },
+  {
+    "name": "Risk Disclosure Quality",
+    "description": "Coverage of risks, caveats, and uncertainties.",
+    "category": "risk",
+    "weight_default": 10
+  },
+  {
+    "name": "Operational Practicality",
+    "description": "Actionability in real-world operational settings.",
+    "category": "operations",
+    "weight_default": 10
+  }
+]

@@ -1,0 +1,103 @@
+[
+  {
+    "name": "Sovereign Self-Evolution Playbook",
+    "description": "Continuous improvement protocol with gated stages, human oversight, and rollback safety.",
+    "stages": [
+      {
+        "name": "Observe",
+        "inputs": ["mission_metrics", "audit_findings", "customer_feedback"],
+        "outputs": ["hypothesis_backlog"]
+      },
+      {
+        "name": "Propose",
+        "inputs": ["hypothesis_backlog"],
+        "outputs": ["evolution_proposal"]
+      },
+      {
+        "name": "Sandbox",
+        "inputs": ["proposal_payload"],
+        "outputs": ["sandbox_report", "risk_assessment"]
+      },
+      {
+        "name": "Red Team",
+        "inputs": ["sandbox_report"],
+        "outputs": ["red_team_findings", "mitigations"]
+      },
+      {
+        "name": "Board Approval",
+        "inputs": ["mitigations", "risk_assessment"],
+        "outputs": ["approval_decision"]
+      },
+      {
+        "name": "Deploy",
+        "inputs": ["approval_decision"],
+        "outputs": ["deployment_record", "rollback_plan"]
+      },
+      {
+        "name": "Monitor",
+        "inputs": ["deployment_record"],
+        "outputs": ["post_deploy_metrics", "rollback_trigger"]
+      }
+    ],
+    "guardrails": {
+      "no_prod_without_board": true,
+      "validation_required": ["governance_review", "compliance_review"],
+      "rollback_window_days": 14,
+      "max_risk_tier": "high"
+    },
+    "required_metrics": {
+      "trust_score_min": 80,
+      "compliance_score_min": 90,
+      "consensus_min": 0.35
+    },
+    "approval_chain": ["AI Safety Gate", "Human SME", "Board Chair"],
+    "metadata": {
+      "cadence": "continuous",
+      "scope": "global"
+    }
+  },
+  {
+    "name": "QMC/QPyMC Turbo Teaching Loop",
+    "description": "Turbo learning loop for QMC-driven optimization and agent education.",
+    "stages": [
+      {
+        "name": "Curate",
+        "inputs": ["training_corpus", "domain_docs"],
+        "outputs": ["lesson_plan", "dataset_index"]
+      },
+      {
+        "name": "Simulate",
+        "inputs": ["lesson_plan"],
+        "outputs": ["qmc_simulation_results"]
+      },
+      {
+        "name": "Teach",
+        "inputs": ["qmc_simulation_results"],
+        "outputs": ["adaptive_lessons", "practice_tasks"]
+      },
+      {
+        "name": "Assess",
+        "inputs": ["practice_tasks"],
+        "outputs": ["assessment_scores", "weakness_map"]
+      },
+      {
+        "name": "Reinforce",
+        "inputs": ["weakness_map"],
+        "outputs": ["reinforcement_cycles", "graduation_criteria"]
+      }
+    ],
+    "guardrails": {
+      "data_provenance_required": true,
+      "consent_required": true
+    },
+    "required_metrics": {
+      "completion_rate_min": 0.9,
+      "assessment_score_min": 0.85
+    },
+    "approval_chain": ["Academy Lead", "AI Tutor", "Board Observer"],
+    "metadata": {
+      "cadence": "weekly",
+      "scope": "academy"
+    }
+  }
+]

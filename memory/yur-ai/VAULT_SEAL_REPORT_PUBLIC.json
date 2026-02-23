@@ -1,0 +1,67 @@
+{
+  "branch": "main",
+  "commit": "0e6e0a96b4fcd6cb67d96f7d8b65893a5c37a5b7",
+  "critical_files": [
+    {
+      "path": "spine/neo3/neo3_core.py",
+      "sha256": "redacted"
+    },
+    {
+      "path": "spine/neo3/orchestration.py",
+      "sha256": "redacted"
+    },
+    {
+      "path": "trinity.py",
+      "sha256": "redacted"
+    },
+    {
+      "path": "spine/neo3/governance.py",
+      "sha256": "redacted"
+    },
+    {
+      "path": "abs_ui/src/services/realAIService.ts",
+      "sha256": "redacted"
+    },
+    {
+      "path": "abs_ui/src/services/trinityApi.ts",
+      "sha256": "redacted"
+    },
+    {
+      "path": "abs_ui/src/components/GovernanceStatusPanel.tsx",
+      "sha256": "redacted"
+    },
+    {
+      "path": "abs_ui/src/components/DigitalGarage.tsx",
+      "sha256": "redacted"
+    },
+    {
+      "path": "abs_ui/src/components/OraclePrimeWireframe.tsx",
+      "sha256": "redacted"
+    },
+    {
+      "path": "abs_ui/public/franklin_garage_shell.html",
+      "sha256": "redacted"
+    }
+  ],
+  "launch_evidence": [
+    {
+      "bundle_sha256": "redacted",
+      "files": "96",
+      "manifest_present": "True",
+      "name": "launch_evidence"
+    },
+    {
+      "bundle_sha256": "redacted",
+      "files": "101",
+      "manifest_present": "True",
+      "name": "launch_evidence_clean_20260127T194525Z"
+    }
+  ],
+  "notes": [
+    "Governance spine and UI are frozen; modify only under incident control.",
+    "UI may observe governance outcomes; enforcement remains server-side."
+  ],
+  "sha256": "cba6890a8879bdc3fdc5163df75e5c37275b81416a7549109125cef3839c5fe3",
+  "timestamp_utc": "2026-01-30T18:43:19.532669Z",
+  "title": "VAULT SEAL REPORT (PUBLIC)"
+}

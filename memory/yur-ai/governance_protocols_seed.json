@@ -1,0 +1,76 @@
+[
+  {
+    "name": "Monthly Governance & Audit Protocol (Human + AI Alliance)",
+    "cadence": "monthly",
+    "scope": "global",
+    "description": "Human board and AI co-audit protocol for monthly governance, evidence integrity, and ledger anchoring.",
+    "human_roles": [
+      "Board Chair",
+      "Compliance Lead",
+      "Domain SME Panel",
+      "Treasury Steward"
+    ],
+    "ai_roles": [
+      "Evidence Compiler",
+      "Risk Scanner",
+      "Consensus Analyzer",
+      "Ledger Auditor",
+      "Drift Detector"
+    ],
+    "steps": [
+      {
+        "phase": "Week 1 - Evidence Harvest",
+        "actions": [
+          "Collect mission evidence bundles and signatures",
+          "Aggregate ledger events and allocations",
+          "Index compliance reviews and governance reviews"
+        ],
+        "outputs": ["Evidence bundle index", "Ledger event digest"]
+      },
+      {
+        "phase": "Week 2 - AI Pre-Audit",
+        "actions": [
+          "Run drift and hallucination scans",
+          "Validate consensus and trust thresholds",
+          "Flag anomalies and required remediations"
+        ],
+        "outputs": ["AI audit report", "Remediation queue"]
+      },
+      {
+        "phase": "Week 3 - Human Review + Board Session",
+        "actions": [
+          "SME review of AI audit findings",
+          "Board scoring and escalation decisions",
+          "Finalize monthly governance scorecard"
+        ],
+        "outputs": ["Board scorecard", "Escalation decisions"]
+      },
+      {
+        "phase": "Week 4 - Ledger Anchor + Publication",
+        "actions": [
+          "Anchor monthly ledger hash",
+          "Publish audit summary and remediation outcomes",
+          "Update certifications and agent standing"
+        ],
+        "outputs": ["Ledger anchor", "Monthly audit report"]
+      }
+    ],
+    "evidence_requirements": {
+      "mission": ["prompt_hash", "output_hash", "evidence_bundle", "provider_outputs"],
+      "compliance": ["policy_results", "compliance_score", "findings"],
+      "governance": ["board_scores", "violations", "trust_score"],
+      "ledger": ["events", "allocations", "anchor_hash"]
+    },
+    "escalation": {
+      "trust_score_min": 70,
+      "compliance_score_min": 80,
+      "consensus_min": 0.25,
+      "actions": ["pause_payouts", "force_rerun", "board_review"]
+    },
+    "metadata": {
+      "quorum": "2/3",
+      "publication": "monthly_report",
+      "retention_days": 3650
+    }
+  }
+]

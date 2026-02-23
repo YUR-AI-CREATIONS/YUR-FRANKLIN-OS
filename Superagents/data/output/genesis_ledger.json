@@ -1,0 +1,111 @@
+{
+  "version": "1.0",
+  "created_at": "2026-02-10T20:22:58.291913",
+  "ledger": [
+    {
+      "path": "delta_verification.py",
+      "hash_value": "5b5d89de7e6fb462e7084d3c354d0d268b22bef8a6d0261d8a0827d7a7092f37",
+      "size": 3063,
+      "timestamp": 1770776578.2861164,
+      "is_directory": false
+    },
+    {
+      "path": "genesis_scan.py",
+      "hash_value": "2e6327fe564353d8ff169a09fec195bfca8bc2e6ebcf01cb1f787c896ab05c6c",
+      "size": 2290,
+      "timestamp": 1770776578.2864645,
+      "is_directory": false
+    },
+    {
+      "path": "optimize_xml.py",
+      "hash_value": "0b916bc53e0f5b01e3d205b1d03be7333810f6dc11e12048952bc99f12e45c21",
+      "size": 9641,
+      "timestamp": 1770776578.2868316,
+      "is_directory": false
+    },
+    {
+      "path": "README.md",
+      "hash_value": "8bdda9cf5a8c26756cc4267b686728dd9760db87b5fb75086f96beb02906b745",
+      "size": 1509,
+      "timestamp": 1770776578.2871497,
+      "is_directory": false
+    },
+    {
+      "path": "requirements.txt",
+      "hash_value": "dd5f6a660b255e5a0b91d935d14addb3179f6ed6191a47c268995b666bab74c8",
+      "size": 48,
+      "timestamp": 1770776578.2874515,
+      "is_directory": false
+    },
+    {
+      "path": "validate_payload.py",
+      "hash_value": "51a7b7109ee0cc070c2d6646f9fd69d5743af27c05018d7ee62f65f25138f276",
+      "size": 1367,
+      "timestamp": 1770776578.2877588,
+      "is_directory": false
+    },
+    {
+      "path": "data/output/cognitive_payload.xml",
+      "hash_value": "7ea40a519cd4cb114430845030364f64ba1ce5019d17f7a47c7ce93750ccafc4",
+      "size": 72874,
+      "timestamp": 1770776578.288323,
+      "is_directory": false
+    },
+    {
+      "path": "src/__init__.py",
+      "hash_value": "f6eb8cc8d6413a7940dd11c90b9f770df77878bc33b8bf0400cab769c9e0c560",
+      "size": 28,
+      "timestamp": 1770776578.288761,
+      "is_directory": false
+    },
+    {
+      "path": "src/core/blake_birthmarking.py",
+      "hash_value": "11533da87ef5d8d52bfa2a58aba8b94c2f94deceade36bd5114130e3bb18c1d9",
+      "size": 10787,
+      "timestamp": 1770776578.2891319,
+      "is_directory": false
+    },
+    {
+      "path": "src/core/cognitive_node.py",
+      "hash_value": "c5b743caadb93d9d63ea71ee0d89db895ba73c97a54e4bbed9044e8f31713eb2",
+      "size": 3308,
+      "timestamp": 1770776578.2896552,
+      "is_directory": false
+    },
+    {
+      "path": "src/core/ingestor.py",
+      "hash_value": "190c569635cbe9abe674eedba765db787181ed564f476fb0a537840bb1e8cdbf",
+      "size": 2301,
+      "timestamp": 1770776578.2901118,
+      "is_directory": false
+    },
+    {
+      "path": "src/core/olka_kernel.py",
+      "hash_value": "0baedc2b192cb720f73dc274e995b4f6e4e4143d49fd35554f8e1c5eb8f00293",
+      "size": 11031,
+      "timestamp": 1770776578.290436,
+      "is_directory": false
+    },
+    {
+      "path": "src/core/__init__.py",
+      "hash_value": "f662ee6e8b4b516acef5f5574f2d99066f7ada756d4b59d94dd41101f1929dda",
+      "size": 26,
+      "timestamp": 1770776578.2907593,
+      "is_directory": false
+    },
+    {
+      "path": "tests/integration/test_genesis_pipeline.py",
+      "hash_value": "bbe5a5e45ccd77fd7f58b6a115e87fc45f0d613ff730bd8b0f6af4f103a9c28b",
+      "size": 3183,
+      "timestamp": 1770776578.2913039,
+      "is_directory": false
+    },
+    {
+      "path": "tests/unit/simulation_harness.py",
+      "hash_value": "727dfb029092e809d1fb64ba6d332375d7910137b5d2875c106e2ca6a1f726d4",
+      "size": 816,
+      "timestamp": 1770776578.2917373,
+      "is_directory": false
+    }
+  ]
+}

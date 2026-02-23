@@ -1,0 +1,99 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2025-08-26",
+  "categories": [
+    {
+      "label": "Mission Statement",
+      "description": "48 laws of sovereign power, core doctrine, values, and constitutional principles.",
+      "keywords": ["mission", "48 laws", "sovereign power", "doctrine", "constitution", "oath"]
+    },
+    {
+      "label": "System Hardening",
+      "description": "Security baselines, resilience, governance guardrails, survivability, zero-drift.",
+      "keywords": ["hardening", "security", "survivability", "guardrails", "zero drift", "integrity"]
+    },
+    {
+      "label": "Capital Raise",
+      "description": "Investor materials, pro-forma, fundraising, treasury raise strategy.",
+      "keywords": ["capital raise", "investor", "raise", "funding", "pro-forma", "pitch"]
+    },
+    {
+      "label": "Agent Creation",
+      "description": "Spawn, register, and operationalize AI agents.",
+      "keywords": ["spawn", "agent creation", "registry", "agent", "build agent"]
+    },
+    {
+      "label": "Industry Deployment",
+      "description": "Initial industries and real-world deployments.",
+      "keywords": ["construction", "insurance", "finance", "grants", "bonds", "auditing"]
+    },
+    {
+      "label": "Certified Education Authority",
+      "description": "Accredited education, certification, and training governance.",
+      "keywords": ["education", "certified", "academy", "graduation", "curriculum"]
+    },
+    {
+      "label": "Agent Evolvement",
+      "description": "Self-evolution, graduation, classification, and lifecycle.",
+      "keywords": ["self evolve", "graduation", "classification", "evolvement", "tier"]
+    },
+    {
+      "label": "Task Tiers",
+      "description": "Tiered task pricing and execution lanes.",
+      "keywords": ["tier 1", "tier 2", "tier 3", "elite", "pricing", "task"],
+      "metadata": {
+        "tiers": [
+          {"name": "Tier 1", "min_usd": 0, "max_usd": 2500},
+          {"name": "Tier 2", "min_usd": 2500, "max_usd": 20000},
+          {"name": "Tier 3", "min_usd": 20000, "max_usd": 300000},
+          {"name": "Elite Scalar", "min_usd": 300000, "max_usd": 10000000}
+        ]
+      }
+    },
+    {
+      "label": "Sales & Deployment",
+      "description": "Pipeline, sales automation, deployment operations.",
+      "keywords": ["sales", "deployment", "pipeline", "self fill", "go-to-market"]
+    },
+    {
+      "label": "Bots & Market Intelligence",
+      "description": "Bots as scalpers, advertisers, and bid/auction scrapers.",
+      "keywords": ["bots", "scrape", "auction", "bids", "advertiser", "lead"]
+    },
+    {
+      "label": "Financial Services",
+      "description": "Financial service operations, underwriting, audits, treasury.",
+      "keywords": ["financial", "treasury", "underwriting", "audit", "portfolio"],
+      "metadata": {
+        "underwriting_authority": "Wall Street elites",
+        "underwriting_level": "highest"
+      }
+    },
+    {
+      "label": "Tokenization",
+      "description": "Tokenomics, token issuance, and system-level coins.",
+      "keywords": ["token", "tokenomics", "coin", "issuance", "treasury governance"]
+    },
+    {
+      "label": "World Auto Vault",
+      "description": "Regenerative liquidity pool; 2% allocation to vault.",
+      "keywords": ["world auto vault", "wav", "vault", "liquidity", "2%"],
+      "metadata": {"vault_rate": 0.02}
+    },
+    {
+      "label": "World Charity Coin",
+      "description": "WCC issuance and charitable flow.",
+      "keywords": ["world charity coin", "wcc", "charity", "grant"]
+    },
+    {
+      "label": "Rebirth Protocol",
+      "description": "Transition fund to uplift and retire displaced workers.",
+      "keywords": ["rebirth protocol", "rebirth", "transition", "uplift", "retire"]
+    },
+    {
+      "label": "Governance & Board",
+      "description": "Sovereign Control Authority and board governance.",
+      "keywords": ["board", "governance", "sovereign control authority", "criteria"]
+    }
+  ]
+}

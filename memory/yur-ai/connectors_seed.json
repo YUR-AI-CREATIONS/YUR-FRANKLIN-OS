@@ -1,0 +1,72 @@
+[
+  {
+    "name": "Microsoft 365 Connector",
+    "connector_type": "microsoft_365",
+    "description": "Edge function bridge for Microsoft 365 (Outlook, SharePoint, OneDrive).",
+    "status": "inactive",
+    "edge_url": "",
+    "scopes": ["mail.read", "files.readwrite", "sites.read.all"],
+    "config": {"auth_type": "oauth2"},
+    "metadata": {"provider": "microsoft"}
+  },
+  {
+    "name": "Google Workspace Connector",
+    "connector_type": "google_workspace",
+    "description": "Edge function bridge for Google Workspace (Gmail, Drive, Docs, Sheets).",
+    "status": "inactive",
+    "edge_url": "",
+    "scopes": ["gmail.readonly", "drive.readonly", "spreadsheets.readonly"],
+    "config": {"auth_type": "oauth2"},
+    "metadata": {"provider": "google"}
+  },
+  {
+    "name": "Notion Connector",
+    "connector_type": "notion",
+    "description": "Edge function bridge for Notion databases and docs.",
+    "status": "inactive",
+    "edge_url": "",
+    "scopes": ["read", "write"],
+    "config": {"auth_type": "token"},
+    "metadata": {"provider": "notion"}
+  },
+  {
+    "name": "Stripe Connector",
+    "connector_type": "stripe",
+    "description": "Edge function bridge for Stripe billing and payouts.",
+    "status": "inactive",
+    "edge_url": "",
+    "scopes": ["payments", "payouts", "billing"],
+    "config": {"auth_type": "secret_key"},
+    "metadata": {"provider": "stripe"}
+  },
+  {
+    "name": "Media Render Connector",
+    "connector_type": "media_render",
+    "description": "Edge function bridge for video and image rendering/editing.",
+    "status": "inactive",
+    "edge_url": "",
+    "scopes": ["render", "edit", "export"],
+    "config": {"auth_type": "token"},
+    "metadata": {"provider": "media"}
+  },
+  {
+    "name": "Kling AI Connector",
+    "connector_type": "kling_ai",
+    "description": "Edge function bridge for Kling AI image and video generation.",
+    "status": "inactive",
+    "edge_url": "",
+    "scopes": ["image", "video", "render"],
+    "config": {"auth_type": "token"},
+    "metadata": {"provider": "kling"}
+  },
+  {
+    "name": "Edge Function Generic Connector",
+    "connector_type": "edge_function",
+    "description": "Generic edge function connector for custom integrations.",
+    "status": "inactive",
+    "edge_url": "",
+    "scopes": ["invoke"],
+    "config": {"auth_type": "custom"},
+    "metadata": {"provider": "edge"}
+  }
+]

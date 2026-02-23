@@ -1,0 +1,62 @@
+{
+  "name": "Neo3 AI Agent Marketplace",
+  "description": "The most sophisticated AI orchestrated cognitive evolvement system with agent marketplace and academy",
+  "repository": "https://github.com/jag0414/Neo3",
+  "logo": "https://raw.githubusercontent.com/jag0414/Neo3/main/frontend/public/logo192.png",
+  "keywords": ["ai", "agents", "marketplace", "python", "react", "express"],
+  "services": [
+    {
+      "name": "neo3-marketplace",
+      "description": "Python Marketplace Service - Core backend with AI agents",
+      "icon": "python",
+      "buildCommand": "echo 'No build needed for Python'",
+      "startCommand": "python3 web_interface.py",
+      "healthcheckPath": "/api/agents",
+      "healthcheckTimeout": 30,
+      "env": {
+        "MARKETPLACE_PORT": {
+          "description": "Port for the marketplace service",
+          "value": "8080",
+          "required": false
+        },
+        "PYTHONUNBUFFERED": {
+          "description": "Enable Python output buffering",
+          "value": "1",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "neo3-backend",
+      "description": "Express API Gateway - Proxy layer with CORS",
+      "icon": "node",
+      "root": "backend",
+      "buildCommand": "npm install",
+      "startCommand": "npm start",
+      "healthcheckPath": "/health",
+      "healthcheckTimeout": 30,
+      "env": {
+        "NODE_ENV": {
+          "description": "Node environment",
+          "value": "production",
+          "required": true
+        },
+        "MARKETPLACE_URL": {
+          "description": "URL of the Python marketplace service",
+          "value": "${{neo3-marketplace.RAILWAY_PUBLIC_DOMAIN}}",
+          "required": true
+        },
+        "CORS_ORIGIN": {
+          "description": "CORS origin (use * for testing, then restrict to your domain)",
+          "value": "*",
+          "required": true
+        }
+      }
+    }
+  ],
+  "environments": {
+    "production": {
+      "name": "Production"
+    }
+  }
+}

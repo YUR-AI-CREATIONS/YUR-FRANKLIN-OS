@@ -1,0 +1,75 @@
+﻿version: '3.9'
+
+services:
+  marketplace:
+    build:
+      context: .
+      dockerfile: Dockerfile.marketplace
+    container_name: neo3-marketplace
+    ports:
+      - "8080:8080"
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+  api:
+    build:  ./backend
+    container_name: neo3-api
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - MARKETPLACE_URL=http://marketplace:8080
+      - DATABASE_URL=mongodb://mongodb:27017/neo3
+      - REDIS_URL=redis://redis:6379
+      - PYQMC_SERVICE_URL=http://pyqmc:5000
+    depends_on: 
+      - marketplace
+      - mongodb
+      - redis
+      - pyqmc
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: neo3-frontend
+    ports:
+      - "3001:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:3000
+      - REACT_APP_MARKETPLACE_URL=http://localhost:8080
+      - REACT_APP_PYQMC_URL=http://localhost:5000
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  pyqmc:
+    build: ./backend/pyqmc-service
+    container_name: neo3-pyqmc
+    ports: 
+      - "5000:5000"
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7.0
+    container_name: neo3-mongodb
+    ports: 
+      - "27018:27017"
+    volumes:
+      - mongodb-data:/data/db
+    restart: unless-stopped
+
+  redis: 
+    image: redis:7-alpine
+    container_name: neo3-redis
+    ports: 
+      - "6380:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+volumes:
+  mongodb-data: 
+  redis-data:

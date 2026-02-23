@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="trinity-api-url" content="">
+    <meta name="trinity-api-key" content="">
+    <title>Trinity Engine</title>
+    <style>
+        :root {
+            --accent-1: #7c7bff;
+            --accent-2: #4ee9ff;
+            --accent-3: #ff7ad9;
+            --accent-4: #8cffb1;
+            --text-primary: #e8f0ff;
+            --text-muted: rgba(232, 240, 255, 0.6);
+            --panel-bg: rgba(8, 12, 20, 0.72);
+            --panel-border: rgba(120, 170, 255, 0.22);
+            --panel-shadow: rgba(6, 20, 40, 0.35);
+        }
+
+        body[data-theme="nebula"] {
+            --accent-1: #7c7bff;
+            --accent-2: #4ee9ff;
+            --accent-3: #ff7ad9;
+            --accent-4: #8cffb1;
+        }
+
+        body[data-theme="aurora"] {
+            --accent-1: #43e5b1;
+            --accent-2: #00c6ff;
+            --accent-3: #9b6bff;
+            --accent-4: #ffd166;
+        }
+
+        body[data-theme="ember"] {
+            --accent-1: #ff6b6b;
+            --accent-2: #ff9f1c;
+            --accent-3: #ff3cac;
+            --accent-4: #ffe66d;
+        }
+
+        body[data-theme="quantum"] {
+            --accent-1: #4f46e5;
+            --accent-2: #22d3ee;
+            --accent-3: #f97316;
+            --accent-4: #2dd4bf;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+            color: var(--text-primary);
+            background: radial-gradient(circle at top, rgba(18, 28, 50, 0.6), transparent 55%),
+                        radial-gradient(circle at 20% 20%, rgba(63, 94, 251, 0.15), transparent 45%),
+                        radial-gradient(circle at 80% 10%, rgba(252, 70, 107, 0.08), transparent 50%),
+                        #04050a;
+        }
+
+        #starfield {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+
+        .grid-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(120, 170, 255, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(120, 170, 255, 0.08) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            mix-blend-mode: screen;
+        }
+
+        .app {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            border-bottom: 1px solid rgba(120, 170, 255, 0.18);
+            background: rgba(6, 8, 16, 0.6);
+            backdrop-filter: blur(10px);
+        }
+
+        .brand-title {
+            font-size: 1.2rem;
+            letter-spacing: 0.35rem;
+            text-transform: uppercase;
+        }
+
+        .brand-sub {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.2rem;
+            margin-top: 4px;
+        }
+
+        .top-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .theme-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .theme-button {
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(140, 180, 255, 0.3);
+            background: rgba(20, 30, 50, 0.4);
+            color: var(--text-primary);
+            font-size: 0.65rem;
+            letter-spacing: 0.12rem;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .status-pill {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(120, 170, 255, 0.4);
+            background: rgba(12, 20, 40, 0.6);
+            font-size: 0.6rem;
+            letter-spacing: 0.2rem;
+            text-transform: uppercase;
+        }
+
+        .layout {
+            position: relative;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            padding: 16px;
+        }
+
+        .center-stack {
+            width: min(960px, 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            padding: 0 72px;
+        }
+
+        .panel {
+            position: relative;
+            width: 100%;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 18px;
+            padding: 16px;
+            box-shadow: 0 20px 50px var(--panel-shadow);
+            backdrop-filter: blur(16px);
+        }
+
+        .panel::before {
+            content: "";
+            position: absolute;
+            inset: 6px;
+            border-radius: 14px;
+            border: 1px solid rgba(140, 200, 255, 0.12);
+            pointer-events: none;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 0.7rem;
+            letter-spacing: 0.25rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .side {
+            position: absolute;
+            top: 12px;
+            bottom: 12px;
+            width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: transform 0.4s ease;
+        }
+
+        .side.left {
+            left: 12px;
+            transform: translateX(-115%);
+        }
+
+        .side.right {
+            right: 12px;
+            transform: translateX(115%);
+        }
+
+        body.left-open .side.left {
+            transform: translateX(0);
+        }
+
+        body.right-open .side.right {
+            transform: translateX(0);
+        }
+
+        .toggle {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(140, 180, 255, 0.4);
+            background: rgba(10, 15, 25, 0.8);
+            color: var(--text-primary);
+            font-size: 0.65rem;
+            letter-spacing: 0.2rem;
+            cursor: pointer;
+            z-index: 3;
+        }
+
+        .toggle.left {
+            left: 8px;
+        }
+
+        .toggle.right {
+            right: 8px;
+        }
+
+        .mission-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .mission-grid {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 6px 12px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .mission-grid .value {
+            color: var(--text-primary);
+            font-family: "Courier New", monospace;
+            font-size: 0.75rem;
+        }
+
+        .mission-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+        }
+
+        .mission-toggles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .mission-toggles label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stream-panel {
+            flex: 1;
+            min-height: 260px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            overflow-y: auto;
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+
+        .message {
+            width: min(720px, 90%);
+            text-align: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(120, 170, 255, 0.12);
+            font-size: 0.9rem;
+        }
+
+        .message .label {
+            display: block;
+            font-size: 0.65rem;
+            letter-spacing: 0.25rem;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            color: var(--accent-2);
+        }
+
+        .message-text {
+            white-space: pre-wrap;
+            line-height: 1.45;
+        }
+
+        .chat-dock {
+            width: min(36rem, 90vw);
+            height: clamp(72px, 12vh, 96px);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        textarea {
+            flex: 1;
+            height: 100%;
+            border-radius: 14px;
+            border: 1px solid rgba(140, 180, 255, 0.3);
+            background: rgba(10, 14, 22, 0.75);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            padding: 10px 12px;
+            resize: none;
+            outline: none;
+        }
+
+        button {
+            border-radius: 12px;
+            border: 1px solid rgba(140, 180, 255, 0.4);
+            background: rgba(20, 30, 50, 0.6);
+            color: var(--text-primary);
+            font-weight: 600;
+            letter-spacing: 0.15rem;
+            cursor: pointer;
+            padding: 10px 14px;
+            text-transform: uppercase;
+            font-size: 0.65rem;
+        }
+
+        button.primary {
+            background: linear-gradient(120deg, var(--accent-1), var(--accent-3));
+            border: none;
+            color: #0a0d12;
+        }
+
+        button.ghost {
+            background: transparent;
+            border: 1px solid rgba(140, 180, 255, 0.2);
+            color: var(--text-muted);
+            font-size: 0.6rem;
+            letter-spacing: 0.2rem;
+        }
+
+        .drop-zone {
+            border: 1px dashed rgba(140, 180, 255, 0.35);
+            border-radius: 14px;
+            padding: 12px;
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .drop-zone.active {
+            border-color: var(--accent-2);
+            color: var(--text-primary);
+            background: rgba(60, 120, 220, 0.12);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .file-item {
+            border: 1px solid rgba(120, 170, 255, 0.18);
+            border-radius: 10px;
+            padding: 8px 10px;
+            font-size: 0.75rem;
+            color: var(--text-primary);
+            background: rgba(12, 18, 30, 0.6);
+        }
+
+        .file-summary {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .system-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .system-item {
+            padding: 6px 8px;
+            border-radius: 10px;
+            border: 1px solid rgba(120, 170, 255, 0.18);
+            background: rgba(10, 16, 28, 0.6);
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .panel-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .section-title {
+            font-size: 0.6rem;
+            letter-spacing: 0.2rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .terminal {
+            height: 180px;
+            overflow-y: auto;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(120, 170, 255, 0.2);
+            background: rgba(6, 10, 16, 0.85);
+            font-family: "Courier New", monospace;
+            font-size: 0.7rem;
+            color: #b6c6e5;
+        }
+
+        .terminal-line {
+            margin-bottom: 6px;
+            white-space: pre-wrap;
+        }
+
+        .academy {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .badge {
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(120, 170, 255, 0.25);
+            background: rgba(12, 18, 30, 0.6);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+        }
+
+        .academy-card {
+            border: 1px solid rgba(120, 170, 255, 0.2);
+            border-radius: 12px;
+            padding: 10px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15rem;
+            text-align: center;
+            background: rgba(12, 18, 30, 0.6);
+        }
+
+        @media (max-width: 980px) {
+            .center-stack {
+                padding: 0 32px;
+            }
+            .side {
+                width: 240px;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .top-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .center-stack {
+                padding: 0 12px;
+            }
+            .toggle {
+                top: auto;
+                bottom: 16px;
+                transform: none;
+            }
+            .toggle.left {
+                left: 16px;
+            }
+            .toggle.right {
+                right: 16px;
+            }
+            .side {
+                top: 70px;
+                bottom: 80px;
+            }
+        }
+    </style>
+</head>
+<body data-theme="nebula">
+    <canvas id="starfield"></canvas>
+    <div class="grid-overlay"></div>
+    <div class="app">
+        <header class="top-bar">
+            <div class="brand">
+                <div class="brand-title">TRINITY ENGINE</div>
+                <div class="brand-sub">Autonomous mission system</div>
+            </div>
+            <div class="top-controls">
+                <div class="theme-buttons">
+                    <button class="theme-button" data-theme="nebula">Nebula</button>
+                    <button class="theme-button" data-theme="aurora">Aurora</button>
+                    <button class="theme-button" data-theme="ember">Ember</button>
+                    <button class="theme-button" data-theme="quantum">Quantum</button>
+                </div>
+                <div class="status-pill" id="healthPill">Offline</div>
+            </div>
+        </header>
+
+        <main class="layout">
+            <aside class="panel side left" id="leftPanel">
+                <div class="panel-header">
+                    <span>Files</span>
+                    <button class="ghost" id="clearFilesBtn">Clear</button>
+                </div>
+                <div class="drop-zone" id="dropZone">Drag or click to add files</div>
+                <input type="file" id="fileInput" multiple>
+                <div class="toggle-row">
+                    <input type="checkbox" id="largeFileMode">
+                    <label for="largeFileMode">Large file mode (UI)</label>
+                </div>
+                <div class="file-list" id="fileList"></div>
+                <div class="file-summary" id="fileSummary">0 files loaded</div>
+            </aside>
+
+            <section class="center-stack">
+                <div class="panel mission-panel">
+                    <div class="panel-header">
+                        <span>Mission control</span>
+                        <span class="status-pill" id="missionStatus">Idle</span>
+                    </div>
+                    <div class="mission-grid">
+                        <div>Mission ID</div>
+                        <div class="value" id="missionId">--</div>
+                        <div>Quote</div>
+                        <div class="value" id="missionQuote">--</div>
+                    </div>
+                    <textarea id="contextInput" placeholder="Briefing context (optional)"></textarea>
+                    <input id="domainInput" type="text" placeholder="Domain name (e.g., Construction Auditing)">
+                    <div class="mission-actions">
+                        <button id="quoteBtn">Quote</button>
+                        <button id="checkoutBtn">Checkout</button>
+                        <button id="executeBtn">Execute</button>
+                        <button id="governBtn">Govern</button>
+                        <button id="healBtn">Heal</button>
+                        <button id="verifyBtn">Verify</button>
+                        <button id="resetBtn">New</button>
+                    </div>
+                    <div class="mission-toggles">
+                        <label><input type="checkbox" id="autoQuote" checked>Auto quote</label>
+                        <label><input type="checkbox" id="autoExecute" checked>Auto execute</label>
+                        <label><input type="checkbox" id="autoVerify" checked>Auto verify</label>
+                    </div>
+                </div>
+
+                <div class="panel stream-panel" id="responseBox">
+                    <div class="message">
+                        <span class="label">System</span>
+                        <div class="message-text">Trinity online. Awaiting mission.</div>
+                    </div>
+                </div>
+
+                <div class="panel chat-dock">
+                    <textarea id="userInput" placeholder="Command..."></textarea>
+                    <button id="sendBtn" class="primary">Engage</button>
+                </div>
+            </section>
+
+            <aside class="panel side right" id="rightPanel">
+                <div class="panel-header">
+                    <span>System core</span>
+                    <span class="status-pill" id="systemStatusPill">Offline</span>
+                </div>
+                <div class="system-grid" id="systemGrid"></div>
+                <div class="panel-section">
+                    <div class="section-title">Terminal</div>
+                    <div class="terminal" id="terminalLog"></div>
+                </div>
+                <div class="panel-section">
+                    <div class="section-title">Training academy</div>
+                    <div class="academy" id="academyList">
+                        <div class="academy-card">Mission Protocols</div>
+                        <div class="academy-card">Audit Readiness</div>
+                        <div class="academy-card">Autonomy Safety</div>
+                        <div class="academy-card">Delivery Ops</div>
+                    </div>
+                </div>
+                <div class="panel-section">
+                    <div class="section-title">Domain badges</div>
+                    <div class="badges" id="domainBadges"></div>
+                </div>
+            </aside>
+        </main>
+
+        <button class="toggle left" id="leftToggle">Files</button>
+        <button class="toggle right" id="rightToggle">Systems</button>
+    </div>
+
+    <script>
+        const apiMeta = document.querySelector('meta[name="trinity-api-url"]');
+        const apiKeyMeta = document.querySelector('meta[name="trinity-api-key"]');
+        const apiKey = apiKeyMeta && apiKeyMeta.content ? apiKeyMeta.content : "";
+        let apiBase = window.location.origin;
+        if (apiMeta && apiMeta.content) {
+            apiBase = apiMeta.content.endsWith("/execute")
+                ? apiMeta.content.replace(/\/execute$/, "")
+                : apiMeta.content.replace(/\/$/, "");
+        }
+
+        const state = {
+            missionId: null,
+            status: "idle",
+            quote: null,
+            quoteCurrency: null,
+            checkoutUrl: null,
+            prompt: "",
+            autoQuote: true,
+            autoExecute: true,
+            autoVerify: true,
+        };
+
+        const elements = {
+            responseBox: document.getElementById("responseBox"),
+            userInput: document.getElementById("userInput"),
+            sendBtn: document.getElementById("sendBtn"),
+            missionStatus: document.getElementById("missionStatus"),
+            missionId: document.getElementById("missionId"),
+            missionQuote: document.getElementById("missionQuote"),
+            quoteBtn: document.getElementById("quoteBtn"),
+            checkoutBtn: document.getElementById("checkoutBtn"),
+            executeBtn: document.getElementById("executeBtn"),
+            governBtn: document.getElementById("governBtn"),
+            healBtn: document.getElementById("healBtn"),
+            verifyBtn: document.getElementById("verifyBtn"),
+            resetBtn: document.getElementById("resetBtn"),
+            contextInput: document.getElementById("contextInput"),
+            domainInput: document.getElementById("domainInput"),
+            autoQuote: document.getElementById("autoQuote"),
+            autoExecute: document.getElementById("autoExecute"),
+            autoVerify: document.getElementById("autoVerify"),
+            dropZone: document.getElementById("dropZone"),
+            fileInput: document.getElementById("fileInput"),
+            fileList: document.getElementById("fileList"),
+            fileSummary: document.getElementById("fileSummary"),
+            clearFilesBtn: document.getElementById("clearFilesBtn"),
+            terminalLog: document.getElementById("terminalLog"),
+            systemGrid: document.getElementById("systemGrid"),
+            academyList: document.getElementById("academyList"),
+            domainBadges: document.getElementById("domainBadges"),
+            healthPill: document.getElementById("healthPill"),
+            systemStatusPill: document.getElementById("systemStatusPill"),
+            leftToggle: document.getElementById("leftToggle"),
+            rightToggle: document.getElementById("rightToggle"),
+            largeFileMode: document.getElementById("largeFileMode"),
+        };
+
+        const stagedFiles = [];
+        let missionPoller = null;
+
+        function logTerminal(message) {
+            const line = document.createElement("div");
+            line.className = "terminal-line";
+            line.textContent = `[${new Date().toISOString()}] ${message}`;
+            elements.terminalLog.appendChild(line);
+            elements.terminalLog.scrollTop = elements.terminalLog.scrollHeight;
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return "0 B";
+            const units = ["B", "KB", "MB", "GB"];
+            const idx = Math.floor(Math.log(bytes) / Math.log(1024));
+            return `${(bytes / Math.pow(1024, idx)).toFixed(2)} ${units[idx]}`;
+        }
+
+        function formatMoney(cents, currency) {
+            if (!cents) return "--";
+            const code = (currency || "USD").toUpperCase();
+            return new Intl.NumberFormat("en-US", {
+                style: "currency",
+                currency: code,
+            }).format(cents / 100);
+        }
+
+        function appendMessage(label, text, color) {
+            const message = document.createElement("div");
+            message.className = "message";
+            const labelEl = document.createElement("span");
+            labelEl.className = "label";
+            labelEl.textContent = label;
+            if (color) {
+                labelEl.style.color = color;
+            }
+            const body = document.createElement("div");
+            body.className = "message-text";
+            body.textContent = text;
+            message.appendChild(labelEl);
+            message.appendChild(body);
+            elements.responseBox.appendChild(message);
+            elements.responseBox.scrollTop = elements.responseBox.scrollHeight;
+        }
+
+        function setMissionStatus(status) {
+            state.status = status;
+            elements.missionStatus.textContent = status;
+            elements.missionId.textContent = state.missionId || "--";
+            elements.missionQuote.textContent = state.quote
+                ? formatMoney(state.quote, state.quoteCurrency)
+                : "--";
+            elements.checkoutBtn.disabled = !state.quote || status === "paid" || status === "executing";
+            const canExecuteDirect = !state.missionId && state.prompt;
+            elements.executeBtn.disabled = !(status === "paid" || status === "executing" || canExecuteDirect);
+            elements.governBtn.disabled = !state.missionId;
+            elements.healBtn.disabled = !state.missionId || !["review", "failed", "completed"].includes(status);
+            elements.verifyBtn.disabled = !state.missionId;
+        }
+
+        function resetMission(clearMessages) {
+            state.missionId = null;
+            state.status = "idle";
+            state.quote = null;
+            state.quoteCurrency = null;
+            state.checkoutUrl = null;
+            state.prompt = "";
+            if (elements.domainBadges) {
+                elements.domainBadges.innerHTML = "";
+            }
+            if (clearMessages) {
+                elements.responseBox.innerHTML = "";
+                appendMessage("System", "Trinity online. Awaiting mission.", "var(--accent-2)");
+            }
+            setMissionStatus("idle");
+            stopMissionPoller();
+        }
+
+        function updateFileList() {
+            elements.fileList.innerHTML = "";
+            let total = 0;
+            stagedFiles.forEach((file) => {
+                total += file.size;
+                const item = document.createElement("div");
+                item.className = "file-item";
+                item.textContent = `${file.name} (${formatBytes(file.size)})`;
+                elements.fileList.appendChild(item);
+            });
+            elements.fileSummary.textContent = `${stagedFiles.length} files loaded · ${formatBytes(total)}`;
+        }
+
+        async function apiFetch(path, options = {}) {
+            const headers = new Headers(options.headers || {});
+            if (apiKey) {
+                headers.set("X-API-Key", apiKey);
+            }
+            if (options.json !== undefined) {
+                headers.set("Content-Type", "application/json");
+                options.body = JSON.stringify(options.json);
+            }
+            const response = await fetch(`${apiBase}${path}`, {
+                method: options.method || "GET",
+                headers,
+                body: options.body,
+            });
+            const contentType = response.headers.get("content-type") || "";
+            const data = contentType.includes("application/json")
+                ? await response.json()
+                : await response.text();
+            if (!response.ok) {
+                const detail = data.detail || data || response.statusText;
+                throw new Error(detail);
+            }
+            return data;
+        }
+
+        async function loadHealth() {
+            try {
+                const health = await apiFetch("/health");
+                elements.healthPill.textContent = "Online";
+                elements.systemStatusPill.textContent = "Online";
+                elements.systemGrid.innerHTML = "";
+                Object.entries(health.providers || {}).forEach(([key, value]) => {
+                    const item = document.createElement("div");
+                    item.className = "system-item";
+                    const label = document.createElement("span");
+                    label.textContent = key;
+                    const status = document.createElement("span");
+                    status.textContent = value ? "ready" : "offline";
+                    item.appendChild(label);
+                    item.appendChild(status);
+                    elements.systemGrid.appendChild(item);
+                });
+            } catch (error) {
+                elements.healthPill.textContent = "Offline";
+                elements.systemStatusPill.textContent = "Offline";
+                logTerminal(`Health check failed: ${error.message}`);
+            }
+        }
+
+        function computeComplexity(prompt, context, fileCount) {
+            return prompt.length + (context || "").length + fileCount * 1000;
+        }
+
+        async function createBriefing(prompt) {
+            const context = elements.contextInput.value.trim();
+            const domainName = elements.domainInput.value.trim();
+            const fileNames = stagedFiles.map((file) => file.name);
+            const briefing = await apiFetch("/briefings", {
+                method: "POST",
+                json: {
+                    prompt,
+                    context: context || null,
+                    domain_name: domainName || null,
+                    metadata: {
+                        file_names: fileNames,
+                        file_count: fileNames.length,
+                        ui_mode: "galactic",
+                    },
+                },
+            });
+            state.missionId = briefing.mission_id;
+            setMissionStatus(briefing.status || "briefing");
+            logTerminal(`Briefing created: ${state.missionId}`);
+            if (domainName) {
+                await loadDomainBadges(domainName);
+            }
+        }
+
+        async function createQuote() {
+            if (!state.missionId) {
+                logTerminal("Mission ID required for quote.");
+                return;
+            }
+            const context = elements.contextInput.value.trim();
+            const complexity = computeComplexity(state.prompt, context, stagedFiles.length);
+            const quote = await apiFetch("/quote", {
+                method: "POST",
+                json: {
+                    mission_id: state.missionId,
+                    complexity_override: complexity,
+                },
+            });
+            state.quote = quote.quote_cents;
+            state.quoteCurrency = quote.currency;
+            setMissionStatus("quoted");
+            logTerminal(`Quote created: ${formatMoney(state.quote, state.quoteCurrency)}`);
+        }
+
+        async function createCheckout() {
+            if (!state.missionId) {
+                logTerminal("Mission ID required for checkout.");
+                return;
+            }
+            const checkout = await apiFetch("/checkout", {
+                method: "POST",
+                json: { mission_id: state.missionId },
+            });
+            state.checkoutUrl = checkout.checkout_url;
+            setMissionStatus("checkout");
+            logTerminal("Checkout session created.");
+            if (state.checkoutUrl) {
+                window.open(state.checkoutUrl, "_blank");
+            }
+            startMissionPoller();
+        }
+
+        async function executeMission() {
+            if (state.status === "executing") {
+                return;
+            }
+            if (!state.prompt) {
+                logTerminal("Prompt required.");
+                return;
+            }
+            const formData = new FormData();
+            formData.append("prompt", state.prompt);
+            if (state.missionId) {
+                formData.append("mission_id", state.missionId);
+            }
+            const domainName = elements.domainInput.value.trim();
+            if (domainName) {
+                formData.append("domain_name", domainName);
+            }
+            stagedFiles.forEach((file) => formData.append("files", file));
+            setMissionStatus("executing");
+            logTerminal("Execution started.");
+            const response = await apiFetch("/execute", {
+                method: "POST",
+                body: formData,
+            });
+            appendMessage("Gemini", response.gemini || "No response", "var(--accent-2)");
+            appendMessage("GPT-4", response.gpt || "No response", "var(--accent-4)");
+            appendMessage("Grok", response.grok || "No response", "var(--accent-3)");
+            setMissionStatus("completed");
+            logTerminal("Execution completed.");
+            if (state.autoVerify) {
+                await verifyMission();
+            }
+        }
+
+        async function verifyMission() {
+            if (!state.missionId) {
+                return;
+            }
+            try {
+                const verification = await apiFetch(`/missions/${state.missionId}/verify`);
+                logTerminal(`Evidence bundle: ${JSON.stringify(verification.evidence || {})}`);
+                if (verification.certification) {
+                    logTerminal(`Certification: ${verification.certification} (trust ${verification.trust_score})`);
+                }
+                if (verification.governance && verification.governance.cross_validation) {
+                    const avg = verification.governance.cross_validation.average_similarity;
+                    logTerminal(`Consensus average similarity: ${avg}`);
+                }
+                if (verification.governance && verification.governance.compliance) {
+                    const compliance = verification.governance.compliance;
+                    logTerminal(`Compliance: ${compliance.status} (score ${compliance.score})`);
+                }
+            } catch (error) {
+                logTerminal(`Verification failed: ${error.message}`);
+            }
+        }
+
+        async function governMission() {
+            if (!state.missionId) {
+                return;
+            }
+            try {
+                const review = await apiFetch("/governance/review", {
+                    method: "POST",
+                    json: { mission_id: state.missionId },
+                });
+                logTerminal(`Governance status: ${review.governance.status}`);
+                setMissionStatus(review.governance.status === "pass" ? "completed" : "review");
+            } catch (error) {
+                logTerminal(`Governance failed: ${error.message}`);
+            }
+        }
+
+        async function healMission() {
+            if (!state.missionId) {
+                return;
+            }
+            try {
+                const response = await apiFetch(`/missions/${state.missionId}/retry`, {
+                    method: "POST",
+                });
+                appendMessage("Healing", "Mission re-executed.", "var(--accent-2)");
+                logTerminal(`Self-heal complete. Status: ${response.governance.status}`);
+                setMissionStatus(response.governance.status === "pass" ? "completed" : "review");
+            } catch (error) {
+                logTerminal(`Self-heal failed: ${error.message}`);
+            }
+        }
+
+        function renderAcademyModules(modules) {
+            if (!elements.academyList) {
+                return;
+            }
+            if (!modules || modules.length === 0) {
+                return;
+            }
+            elements.academyList.innerHTML = "";
+            modules.slice(0, 4).forEach((module) => {
+                const card = document.createElement("div");
+                card.className = "academy-card";
+                card.textContent = module.title || "Untitled";
+                elements.academyList.appendChild(card);
+            });
+        }
+
+        async function loadAcademyModules() {
+            try {
+                const response = await apiFetch("/academy/modules");
+                renderAcademyModules(response.modules || []);
+            } catch (error) {
+                logTerminal(`Academy sync failed: ${error.message}`);
+            }
+        }
+
+        function renderDomainBadges(badges) {
+            if (!elements.domainBadges) {
+                return;
+            }
+            elements.domainBadges.innerHTML = "";
+            if (!badges || badges.length === 0) {
+                return;
+            }
+            badges.slice(0, 8).forEach((badge) => {
+                const chip = document.createElement("div");
+                chip.className = "badge";
+                chip.textContent = badge.name || "Badge";
+                elements.domainBadges.appendChild(chip);
+            });
+        }
+
+        async function loadDomainBadges(domainName) {
+            try {
+                const response = await apiFetch(`/domains?name=${encodeURIComponent(domainName)}`);
+                const domain = (response.domains || [])[0];
+                if (!domain) {
+                    logTerminal("Domain not found for badge lookup.");
+                    return;
+                }
+                const badgesResponse = await apiFetch(`/domains/${domain.id}/badges`);
+                renderDomainBadges(badgesResponse.badges || []);
+            } catch (error) {
+                logTerminal(`Domain badges failed: ${error.message}`);
+            }
+        }
+
+        async function pollMission() {
+            if (!state.missionId) {
+                return;
+            }
+            try {
+                const mission = await apiFetch(`/missions/${state.missionId}`);
+                state.quote = mission.quote_cents || state.quote;
+                state.quoteCurrency = mission.quote_currency || state.quoteCurrency;
+                setMissionStatus(mission.status || state.status);
+                if (state.autoExecute && mission.status === "paid") {
+                    await executeMission();
+                }
+                if (mission.status === "completed") {
+                    stopMissionPoller();
+                }
+            } catch (error) {
+                logTerminal(`Mission poll failed: ${error.message}`);
+            }
+        }
+
+        function startMissionPoller() {
+            if (missionPoller) return;
+            missionPoller = setInterval(pollMission, 5000);
+        }
+
+        function stopMissionPoller() {
+            if (missionPoller) {
+                clearInterval(missionPoller);
+                missionPoller = null;
+            }
+        }
+
+        elements.sendBtn.addEventListener("click", async () => {
+            const prompt = elements.userInput.value.trim();
+            if (!prompt) {
+                logTerminal("Prompt required to start mission.");
+                return;
+            }
+            if (state.status === "completed") {
+                resetMission(false);
+            }
+            state.prompt = prompt;
+            appendMessage("Command", prompt, "var(--accent-1)");
+            elements.userInput.value = "";
+            try {
+                await createBriefing(prompt);
+                if (elements.autoQuote.checked) {
+                    await createQuote();
+                }
+            } catch (error) {
+                logTerminal(`Briefing flow unavailable: ${error.message}`);
+                logTerminal("Running direct execution.");
+                await executeMission();
+            }
+        });
+
+        elements.quoteBtn.addEventListener("click", async () => {
+            try {
+                await createQuote();
+            } catch (error) {
+                logTerminal(`Quote failed: ${error.message}`);
+            }
+        });
+
+        elements.checkoutBtn.addEventListener("click", async () => {
+            try {
+                await createCheckout();
+            } catch (error) {
+                logTerminal(`Checkout failed: ${error.message}`);
+            }
+        });
+
+        elements.executeBtn.addEventListener("click", async () => {
+            try {
+                await executeMission();
+            } catch (error) {
+                logTerminal(`Execution failed: ${error.message}`);
+            }
+        });
+
+        elements.governBtn.addEventListener("click", async () => {
+            await governMission();
+        });
+
+        elements.healBtn.addEventListener("click", async () => {
+            await healMission();
+        });
+
+        elements.verifyBtn.addEventListener("click", async () => {
+            await verifyMission();
+        });
+
+        elements.resetBtn.addEventListener("click", () => resetMission(true));
+
+        elements.autoQuote.addEventListener("change", (event) => {
+            state.autoQuote = event.target.checked;
+        });
+
+        elements.autoExecute.addEventListener("change", (event) => {
+            state.autoExecute = event.target.checked;
+        });
+
+        elements.autoVerify.addEventListener("change", (event) => {
+            state.autoVerify = event.target.checked;
+        });
+
+        elements.dropZone.addEventListener("click", () => elements.fileInput.click());
+        elements.dropZone.addEventListener("dragover", (event) => {
+            event.preventDefault();
+            elements.dropZone.classList.add("active");
+        });
+        elements.dropZone.addEventListener("dragleave", () => {
+            elements.dropZone.classList.remove("active");
+        });
+        elements.dropZone.addEventListener("drop", (event) => {
+            event.preventDefault();
+            elements.dropZone.classList.remove("active");
+            const files = Array.from(event.dataTransfer.files || []);
+            stagedFiles.push(...files);
+            updateFileList();
+        });
+        elements.fileInput.addEventListener("change", (event) => {
+            const files = Array.from(event.target.files || []);
+            stagedFiles.push(...files);
+            updateFileList();
+            elements.fileInput.value = "";
+        });
+        elements.clearFilesBtn.addEventListener("click", () => {
+            stagedFiles.length = 0;
+            updateFileList();
+        });
+
+        elements.leftToggle.addEventListener("click", () => {
+            document.body.classList.toggle("left-open");
+        });
+        elements.rightToggle.addEventListener("click", () => {
+            document.body.classList.toggle("right-open");
+        });
+
+        document.querySelectorAll(".theme-button").forEach((button) => {
+            button.addEventListener("click", () => {
+                document.body.dataset.theme = button.dataset.theme;
+            });
+        });
+
+        function initStarfield() {
+            const canvas = document.getElementById("starfield");
+            const context = canvas.getContext("2d");
+            let width = 0;
+            let height = 0;
+            let stars = [];
+
+            function resize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            }
+
+            function createStars() {
+                stars = Array.from({ length: 120 }).map(() => ({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    radius: Math.random() * 1.5 + 0.2,
+                    speed: Math.random() * 0.3 + 0.1,
+                    alpha: Math.random() * 0.6 + 0.2,
+                }));
+            }
+
+            function draw() {
+                context.clearRect(0, 0, width, height);
+                context.fillStyle = "rgba(200, 230, 255, 0.8)";
+                stars.forEach((star) => {
+                    context.globalAlpha = star.alpha;
+                    context.beginPath();
+                    context.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                    context.fill();
+                    star.y += star.speed;
+                    if (star.y > height) {
+                        star.y = 0;
+                        star.x = Math.random() * width;
+                    }
+                });
+                context.globalAlpha = 1;
+                requestAnimationFrame(draw);
+            }
+
+            resize();
+            createStars();
+            draw();
+            window.addEventListener("resize", () => {
+                resize();
+                createStars();
+            });
+        }
+
+        initStarfield();
+        loadHealth();
+        loadAcademyModules();
+        updateFileList();
+        setMissionStatus("idle");
+    </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+# Dockerfile for Python Marketplace Service
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copy Python files
+COPY web_interface.py .
+COPY orchestration.py .
+COPY neo3_core.py .
+COPY evolution.py .
+COPY requirements.txt .
+
+# Install dependencies if any
+RUN if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi
+
+# Expose port
+EXPOSE 8080
+
+# Set environment variable
+ENV PYTHONUNBUFFERED=1
+
+# Run the marketplace service
+CMD ["python", "web_interface.py"]

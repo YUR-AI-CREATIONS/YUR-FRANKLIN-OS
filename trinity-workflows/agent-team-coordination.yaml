@@ -1,0 +1,61 @@
+name: agent-team-coordination
+description: Coordinate agent teams for complex projects with resource management
+
+config:
+  concurrency: 2  # Limit to 2 agents running simultaneously
+
+tasks:
+  - id: setup-workspace
+    command: "python ../services/workspace_manager.py --action create --project {PROJECT_ID}"
+    description: Create shared workspace for agent collaboration
+    env:
+      PROJECT_ID: ${PROJECT_ID}
+
+  - id: assign-roles
+    command: "python ../services/role_assigner.py --project {PROJECT_ID} --agents legal,financial,technical,marketing"
+    description: Assign roles and responsibilities to agents
+    depends_on: [setup-workspace]
+    env:
+      PROJECT_ID: ${PROJECT_ID}
+
+  - id: legal-compliance-check
+    command: "python ../Superagents/legal_agent.py --task compliance --project {PROJECT_ID}"
+    description: Review legal requirements and regulations
+    depends_on: [assign-roles]
+    env:
+      PROJECT_ID: ${PROJECT_ID}
+
+  - id: financial-feasibility
+    command: "python ../Superagents/financial_agent.py --task feasibility --project {PROJECT_ID}"
+    description: Analyze financial feasibility and ROI
+    depends_on: [assign-roles]
+    env:
+      PROJECT_ID: ${PROJECT_ID}
+
+  - id: technical-architecture
+    command: "python ../Superagents/technical_agent.py --task architecture --project {PROJECT_ID}"
+    description: Design technical architecture and implementation
+    depends_on: [assign-roles]
+    env:
+      PROJECT_ID: ${PROJECT_ID}
+
+  - id: marketing-strategy
+    command: "python ../Superagents/marketing_agent.py --task strategy --project {PROJECT_ID}"
+    description: Develop marketing and go-to-market strategy
+    depends_on: [assign-roles]
+    env:
+      PROJECT_ID: ${PROJECT_ID}
+
+  - id: integration-review
+    command: "python ../services/integration_reviewer.py --project {PROJECT_ID}"
+    description: Review cross-functional dependencies and integration points
+    depends_on: [legal-compliance-check, financial-feasibility, technical-architecture, marketing-strategy]
+    env:
+      PROJECT_ID: ${PROJECT_ID}
+
+  - id: final-recommendations
+    command: "python ../services/recommendation_engine.py --project {PROJECT_ID} --output ../generated/recommendations.json"
+    description: Generate final integrated recommendations
+    depends_on: [integration-review]
+    env:
+      PROJECT_ID: ${PROJECT_ID}

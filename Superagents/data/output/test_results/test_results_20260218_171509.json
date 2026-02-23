@@ -1,0 +1,27 @@
+{
+  "execution_timestamp": "2026-02-18T17:15:09.959319",
+  "project_root": "F:\\Superagents",
+  "tests": [
+    {
+      "name": "Test A: Delta Verification Understanding",
+      "query": "How does delta verification work?",
+      "status": "ERROR",
+      "latency_seconds": 0,
+      "error": "[WinError 2] The system cannot find the file specified"
+    },
+    {
+      "name": "Test B: Hashing Algorithm Discovery",
+      "query": "What cryptographic hashing algorithm is used for birthmarks and why was it chosen?",
+      "status": "ERROR",
+      "latency_seconds": 0,
+      "error": "[WinError 2] The system cannot find the file specified"
+    },
+    {
+      "name": "Test C: Multi-Artifact Synthesis",
+      "query": "Explain how the XML serialization strategy integrates with blake birthmarking and why Base64 encoding was chosen over CDATA",
+      "status": "ERROR",
+      "latency_seconds": 0,
+      "error": "[WinError 2] The system cannot find the file specified"
+    }
+  ]
+}

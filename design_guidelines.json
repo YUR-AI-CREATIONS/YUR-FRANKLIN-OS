@@ -1,0 +1,147 @@
+{
+  "identity": {
+    "name": "Sovereign Genesis Platform (SGP)",
+    "persona": "The Architect's Glass Box",
+    "tone": "Technical, Transparent, Socratic, Precision-First",
+    "aesthetic": "Tactical Minimalism, Cyber-Physical, High-Contrast Dark Mode"
+  },
+  "typography": {
+    "primary_font": "IBM Plex Sans",
+    "secondary_font": "Azeret Mono",
+    "font_weights": {
+      "light": 300,
+      "regular": 400,
+      "medium": 500,
+      "bold": 700
+    },
+    "usage": {
+      "headings": "Azeret Mono, tracking-tight, uppercase for labels",
+      "body": "IBM Plex Sans, relaxed leading for readability",
+      "code": "Azeret Mono, tracking-normal"
+    }
+  },
+  "colors": {
+    "mode": "dark",
+    "palette": {
+      "background": {
+        "default": "#050505",
+        "surface": "#0A0A0A",
+        "overlay": "rgba(5, 5, 5, 0.8)"
+      },
+      "text": {
+        "primary": "#E4E4E7",
+        "secondary": "#A1A1AA",
+        "muted": "#52525B"
+      },
+      "border": {
+        "default": "#27272A",
+        "active": "#3F3F46"
+      },
+      "brand": {
+        "primary": "#6366F1",
+        "secondary": "#818CF8"
+      },
+      "functional": {
+        "ambiguity": "#F59E0B",
+        "resolution": "#10B981",
+        "error": "#EF4444",
+        "info": "#3B82F6"
+      }
+    },
+    "gradients": {
+      "subtle_glow": "radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, transparent 70%)"
+    }
+  },
+  "layout": {
+    "grid_system": "Bento Grid (Mode B - High Density)",
+    "spacing": {
+      "container_padding": "p-6 md:p-8",
+      "element_gap": "gap-4 md:gap-6"
+    },
+    "structure": {
+      "main_canvas": "absolute inset-0 z-0 bg-[#050505]",
+      "floating_panels": "z-10 backdrop-blur-xl bg-black/60 border border-white/10 shadow-2xl"
+    }
+  },
+  "components": {
+    "buttons": {
+      "style": "Sharp edges or rounded-sm",
+      "variants": {
+        "primary": "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_10px_rgba(99,102,241,0.5)]",
+        "outline": "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        "ghost": "hover:bg-accent hover:text-accent-foreground"
+      }
+    },
+    "cards": {
+      "style": "Flat, 1px border, no shadow (unless floating)",
+      "classes": "bg-card text-card-foreground border-border rounded-md"
+    },
+    "inputs": {
+      "style": "Minimalist, high contrast focus state",
+      "classes": "bg-background border-input focus:ring-2 focus:ring-primary focus:border-transparent"
+    },
+    "react_flow": {
+      "node_styles": {
+        "ambiguity": "border-amber-500 bg-amber-500/10 text-amber-200",
+        "resolution": "border-emerald-500 bg-emerald-500/10 text-emerald-200",
+        "default": "border-zinc-700 bg-zinc-900 text-zinc-100"
+      },
+      "edge_styles": {
+        "default": "stroke-zinc-600",
+        "active": "stroke-indigo-500 animated"
+      }
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": "backdrop-blur-xl bg-black/40 border border-white/10",
+    "borders": "1px solid rgba(255, 255, 255, 0.08)",
+    "shadows": "0 4px 30px rgba(0, 0, 0, 0.5)",
+    "textures": {
+      "grid_pattern": "bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"
+    }
+  },
+  "image_urls": {
+    "textures": [
+      {
+        "url": "https://images.unsplash.com/photo-1566121822676-ce12612f5600?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDN8MHwxfHNlYXJjaHwyfHxhYnN0cmFjdCUyMGRhcmslMjBkaWdpdGFsJTIwbmV0d29yayUyMGNvbm5lY3Rpb24lMjBtaW5pbWFsaXN0fGVufDB8fHx8MTc3MDM5NDg0OHww&ixlib=rb-4.1.0&q=85",
+        "description": "Abstract white lines on black, use for subtle background overlay or loading screen",
+        "category": "texture"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1760492867542-bdab152eaf79?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDN8MHwxfHNlYXJjaHw0fHxhYnN0cmFjdCUyMGRhcmslMjBkaWdpdGFsJTIwbmV0d29yayUyMGNvbm5lY3Rpb24lMjBtaW5pbWFsaXN0fGVufDB8fHx8MTc3MDM5NDg0OHww&ixlib=rb-4.1.0&q=85",
+        "description": "Geometric metal structure, use for 'System Architecture' or 'About' modal",
+        "category": "hero"
+      }
+    ]
+  },
+  "instructions_to_main_agent": [
+    "FORCE DARK MODE: Ensure the 'dark' class is always applied to the html/body tag.",
+    "REACT FLOW: Use the 'reactflow' library. Create custom nodes for 'AmbiguityNode' (Amber) and 'ResolutionNode' (Emerald).",
+    "SOCRATIC ENGINE: The input panel should not just be a text box. It should look like a terminal or a code editor (monospaced input).",
+    "GLASS BOX: The DAG visualization is the CORE. It should be visible at all times. Panels (Input, Clarification, Spec) should float OVER it.",
+    "TYPOGRAPHY: Import 'Azeret Mono' and 'IBM Plex Sans' from Google Fonts immediately.",
+    "NO GRADIENTS: Do not use large colorful gradients. Use subtle radial glows only for active states.",
+    "DATA-TESTID: Add data-testid to all interactive elements (e.g., 'submit-prompt-btn', 'node-inspector-panel')."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "You tend to converge toward generic, 'on distribution' outputs. In frontend design, this creates what users call the 'AI slop' aesthetic. Avoid this: make creative, distinctive frontends that surprise and delight.",
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy",
+    "Use glass-morphism effects with backdrop filters (12-24px blur)",
+    "You MUST NOT apply universal transition. Eg: transition: all. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms",
+    "You MUST NOT center align the app container, ie do not add .App { text-align: center; } in the css file. This disrupts the human natural reading flow of text",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style",
+    "NEVER: use AI assistant Emoji characters like 🤖🧠💭💡🔮🎯📚🎭🎬🎪🎉🎊🎁🎀🎂🍰🎈🎨🎰💰💵💳🏦💎🪙💸🤑📊📈📉💹🔢🏆🥇 etc for icons.",
+    "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
+    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+    "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary.",
+    "Main agent relies on these image URLs. Missing categories (especially sponsor logos) = main agent will use placeholder text which is FORBIDDEN",
+    "Prioritize using pre-existing components from src/components/ui when applicable",
+    "Create new components that match the style and conventions of existing components when needed",
+    "Examine existing components to understand the project's component patterns before creating new ones",
+    "Components MUST use named exports (export const ComponentName = ...)",
+    "Pages MUST use default exports (export default function PageName() {...})",
+    "Use 'sonner' for toasts. Sonner component are located in /app/src/components/ui/sonner.tsx"
+  ]
+}

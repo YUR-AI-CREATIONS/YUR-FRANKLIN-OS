@@ -1,0 +1,89 @@
+%PDF-1.4
+1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj
+2 0 obj << /Type /Pages /Count 1 /Kids [3 0 R] >> endobj
+3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj
+4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj
+5 0 obj << /Length 1338 >> stream
+BT
+/F1 10 Tf 12 TL
+48 760 Td
+(VAULT SEAL REPORT) Tj
+T*
+(=================) Tj
+T*
+(timestamp_utc: 2026-01-30T18:43:19.532669Z) Tj
+T*
+(branch: main) Tj
+T*
+(commit: 0e6e0a96b4fcd6cb67d96f7d8b65893a5c37a5b7) Tj
+T*
+() Tj
+T*
+(Critical file inventory \(sha256\):) Tj
+T*
+(- spine/neo3/neo3_core.py: redacted) Tj
+T*
+(- spine/neo3/orchestration.py: redacted) Tj
+T*
+(- trinity.py: redacted) Tj
+T*
+(- spine/neo3/governance.py: redacted) Tj
+T*
+(- abs_ui/src/services/realAIService.ts: redacted) Tj
+T*
+(- abs_ui/src/services/trinityApi.ts: redacted) Tj
+T*
+(- abs_ui/src/components/GovernanceStatusPanel.tsx: redacted) Tj
+T*
+(- abs_ui/src/components/DigitalGarage.tsx: redacted) Tj
+T*
+(- abs_ui/src/components/OraclePrimeWireframe.tsx: redacted) Tj
+T*
+(- abs_ui/public/franklin_garage_shell.html: redacted) Tj
+T*
+() Tj
+T*
+(Launch evidence packages:) Tj
+T*
+(- launch_evidence) Tj
+T*
+(  manifest_present: True) Tj
+T*
+(  files: 96) Tj
+T*
+(  bundle_sha256: redacted) Tj
+T*
+(- launch_evidence_clean_20260127T194525Z) Tj
+T*
+(  manifest_present: True) Tj
+T*
+(  files: 101) Tj
+T*
+(  bundle_sha256: redacted) Tj
+T*
+() Tj
+T*
+(Notes:) Tj
+T*
+(- Governance spine and UI are frozen; modify only under incident control.) Tj
+T*
+(- UI may observe governance outcomes; enforcement remains server-side.) Tj
+T*
+() Tj
+T*
+(Public redaction: 10 file hashes redacted.) Tj
+T*
+ET
+endstream endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000311 00000 n 
+trailer << /Size 6 /Root 1 0 R >>
+startxref
+1701
+%%EOF

@@ -1,0 +1,31 @@
+VAULT SEAL REPORT
+=================
+timestamp_utc: 2026-01-30T18:43:19.532669Z
+branch: main
+commit: 0e6e0a96b4fcd6cb67d96f7d8b65893a5c37a5b7
+
+Critical file inventory (sha256):
+- spine/neo3/neo3_core.py: 2b99db2c44041daadd9ddbf4b72ff5e1f4e5c8be82c12faac2c238b522307f5d
+- spine/neo3/orchestration.py: 4d3a307e8487a6b90f10479ae40ba2dea3e6ed0459d4d05cb314ffc2def2654c
+- trinity.py: 642a10f978fba2824e112fbc88c4593a23b465b50ba71cd3d99d70abd0627452
+- spine/neo3/governance.py: e9ea993f3e077006f0ba50e9c80fb5ad3157cc8cd8f93356c018393d6801fa8c
+- abs_ui/src/services/realAIService.ts: 0503317e8e8e6eb66b20eb103332e5bca76da70f977f83ec11817b96aff1aa75
+- abs_ui/src/services/trinityApi.ts: 0e39d9070374d94002607cc7ecd139f52f1a90c008725735aeb02bf53f1087ef
+- abs_ui/src/components/GovernanceStatusPanel.tsx: d7215845186de3b65452c8bef12db4559b969525676a2aa0b17c3dde5b1ed9b0
+- abs_ui/src/components/DigitalGarage.tsx: 50db55a6a11c4f3975a3260cfcf16f02207dd9cdc6f20e24cc65ec009dd57e5c
+- abs_ui/src/components/OraclePrimeWireframe.tsx: e78df6c8e128922e5d3680efb77b1ec449cfd73704621416565d64644c697950
+- abs_ui/public/franklin_garage_shell.html: dcb4af4e6f800108f399dae259e87550481449a2a809346b79df31b0a853a66b
+
+Launch evidence packages:
+- launch_evidence
+  manifest_present: True
+  files: 96
+  bundle_sha256: None
+- launch_evidence_clean_20260127T194525Z
+  manifest_present: True
+  files: 101
+  bundle_sha256: 2f1a542973bf0e110ff10ec45e3322971ddd2e085f5a07d6ed0db47292671674
+
+Notes:
+- Governance spine and UI are frozen; modify only under incident control.
+- UI may observe governance outcomes; enforcement remains server-side.

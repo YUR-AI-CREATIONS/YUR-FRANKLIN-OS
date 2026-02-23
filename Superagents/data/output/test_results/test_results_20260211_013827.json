@@ -1,0 +1,80 @@
+{
+  "execution_timestamp": "2026-02-11T01:37:54.778450",
+  "project_root": "F:\\New folder\\cognitive_engine",
+  "tests": [
+    {
+      "name": "Test A: Delta Verification Understanding",
+      "query": "How does delta verification work?",
+      "status": "FAIL",
+      "latency_seconds": 12.572214,
+      "response": "",
+      "response_length": 0,
+      "expected_keywords": [
+        "delta",
+        "verification",
+        "hash",
+        "comparison",
+        "Genesis"
+      ],
+      "keywords_found": [
+        "delta",
+        "verification",
+        "Genesis"
+      ],
+      "accuracy_score": 0.6,
+      "timestamp": "2026-02-11T01:37:54.778644",
+      "return_code": 0,
+      "full_output": "\n======================================================================\nCOGNITIVE QUERY ENGINE - PHASE IV: LLM INTEGRATION\n======================================================================\n\n[QUERY] 'How does delta verification work?'\n\n[OK] Retrieved 3 artifacts\n\n\n======================================================================\n[RESPONSE] COGNITIVE ENGINE\n======================================================================\nBased on the provided code context, delta verification is a process that compares the current state of files against the Genesis Ledger to identify changes. The `delta_verification` function in the `delta_verification.py` file takes two inputs: `target_dir` and `exclude_patterns`. It uses the `BlakeVault` class from the `blake_birthmarking.py` file to load the existing Genesis Ledger and then scans the current state of files in the target directory. The function identifies NEW, MODIFIED, and DELETED artifacts by comparing their birthmarks (immutable fingerprints) with those stored in the Genesis Ledger.\n\nThe delta verification process reports changes for targeted processing, which is useful for identifying and processing updates to the system's configuration or data.\n======================================================================\n\n[INFO] [INIT] Initializing Cognitive Query Engine (RAG Pipeline)...\n[INFO] Use pytorch device_name: cpu\n[INFO] Load pretrained SentenceTransformer: all-MiniLM-L6-v2\n[INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json \"HTTP/1.1 307 Temporary Redirect\"\n[INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/modules.json \"HTTP/1.1 200 OK\"\n[INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config_sentence_transformers.json \"HTTP/1.1 307 Temporary Redirect\"\nWarning: You are sending unauthenticated req"
+    },
+    {
+      "name": "Test B: Hashing Algorithm Discovery",
+      "query": "What cryptographic hashing algorithm is used for birthmarks and why was it chosen?",
+      "status": "FAIL",
+      "latency_seconds": 9.818407,
+      "response": "",
+      "response_length": 0,
+      "expected_keywords": [
+        "SHA",
+        "256",
+        "hash",
+        "algorithm"
+      ],
+      "keywords_found": [
+        "SHA",
+        "256",
+        "hash",
+        "algorithm"
+      ],
+      "accuracy_score": 1.0,
+      "timestamp": "2026-02-11T01:38:07.351408",
+      "return_code": 0,
+      "full_output": "\n======================================================================\nCOGNITIVE QUERY ENGINE - PHASE IV: LLM INTEGRATION\n======================================================================\n\n[QUERY] 'What cryptographic hashing algorithm is used for birthmarks and why was it chosen?'\n\n[OK] Retrieved 3 artifacts\n\n\n======================================================================\n[RESPONSE] COGNITIVE ENGINE\n======================================================================\nBased on the provided code context, there is no mention of cryptographic hashing algorithm used for birthmarks. The context only discusses BLAKE3 and SHA256 hash algorithms in the context of content-addressable identity system, but it does not specify which one is used for birthmarks.\n\nTherefore, I must answer: **There is no information available to determine what cryptographic hashing algorithm is used for birthmarks.**\n======================================================================\n\n[INFO] [INIT] Initializing Cognitive Query Engine (RAG Pipeline)...\n[INFO] Use pytorch device_name: cpu\n[INFO] Load pretrained SentenceTransformer: all-MiniLM-L6-v2\n[INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json \"HTTP/1.1 307 Temporary Redirect\"\n[INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/modules.json \"HTTP/1.1 200 OK\"\n[INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config_sentence_transformers.json \"HTTP/1.1 307 Temporary Redirect\"\n[INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/config_sentence_transformers.json \"HTTP/1.1 200 OK\"\n[INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config_sentence_transformers.json \"HTTP/1"
+    },
+    {
+      "name": "Test C: Multi-Artifact Synthesis",
+      "query": "Explain how the XML serialization strategy integrates with blake birthmarking and why Base64 encoding was chosen over CDATA",
+      "status": "FAIL",
+      "latency_seconds": 10.621216,
+      "response": "",
+      "response_length": 0,
+      "expected_keywords": [
+        "XML",
+        "Base64",
+        "serialization",
+        "birthmark",
+        "CDATA"
+      ],
+      "keywords_found": [
+        "XML",
+        "Base64",
+        "serialization",
+        "birthmark",
+        "CDATA"
+      ],
+      "accuracy_score": 1.0,
+      "timestamp": "2026-02-11T01:38:17.170214",
+      "return_code": 0,
+      "full_output": "\n======================================================================\nCOGNITIVE QUERY ENGINE - PHASE IV: LLM INTEGRATION\n======================================================================\n\n[QUERY] 'Explain how the XML serialization strategy integrates with blake birthmarking and why Base64 encoding was chosen over CDATA'\n\n[OK] Retrieved 3 artifacts\n\n\n======================================================================\n[RESPONSE] COGNITIVE ENGINE\n======================================================================\nBased on the provided code context, here's an answer to your question:\n\nThe XML serialization strategy integrates with Blake birthmarking by using Base64 encoding to serialize artifacts into well-formed XML. This is evident from the `serialize_context` method in the `CognitiveNode` class, which uses base64-encoded content and includes each artifact's Blake Birthmark (SHA256 hash) for verification.\n\nAs for why Base64 encoding was chosen over CDATA, the code context suggests that CDATA approach breaks on ]]> sequences, indicating instability. In contrast, Base64 encoding is robust but less human-readable, implying a trade-off. The choice of Base64 encoding likely reflects a design decision to prioritize stability and security over human-readability.\n\nNote: The provided code context does not explicitly address the OLK-7 Quantum Monte Carlo Reasoning or the XML Entities mentioned in the `XMLSerializationOptimizer` class.\n======================================================================\n\n[INFO] [INIT] Initializing Cognitive Query Engine (RAG Pipeline)...\n[INFO] Use pytorch device_name: cpu\n[INFO] Load pretrained SentenceTransformer: all-MiniLM-L6-v2\n[INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json \"HTTP/1.1 307 Temporary Redirect\"\n[INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/m"
+    }
+  ]
+}

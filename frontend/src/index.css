@@ -1,0 +1,253 @@
+@import url('https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@300;400;500;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 2%;
+  --foreground: 240 5% 90%;
+  --card: 0 0% 4%;
+  --card-foreground: 240 5% 90%;
+  --popover: 0 0% 4%;
+  --popover-foreground: 240 5% 90%;
+  --primary: 190 100% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 4% 16%;
+  --secondary-foreground: 240 5% 90%;
+  --muted: 240 4% 16%;
+  --muted-foreground: 240 5% 64%;
+  --accent: 240 4% 16%;
+  --accent-foreground: 240 5% 90%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 240 4% 16%;
+  --input: 240 4% 16%;
+  --ring: 190 100% 50%;
+  --radius: 0.25rem;
+  
+  /* Franklin OS Custom Colors */
+  --franklin-bg: #04060b;
+  --franklin-surface: #0a1628;
+  --franklin-text-primary: #E4E4E7;
+  --franklin-text-secondary: #A1A1AA;
+  --franklin-text-muted: #52525B;
+  --franklin-border: #1a3a5c;
+  --franklin-border-active: #2a5a8c;
+  --franklin-brand: #00C8FF;
+  --franklin-brand-secondary: #00FFD4;
+  --franklin-ambiguity: #F59E0B;
+  --franklin-resolution: #00FFD4;
+  --franklin-error: #EF4444;
+  --franklin-info: #00C8FF;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--franklin-bg);
+  color: var(--franklin-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+code, .mono {
+  font-family: 'Azeret Mono', monospace;
+}
+
+/* ==========================================
+   FRANKLIN OS LANDING PAGE STYLES
+   ========================================== */
+
+/* Snowfall Animation */
+@keyframes snowfall {
+  0% {
+    background-position: 0 0, 0 0, 0 0;
+  }
+  100% {
+    background-position: 500px 1000px, 400px 800px, 300px 600px;
+  }
+}
+
+/* Grid Background */
+.garage-grid {
+  background-image:
+    linear-gradient(rgba(46, 92, 120, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(46, 92, 120, 0.22) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: radial-gradient(circle at 50% 40%, rgba(0, 0, 0, 1) 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(circle at 50% 40%, rgba(0, 0, 0, 1) 0%, transparent 70%);
+}
+
+/* Oracle Snow Effect */
+.oracle-snow {
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(94, 234, 212, 0.4) 1px, transparent 1px),
+    radial-gradient(circle at 80% 30%, rgba(168, 85, 247, 0.5) 1px, transparent 1px),
+    radial-gradient(circle at 40% 70%, rgba(59, 130, 246, 0.35) 1px, transparent 1px);
+  background-size: 3px 3px, 2px 2px, 4px 4px;
+  animation: snowfall 26s linear infinite;
+}
+
+/* ==========================================
+   SCROLLBAR STYLES
+   ========================================== */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--franklin-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--franklin-border-active);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--franklin-text-muted);
+}
+
+/* ==========================================
+   REACT FLOW OVERRIDES
+   ========================================== */
+
+.react-flow__background {
+  background-color: var(--franklin-bg) !important;
+}
+
+.react-flow__controls {
+  background: var(--franklin-surface) !important;
+  border: 1px solid var(--franklin-border) !important;
+  border-radius: 4px !important;
+}
+
+.react-flow__controls-button {
+  background: transparent !important;
+  border: none !important;
+  color: var(--franklin-text-secondary) !important;
+}
+
+.react-flow__controls-button:hover {
+  background: var(--franklin-border) !important;
+}
+
+.react-flow__minimap {
+  background: var(--franklin-surface) !important;
+  border: 1px solid var(--franklin-border) !important;
+}
+
+/* ==========================================
+   GLASS PANEL EFFECTS
+   ========================================== */
+
+.glass-panel {
+  background: rgba(10, 22, 40, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 200, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0, 200, 255, 0.05);
+}
+
+/* Glow Effects */
+.glow-brand {
+  box-shadow: 0 0 20px rgba(0, 200, 255, 0.3);
+}
+
+.glow-ambiguity {
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+}
+
+.glow-resolution {
+  box-shadow: 0 0 15px rgba(0, 255, 212, 0.4);
+}
+
+/* Grid Background Pattern */
+.grid-pattern {
+  background-image: 
+    linear-gradient(to right, rgba(0, 200, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 200, 255, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ==========================================
+   ANIMATIONS
+   ========================================== */
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-slide-in {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+/* Terminal Input Style */
+.terminal-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: 'Azeret Mono', monospace;
+  color: var(--franklin-text-primary);
+  caret-color: var(--franklin-brand);
+}
+
+.terminal-input::placeholder {
+  color: var(--franklin-text-muted);
+}
+
+/* Node Styles */
+.sgp-node {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sgp-node:hover {
+  transform: scale(1.02);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
