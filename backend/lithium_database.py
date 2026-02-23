@@ -452,20 +452,20 @@ class LithiumDatabase:
         }
         
         # Check Supabase
-        if self.supabase:
+        if self.supabase is not None:
             try:
                 self.supabase.table("users").select("id").limit(1).execute()
                 status["supabase"] = "connected"
             except Exception as e:
-                status["supabase"] = f"error: {str(e)}"
+                status["supabase"] = f"error: {str(e)[:50]}"
         
         # Check MongoDB
-        if self.mongo_db:
+        if self.mongo_db is not None:
             try:
                 await self.mongo_db.command("ping")
                 status["mongodb"] = "connected"
             except Exception as e:
-                status["mongodb"] = f"error: {str(e)}"
+                status["mongodb"] = f"error: {str(e)[:50]}"
         
         return status
 
