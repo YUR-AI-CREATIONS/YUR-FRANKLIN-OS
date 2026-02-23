@@ -170,7 +170,7 @@ class LithiumDatabase:
 
     async def create_user(self, email: str, password_hash: str = None, subscription_tier: str = "free") -> Optional[Dict]:
         """Create a new user"""
-        if not self.supabase:
+        if self.supabase is None:
             return None
             
         try:
@@ -186,7 +186,7 @@ class LithiumDatabase:
 
     async def get_user_by_email(self, email: str) -> Optional[Dict]:
         """Get user by email"""
-        if not self.supabase:
+        if self.supabase is None:
             return None
             
         try:
@@ -198,7 +198,7 @@ class LithiumDatabase:
 
     async def update_user_subscription(self, user_id: str, tier: str, stripe_customer_id: str = None) -> bool:
         """Update user subscription"""
-        if not self.supabase:
+        if self.supabase is None:
             return False
             
         try:
@@ -217,7 +217,7 @@ class LithiumDatabase:
 
     async def create_project(self, user_id: str, name: str, description: str = None, tech_stack: str = None) -> Optional[Dict]:
         """Create a new project"""
-        if not self.supabase:
+        if self.supabase is None:
             return None
             
         try:
@@ -235,7 +235,7 @@ class LithiumDatabase:
 
     async def get_user_projects(self, user_id: str) -> List[Dict]:
         """Get all projects for a user"""
-        if not self.supabase:
+        if self.supabase is None:
             return []
             
         try:
@@ -251,7 +251,7 @@ class LithiumDatabase:
 
     async def save_build(self, build_data: Dict) -> Optional[Dict]:
         """Save a build to the database"""
-        if not self.supabase:
+        if self.supabase is None:
             return None
             
         try:
@@ -291,7 +291,7 @@ class LithiumDatabase:
 
     async def get_build(self, build_id: str) -> Optional[Dict]:
         """Get a build by ID"""
-        if not self.supabase:
+        if self.supabase is None:
             return None
             
         try:
@@ -311,7 +311,7 @@ class LithiumDatabase:
 
     async def get_user_builds(self, user_id: str) -> List[Dict]:
         """Get all builds for a user"""
-        if not self.supabase:
+        if self.supabase is None:
             return []
             
         try:
@@ -327,7 +327,7 @@ class LithiumDatabase:
 
     async def save_certification(self, cert_data: Dict) -> Optional[Dict]:
         """Save certification results"""
-        if not self.supabase:
+        if self.supabase is None:
             return None
             
         try:
@@ -358,7 +358,7 @@ class LithiumDatabase:
 
     async def get_certification(self, build_id: str) -> Optional[Dict]:
         """Get certification for a build"""
-        if not self.supabase:
+        if self.supabase is None:
             return None
             
         try:
@@ -374,7 +374,7 @@ class LithiumDatabase:
 
     async def save_payment(self, user_id: str, stripe_session_id: str, amount_cents: int, status: str = "pending") -> Optional[Dict]:
         """Save a payment record"""
-        if not self.supabase:
+        if self.supabase is None:
             return None
             
         try:
@@ -391,7 +391,7 @@ class LithiumDatabase:
 
     async def update_payment_status(self, stripe_session_id: str, status: str, payment_intent: str = None) -> bool:
         """Update payment status"""
-        if not self.supabase:
+        if self.supabase is None:
             return False
             
         try:
@@ -410,7 +410,7 @@ class LithiumDatabase:
 
     async def save_chat_message(self, session_id: str, message: Dict, session_type: str = "franklin") -> bool:
         """Save a chat message to MongoDB"""
-        if not self.mongo_db:
+        if self.mongo_db is None:
             return False
             
         try:
@@ -430,7 +430,7 @@ class LithiumDatabase:
 
     async def get_chat_history(self, session_id: str) -> List[Dict]:
         """Get chat history for a session"""
-        if not self.mongo_db:
+        if self.mongo_db is None:
             return []
             
         try:
