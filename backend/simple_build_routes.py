@@ -178,14 +178,57 @@ async def get_certification(build_id: str):
 
 @router.get("/health")
 async def health():
-    """Health check"""
+    """Health check with database status"""
     from pathlib import Path
+    from lithium_database import lithium_db
+    
+    await lithium_db.initialize()
     
     projects_dir = Path("/app/generated_projects")
     projects_dir.mkdir(parents=True, exist_ok=True)
     
+    db_status = await lithium_db.health_check()
+    
     return {
         "status": "healthy",
         "projects_dir": str(projects_dir),
-        "writable": projects_dir.exists()
+        "writable": projects_dir.exists(),
+        "database": db_status
     }
+
+
+@router.get("/db/status")
+async def db_status():
+    """Detailed database status"""
+    from lithium_database import lithium_db
+    
+    await lithium_db.initialize()
+    status = await lithium_db.health_check()
+    
+    return {
+        "supabase_url": os.getenv("SUPABASE_URL"),
+        "mongo_url": "configured" if os.getenv("MONGO_URL") else "not configured",
+        "connections": status
+    }
+
+
+@router.get("/builds")
+async def list_builds():
+    """List all builds (from filesystem)"""
+    from pathlib import Path
+    
+    projects_dir = Path("/app/generated_projects")
+    builds = []
+    
+    if projects_dir.exists():
+        for d in projects_dir.iterdir():
+            if d.is_dir():
+                files = list(d.rglob("*"))
+                file_count = len([f for f in files if f.is_file()])
+                builds.append({
+                    "build_id": d.name,
+                    "files": file_count,
+                    "created": datetime.fromtimestamp(d.stat().st_ctime).isoformat()
+                })
+    
+    return {"builds": sorted(builds, key=lambda x: x["created"], reverse=True)}
