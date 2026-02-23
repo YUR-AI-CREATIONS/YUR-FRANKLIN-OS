@@ -767,10 +767,45 @@ const IDEPage = ({ onNavigate }) => {
         <h1 className="select-none" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '12vw', fontWeight: 600, letterSpacing: '0.3em', color: 'rgba(80,80,80,0.15)' }}>FRANKLIN</h1>
       </div>
       
+      {/* TECH STACK SELECTOR MODAL */}
+      {showStackSelector && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center" onClick={() => setShowStackSelector(false)}>
+          <div className="bg-black/90 border border-white/20 rounded-lg p-6 max-w-md" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-mono text-white mb-4">Select Tech Stack</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {TECH_STACKS.map(stack => (
+                <button
+                  key={stack.id}
+                  onClick={() => { setSelectedStack(stack.id); setShowStackSelector(false); addTerminal(`Stack changed to: ${stack.name}`, 'system'); }}
+                  className={`p-3 rounded border text-left transition-all ${selectedStack === stack.id ? 'border-cyan-500 bg-cyan-500/20' : 'border-white/20 hover:border-white/40 hover:bg-white/5'}`}
+                >
+                  <div className="text-xl mb-1">{stack.icon}</div>
+                  <div className="text-sm font-mono text-white">{stack.name}</div>
+                  <div className="text-xs font-mono text-white/50">{stack.desc}</div>
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setShowStackSelector(false)} className="mt-4 w-full py-2 text-sm font-mono text-white/60 border border-white/20 rounded hover:bg-white/10">Close</button>
+          </div>
+        </div>
+      )}
+      
       {/* HEADER */}
       <div className="absolute top-0 left-0 right-0 h-12 z-50 bg-black/90 border-b border-white/20 flex items-center px-6">
         <span className="text-base font-mono text-white tracking-wider" style={{ fontFamily: "'Orbitron', sans-serif" }}>◈ FRANKLIN OS</span>
         <div className="flex-1" />
+        
+        {/* Tech Stack Selector */}
+        <button 
+          onClick={() => setShowStackSelector(true)} 
+          className="mr-4 px-3 py-1.5 text-sm font-mono text-cyan-400 border border-cyan-500/50 rounded hover:bg-cyan-500/20 transition-all flex items-center gap-2"
+          data-testid="stack-selector"
+        >
+          <span>{TECH_STACKS.find(s => s.id === selectedStack)?.icon}</span>
+          <span>{TECH_STACKS.find(s => s.id === selectedStack)?.name}</span>
+          <span className="text-white/40">▼</span>
+        </button>
+        
         {isBuilding && (
           <div className="mr-4 px-4 py-1.5 text-sm font-mono text-yellow-400 border border-yellow-500/50 rounded animate-pulse flex items-center gap-2">
             <span className="animate-spin">◈</span> BUILDING...
@@ -781,9 +816,6 @@ const IDEPage = ({ onNavigate }) => {
             ✓ CERTIFIED
           </div>
         )}
-        <button onClick={() => onNavigate(PAGES.WORKFLOW)} className="mr-4 px-4 py-1.5 text-sm font-mono text-purple-400 border border-purple-500/50 rounded hover:bg-purple-500/20 transition-all">
-          ◈ WORKFLOW
-        </button>
         <div className="flex items-center gap-6 text-xs font-mono">
           <span className="text-green-400 flex items-center gap-2"><span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />ONLINE</span>
         </div>
