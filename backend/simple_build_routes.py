@@ -214,6 +214,24 @@ async def db_status():
     }
 
 
+@router.post("/db/init")
+async def init_database():
+    """Initialize database tables (run once)"""
+    from lithium_database import lithium_db
+    
+    await lithium_db.initialize()
+    
+    # Create tables via Supabase SQL editor is recommended
+    # This endpoint just confirms the connection
+    status = await lithium_db.health_check()
+    
+    return {
+        "message": "Database initialized. Use Supabase SQL Editor to run the schema if tables don't exist.",
+        "status": status,
+        "schema_sql_url": "Copy schema from /app/backend/lithium_database.py SCHEMA_SQL constant"
+    }
+
+
 @router.get("/builds")
 async def list_builds():
     """List all builds (from filesystem)"""
