@@ -565,22 +565,24 @@ const IDEPage = ({ onNavigate }) => {
     addTerminal(`Mission: ${mission}`, 'info');
     addTerminal('═══════════════════════════════════════', 'system');
 
-    setFranklinChat(prev => [...prev, { role: 'franklin', content: `🚀 **BUILD INITIATED**\n\nI'm now building: "${mission}"\n\nWatch the terminal for real-time progress. The Genesis agents are working on your project.` }]);
+    setFranklinChat(prev => [...prev, { role: 'franklin', content: `🚀 **BUILD INITIATED**\n\nBuilding: "${mission}"\n\nGenerating production-ready code...` }]);
 
     try {
       addTerminal('Calling Genesis agents...', 'info');
-      addTerminal('[GENESIS] Analyzing requirements...', 'info');
       
-      const res = await axios.post(`${API}/api/build-orchestrator/build`, { mission });
+      // Use fast-build for immediate results
+      const res = await axios.post(`${API}/api/build-orchestrator/fast-build`, { mission });
       
       if (res.data.success) {
         const { output, sections, governance_log, agents_involved } = res.data;
         
-        // Log each phase to terminal
-        output.forEach(item => {
-          const type = item.type === 'success' ? 'success' : item.type === 'error' ? 'error' : 'info';
-          addTerminal(`[${item.agent}] ${item.message.slice(0, 100)}${item.message.length > 100 ? '...' : ''}`, type);
-        });
+        // Log phases to terminal
+        if (output) {
+          output.forEach(item => {
+            const type = item.type === 'success' ? 'success' : item.type === 'error' ? 'error' : 'info';
+            addTerminal(`[${item.agent}] ${item.message}`, type);
+          });
+        }
 
         // Find the implementation section (the actual code)
         const codeSection = sections.find(s => s.name === 'Implementation');
@@ -591,11 +593,11 @@ const IDEPage = ({ onNavigate }) => {
           setGeneratedCode(codeSection.code);
           addTerminal('═══════════════════════════════════════', 'success');
           addTerminal('CODE GENERATION COMPLETE', 'success');
-          addTerminal(`Lines of code: ~${codeSection.code.split('\n').length}`, 'success');
+          addTerminal(`Lines: ~${codeSection.code.split('\n').length}`, 'success');
         }
         
         // Set certification status
-        const signoff = governance_log.find(g => g.action === 'signed_off');
+        const signoff = governance_log?.find(g => g.action === 'signed_off');
         if (signoff) {
           setCertificationStatus({
             certified: true,
@@ -607,7 +609,6 @@ const IDEPage = ({ onNavigate }) => {
           });
           addTerminal('═══════════════════════════════════════', 'success');
           addTerminal('✓ FRANKLIN OS CERTIFIED', 'success');
-          addTerminal(`Signed by: ${signoff.signed_by}`, 'success');
           addTerminal(`Certification: ${signoff.certification}`, 'success');
         }
 
@@ -623,16 +624,16 @@ const IDEPage = ({ onNavigate }) => {
 
         setFranklinChat(prev => [...prev, { 
           role: 'franklin', 
-          content: `✅ **BUILD COMPLETE - FRANKLIN OS CERTIFIED**\n\n**Agents involved:** ${agents_involved.join(', ')}\n\n**What was built:**\n- Specification document\n- System architecture\n- Production-ready code\n- Health check report\n\n**Certification:** ${signoff?.certification || 'GENESIS_CERTIFIED'}\n\nThe code is now displayed in the center panel. You can:\n- View the code\n- Copy it\n- Download as a package\n\nTell me if you want any modifications!` 
+          content: `✅ **BUILD COMPLETE - FRANKLIN OS CERTIFIED**\n\n**Agents:** ${agents_involved?.join(', ') || 'All agents'}\n\n**Delivered:**\n• Specification\n• Architecture\n• Production-ready code\n\nThe code is in the center panel. Use COPY or DOWNLOAD to get it.` 
         }]);
 
       } else {
-        throw new Error('Build failed');
+        throw new Error(res.data.error || 'Build failed');
       }
     } catch (err) {
       addTerminal('BUILD FAILED', 'error');
       addTerminal(err.message || 'Unknown error', 'error');
-      setFranklinChat(prev => [...prev, { role: 'franklin', content: `❌ Build encountered an issue. Let me try a different approach. Can you describe what you want in more detail?` }]);
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: `❌ Build error: ${err.message || 'Unknown'}. Try being more specific about what you want to build.` }]);
     }
     
     setIsBuilding(false);
