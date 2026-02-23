@@ -1822,6 +1822,7 @@ app.include_router(tasks_router)
 app.include_router(quality_router)
 app.include_router(marketing_content_router)
 app.include_router(deploy_router)
+app.include_router(simple_build_router)  # REAL FILE BUILD
 
 # Payment routers
 app.include_router(payment_router)
