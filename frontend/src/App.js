@@ -931,11 +931,10 @@ const IDEPage = ({ onNavigate }) => {
   );
 };
 
-// MAIN APP
+// MAIN APP - TWO PAGES ONLY (Landing → IDE)
 function App() {
   const [currentPage, setCurrentPage] = useState(PAGES.LANDING);
   if (currentPage === PAGES.LANDING) return <LandingPage onEnterApp={() => setCurrentPage(PAGES.IDE)} />;
-  if (currentPage === PAGES.WORKFLOW) return <ElectricWorkflowPage onBack={() => setCurrentPage(PAGES.IDE)} />;
   return <IDEPage onNavigate={setCurrentPage} />;
 }
 
