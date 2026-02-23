@@ -552,6 +552,19 @@ async def orchestrator_build(request: BuildRequest):
     return result
 
 
+@build_orchestrator_router.post("/fast-build")
+async def fast_build(request: BuildRequest):
+    """
+    FAST BUILD: Generate production-ready code in a single LLM call.
+    Delivers real, working code immediately. This is the recommended build method.
+    """
+    result = await franklin_orchestrator.fast_build(
+        request.mission,
+        request.session_id
+    )
+    return result
+
+
 @build_orchestrator_router.post("/agent/interact")
 async def agent_interact(request: AgentInteractRequest):
     """Interact with a specific Genesis agent"""
