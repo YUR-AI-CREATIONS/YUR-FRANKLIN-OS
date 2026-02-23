@@ -323,15 +323,12 @@ Generate clean, production-ready code."""
             "user_id": user_id
         }
         
-        print(f"[BUILD {build_id}] Attempting DB save, db is not None: {self.db is not None}")
         if self.db is not None:
             try:
                 result = await self.db.save_build(build_data)
-                print(f"[BUILD {build_id}] Save result: {result is not None}")
             except Exception as e:
                 print(f"[BUILD {build_id}] DB save failed: {e}")
         else:
-            print(f"[BUILD {build_id}] No database connection")
 
         return {
             "success": True,

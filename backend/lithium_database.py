@@ -253,7 +253,6 @@ class LithiumDatabase:
         """Save a build to MongoDB (primary) and Supabase if tables exist"""
         saved = False
         
-        print(f"[LITHIUM DB] save_build called, mongo_db is not None: {self.mongo_db is not None}")
         
         # Always save to MongoDB first (primary store)
         if self.mongo_db is not None:
@@ -277,10 +276,8 @@ class LithiumDatabase:
                     doc["completed_at"] = datetime.now(timezone.utc)
                 
                 result = await self.mongo_db.builds.insert_one(doc)
-                print(f"[LITHIUM DB] MongoDB insert_one result: {result.inserted_id}")
                 saved = True
             except Exception as e:
-                print(f"[LITHIUM DB] MongoDB insert failed: {e}")
                 logger.error(f"MongoDB save failed: {e}")
         
         # Try Supabase as secondary (if tables exist)
