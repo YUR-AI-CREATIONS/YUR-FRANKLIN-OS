@@ -268,12 +268,15 @@ Generate clean, production-ready code."""
 
         return '\n'.join(lines)
 
-    async def build(self, prompt: str, tech_stack: str = "python") -> Dict[str, Any]:
+    async def build(self, prompt: str, tech_stack: str = "python", user_id: str = None) -> Dict[str, Any]:
         """
-        Complete build: prompt → LLM → real files → ready for certification.
+        Complete build: prompt → LLM → real files → save to DB → ready for certification.
         """
         build_id = str(uuid.uuid4())
         logger.info(f"[BUILD {build_id}] Starting: {prompt[:50]}...")
+
+        # Initialize database
+        await self.init_db()
 
         # Add tech stack to prompt
         full_prompt = f"[Tech Stack: {tech_stack}]\n\nBuild this: {prompt}"
@@ -306,6 +309,25 @@ Generate clean, production-ready code."""
         checksums = {}
         for f in files:
             checksums[f["path"]] = hashlib.sha256(f["content"].encode()).hexdigest()[:16]
+
+        # Step 7: Save to database
+        build_data = {
+            "build_id": build_id,
+            "prompt": prompt,
+            "tech_stack": tech_stack,
+            "status": "completed",
+            "stats": stats,
+            "tree": tree,
+            "file_contents": {f["path"]: f["content"] for f in files},
+            "user_id": user_id
+        }
+        
+        if self.db:
+            try:
+                await self.db.save_build(build_data)
+                logger.info(f"[BUILD {build_id}] Saved to database")
+            except Exception as e:
+                logger.warning(f"[BUILD {build_id}] DB save failed: {e}")
 
         return {
             "success": True,
