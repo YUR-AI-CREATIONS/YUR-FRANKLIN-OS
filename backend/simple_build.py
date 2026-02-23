@@ -1,6 +1,6 @@
 """
 SIMPLE BUILD ENDPOINT
-One prompt in → Real files out. No bullshit.
+One prompt in → Real files out. Saved to Supabase.
 """
 
 import os
@@ -25,7 +25,7 @@ PROJECTS_DIR.mkdir(parents=True, exist_ok=True)
 class SimpleBuildService:
     """
     Simple, reliable build service.
-    User says what they want → We call LLM → We create real files.
+    User says what they want → We call LLM → We create real files → Save to DB.
     """
 
     def __init__(self):
@@ -33,6 +33,14 @@ class SimpleBuildService:
         self.anthropic_key = os.getenv("ANTHROPIC_API_KEY")
         self.openai_key = os.getenv("OPENAI_API_KEY")
         self.google_key = os.getenv("GOOGLE_API_KEY")
+        self.db = None
+
+    async def init_db(self):
+        """Initialize database connection"""
+        if self.db is None:
+            from lithium_database import lithium_db
+            await lithium_db.initialize()
+            self.db = lithium_db
 
     async def call_llm(self, prompt: str, max_tokens: int = 4000) -> Optional[str]:
         """Call any available LLM. Falls through providers until one works."""
