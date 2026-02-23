@@ -770,16 +770,49 @@ const IDEPage = ({ onNavigate }) => {
     }
   };
 
-  const downloadCode = () => {
-    if (!generatedCode) return;
-    const blob = new Blob([generatedCode], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `franklin-os-build-${Date.now()}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    addTerminal('Code downloaded!', 'success');
+  const downloadCode = async () => {
+    if (!buildResult?.build_id) {
+      // Fallback to old behavior if no build_id
+      if (!generatedCode) return;
+      const blob = new Blob([generatedCode], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `franklin-os-build-${Date.now()}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+      addTerminal('Code downloaded!', 'success');
+      return;
+    }
+
+    try {
+      addTerminal('Preparing ZIP download...', 'info');
+      const res = await axios.get(`${API}/api/simple-build/download/${buildResult.build_id}`, {
+        responseType: 'blob'
+      });
+      
+      const blob = new Blob([res.data], { type: 'application/zip' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `franklin-build-${buildResult.build_id}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+      addTerminal('ZIP file downloaded!', 'success');
+    } catch (err) {
+      addTerminal('Download failed, using fallback...', 'warning');
+      // Fallback to text download
+      if (generatedCode) {
+        const blob = new Blob([generatedCode], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `franklin-os-build-${Date.now()}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+        addTerminal('Code downloaded as text!', 'success');
+      }
+    }
   };
 
   const copyCode = () => {
