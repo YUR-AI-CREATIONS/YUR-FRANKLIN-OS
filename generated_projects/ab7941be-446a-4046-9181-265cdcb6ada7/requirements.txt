@@ -1,0 +1,3 @@
+# No external dependencies needed for basic calculator
+# Python standard library modules used:
+# - unittest (for testing)
