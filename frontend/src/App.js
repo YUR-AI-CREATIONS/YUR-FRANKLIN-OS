@@ -509,19 +509,32 @@ const ElectricWorkflowPage = ({ onBack }) => {
 // ============================================================================
 // IDE PAGE - THE ACTUAL BUILDER
 // ============================================================================
+
+// Available tech stacks
+const TECH_STACKS = [
+  { id: 'python', name: 'Python', icon: '🐍', desc: 'FastAPI, Flask, Django' },
+  { id: 'javascript', name: 'JavaScript', icon: '⚡', desc: 'Node.js, Express, React' },
+  { id: 'typescript', name: 'TypeScript', icon: '📘', desc: 'Node.js, Next.js, NestJS' },
+  { id: 'go', name: 'Go', icon: '🔵', desc: 'Gin, Fiber, Echo' },
+  { id: 'rust', name: 'Rust', icon: '🦀', desc: 'Actix, Rocket, Axum' },
+  { id: 'java', name: 'Java', icon: '☕', desc: 'Spring Boot, Quarkus' }
+];
+
 const IDEPage = ({ onNavigate }) => {
   const [franklinInput, setFranklinInput] = useState('');
   const [grokInput, setGrokInput] = useState('');
   const [terminalInput, setTerminalInput] = useState('');
+  const [selectedStack, setSelectedStack] = useState('python');
+  const [showStackSelector, setShowStackSelector] = useState(false);
   const [franklinChat, setFranklinChat] = useState(() => {
     const saved = localStorage.getItem('franklin_chat_v2');
-    return saved ? JSON.parse(saved) : [{ role: 'franklin', content: 'Welcome to FRANKLIN OS. Tell me what you want to build and I\'ll create it for you. Just say "build me a [description]" and watch the magic happen.' }];
+    return saved ? JSON.parse(saved) : [{ role: 'franklin', content: 'Welcome to FRANKLIN OS. Tell me what you want to build.\n\nCurrent stack: **Python** (click to change)\n\nJust describe what you want and I\'ll generate production-ready code.' }];
   });
   const [grokChat, setGrokChat] = useState(() => {
     const saved = localStorage.getItem('grok_chat_v2');
     return saved ? JSON.parse(saved) : [];
   });
-  const [terminalOutput, setTerminalOutput] = useState([{ type: 'system', text: '> FRANKLIN OS Terminal v2.0' }, { type: 'info', text: '> Ready to build...' }]);
+  const [terminalOutput, setTerminalOutput] = useState([{ type: 'system', text: '> FRANKLIN OS Terminal v2.0' }, { type: 'info', text: '> Stack: Python | Ready to build...' }]);
   const [savedChats, setSavedChats] = useState(() => {
     const saved = localStorage.getItem('saved_chats_v2');
     return saved ? JSON.parse(saved) : [];
