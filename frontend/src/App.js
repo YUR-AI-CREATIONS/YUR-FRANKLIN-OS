@@ -566,7 +566,7 @@ const IDEPage = ({ onNavigate }) => {
     return buildKeywords.some(k => lower.includes(k));
   };
 
-  // THE ACTUAL BUILD FUNCTION
+  // THE ACTUAL BUILD FUNCTION - Uses real file generation
   const executeBuild = async (mission) => {
     setIsBuilding(true);
     setGeneratedCode('');
@@ -574,7 +574,6 @@ const IDEPage = ({ onNavigate }) => {
     setCertificationStatus(null);
     
     const stack = TECH_STACKS.find(s => s.id === selectedStack);
-    const fullMission = `[TECH STACK: ${stack.name} - ${stack.desc}]\n\n${mission}`;
     
     addTerminal('═══════════════════════════════════════', 'system');
     addTerminal('FRANKLIN OS BUILD INITIATED', 'system');
@@ -582,68 +581,99 @@ const IDEPage = ({ onNavigate }) => {
     addTerminal(`Mission: ${mission}`, 'info');
     addTerminal('═══════════════════════════════════════', 'system');
 
-    setFranklinChat(prev => [...prev, { role: 'franklin', content: `🚀 **BUILD INITIATED**\n\n**Stack:** ${stack.icon} ${stack.name}\n**Building:** "${mission}"\n\nGenerating production-ready code...` }]);
+    setFranklinChat(prev => [...prev, { role: 'franklin', content: `🚀 **BUILD INITIATED**\n\n**Stack:** ${stack.icon} ${stack.name}\n**Building:** "${mission}"\n\nGenerating real project files...` }]);
 
     try {
-      addTerminal('Calling Genesis agents...', 'info');
+      addTerminal('Calling LLM (multi-provider fallback)...', 'info');
       
-      // Use fast-build with tech stack info
-      const res = await axios.post(`${API}/api/build-orchestrator/fast-build`, { mission: fullMission });
+      // Use the new simple-build endpoint that creates REAL FILES
+      const res = await axios.post(`${API}/api/simple-build/build`, { 
+        prompt: mission, 
+        tech_stack: stack.id 
+      });
       
       if (res.data.success) {
-        const { output, sections, governance_log, agents_involved } = res.data;
+        const { build_id, files, file_contents, stats, tree, checksums } = res.data;
         
-        // Log phases to terminal
-        if (output) {
-          output.forEach(item => {
-            const type = item.type === 'success' ? 'success' : item.type === 'error' ? 'error' : 'info';
-            addTerminal(`[${item.agent}] ${item.message}`, type);
-          });
+        addTerminal(`[GENESIS] Created ${files.length} files`, 'success');
+        addTerminal(`[GENESIS] ${stats.total_lines} lines, ${stats.total_bytes} bytes`, 'info');
+        
+        // Display all files in terminal
+        files.forEach(f => {
+          addTerminal(`  ├── ${f.path} (${f.lines} lines)`, 'info');
+        });
+        
+        // Find main code file
+        const mainFile = files.find(f => 
+          f.path.endsWith('.py') || 
+          f.path.endsWith('.js') || 
+          f.path.endsWith('.ts')
+        );
+        
+        // Set generated code to display (all files concatenated or main file)
+        let displayCode = '';
+        if (file_contents) {
+          for (const [path, content] of Object.entries(file_contents)) {
+            displayCode += `// ═══ ${path} ═══\n\n${content}\n\n`;
+          }
         }
+        setGeneratedCode(displayCode);
+        
+        addTerminal('═══════════════════════════════════════', 'success');
+        addTerminal('REAL FILES CREATED ON DISK', 'success');
+        addTerminal(`Build ID: ${build_id}`, 'success');
 
-        // Find the implementation section (the actual code)
-        const codeSection = sections.find(s => s.name === 'Implementation');
-        const specSection = sections.find(s => s.name === 'Specification');
-        const archSection = sections.find(s => s.name === 'Architecture');
-        
-        if (codeSection && codeSection.code) {
-          setGeneratedCode(codeSection.code);
-          addTerminal('═══════════════════════════════════════', 'success');
-          addTerminal('CODE GENERATION COMPLETE', 'success');
-          addTerminal(`Stack: ${stack.name} | Lines: ~${codeSection.code.split('\n').length}`, 'success');
-        }
-        
-        // Set certification status
-        const signoff = governance_log?.find(g => g.action === 'signed_off');
-        if (signoff) {
-          setCertificationStatus({
-            certified: true,
-            signedBy: signoff.signed_by,
-            certification: signoff.certification,
-            timestamp: signoff.timestamp,
-            agents: agents_involved,
-            stack: stack.name,
-            auditHashes: sections.map(s => s.audit_hash)
+        // Run certification
+        addTerminal('Running 8-Gate Certification...', 'info');
+        try {
+          const certRes = await axios.post(`${API}/api/simple-build/certify`, { build_id });
+          const cert = certRes.data;
+          
+          cert.gates?.forEach(gate => {
+            const status = gate.passed ? '✓' : '✗';
+            addTerminal(`  ${status} Gate ${gate.gate_num}: ${gate.gate_name} - ${gate.score.toFixed(0)}%`, gate.passed ? 'success' : 'error');
           });
-          addTerminal('═══════════════════════════════════════', 'success');
-          addTerminal('✓ FRANKLIN OS CERTIFIED', 'success');
-          addTerminal(`Certification: ${signoff.certification}`, 'success');
+          
+          if (cert.all_passed) {
+            setCertificationStatus({
+              certified: true,
+              signedBy: 'FRANKLIN',
+              certification: 'FRANKLIN_OS_CERTIFIED',
+              score: cert.total_score,
+              hash: cert.certification_hash,
+              build_id,
+              stack: stack.name
+            });
+            addTerminal('═══════════════════════════════════════', 'success');
+            addTerminal('✓ FRANKLIN OS CERTIFIED', 'success');
+            addTerminal(`Hash: ${cert.certification_hash?.slice(0, 16)}...`, 'success');
+          } else {
+            setCertificationStatus({
+              certified: false,
+              score: cert.total_score,
+              passed: cert.passed_gates,
+              total: 8,
+              build_id
+            });
+            addTerminal(`Certification: ${cert.passed_gates}/8 gates passed`, 'warning');
+          }
+        } catch (certErr) {
+          addTerminal('Certification check failed (build still saved)', 'warning');
         }
 
         setBuildResult({
           success: true,
-          sections,
-          spec: specSection?.content || '',
-          architecture: archSection?.content || '',
-          code: codeSection?.code || '',
-          governance: governance_log,
-          agents: agents_involved,
+          build_id,
+          files,
+          file_contents,
+          stats,
+          tree,
           stack: stack.name
         });
 
         setFranklinChat(prev => [...prev, { 
           role: 'franklin', 
-          content: `✅ **BUILD COMPLETE - FRANKLIN OS CERTIFIED**\n\n**Stack:** ${stack.icon} ${stack.name}\n**Agents:** ${agents_involved?.join(', ') || 'All agents'}\n\n**Delivered:**\n• Specification\n• Architecture\n• Production-ready ${stack.name} code\n\nThe code is in the center panel. Use COPY or DOWNLOAD to get it.` 
+          content: `✅ **BUILD COMPLETE**\n\n**Build ID:** \`${build_id}\`\n**Stack:** ${stack.icon} ${stack.name}\n**Files:** ${files.length}\n**Lines:** ${stats.total_lines}\n\n**Project Tree:**\n\`\`\`\n${tree}\n\`\`\`\n\nUse COPY to get all code, or DOWNLOAD to get the ZIP with all project files.` 
         }]);
 
       } else {
@@ -652,7 +682,7 @@ const IDEPage = ({ onNavigate }) => {
     } catch (err) {
       addTerminal('BUILD FAILED', 'error');
       addTerminal(err.message || 'Unknown error', 'error');
-      setFranklinChat(prev => [...prev, { role: 'franklin', content: `❌ Build error: ${err.message || 'Unknown'}. Try being more specific about what you want to build.` }]);
+      setFranklinChat(prev => [...prev, { role: 'franklin', content: `❌ Build error: ${err.message || 'Unknown'}. Try being more specific.` }]);
     }
     
     setIsBuilding(false);
