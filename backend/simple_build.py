@@ -41,6 +41,7 @@ class SimpleBuildService:
             from lithium_database import lithium_db
             await lithium_db.initialize()
             self.db = lithium_db
+            logger.info(f"[DB] Database initialized: {self.db is not None}")
 
     async def call_llm(self, prompt: str, max_tokens: int = 4000) -> Optional[str]:
         """Call any available LLM. Falls through providers until one works."""
