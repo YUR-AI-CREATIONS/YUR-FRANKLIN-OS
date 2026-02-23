@@ -322,7 +322,7 @@ Generate clean, production-ready code."""
             "user_id": user_id
         }
         
-        if self.db:
+        if self.db is not None:
             try:
                 await self.db.save_build(build_data)
                 logger.info(f"[BUILD {build_id}] Saved to database")
