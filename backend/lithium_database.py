@@ -250,44 +250,56 @@ class LithiumDatabase:
     # =========================================================================
 
     async def save_build(self, build_data: Dict) -> Optional[Dict]:
-        """Save a build to the database"""
-        if self.supabase is None:
-            return None
-            
-        try:
-            record = {
-                "build_id": build_data["build_id"],
-                "mission": build_data.get("prompt", build_data.get("mission", "")),
-                "tech_stack": build_data.get("tech_stack"),
-                "status": build_data.get("status", "completed"),
-                "files_count": build_data.get("stats", {}).get("files_created", 0),
-                "total_lines": build_data.get("stats", {}).get("total_lines", 0),
-                "total_bytes": build_data.get("stats", {}).get("total_bytes", 0),
-                "tree": build_data.get("tree"),
-                "user_id": build_data.get("user_id"),
-                "project_id": build_data.get("project_id")
-            }
-            
-            if build_data.get("status") == "completed":
-                record["completed_at"] = datetime.now(timezone.utc).isoformat()
-            
-            result = self.supabase.table("builds").insert(record).execute()
-            
-            # Also save file contents to MongoDB
-            if self.mongo_db and build_data.get("file_contents"):
-                await self.mongo_db.build_artifacts.insert_one({
+        """Save a build to MongoDB (primary) and Supabase if tables exist"""
+        saved = False
+        
+        # Always save to MongoDB first (primary store)
+        if self.mongo_db is not None:
+            try:
+                doc = {
                     "build_id": build_data["build_id"],
-                    "files": [
-                        {"path": path, "content": content}
-                        for path, content in build_data["file_contents"].items()
-                    ],
+                    "mission": build_data.get("prompt", build_data.get("mission", "")),
+                    "tech_stack": build_data.get("tech_stack"),
+                    "status": build_data.get("status", "completed"),
+                    "files_count": build_data.get("stats", {}).get("files_created", 0),
+                    "total_lines": build_data.get("stats", {}).get("total_lines", 0),
+                    "total_bytes": build_data.get("stats", {}).get("total_bytes", 0),
+                    "tree": build_data.get("tree"),
+                    "file_contents": build_data.get("file_contents", {}),
+                    "user_id": build_data.get("user_id"),
+                    "project_id": build_data.get("project_id"),
                     "created_at": datetime.now(timezone.utc)
-                })
-            
-            return result.data[0] if result.data else None
-        except Exception as e:
-            logger.error(f"Save build failed: {e}")
-            return None
+                }
+                
+                if build_data.get("status") == "completed":
+                    doc["completed_at"] = datetime.now(timezone.utc)
+                
+                await self.mongo_db.builds.insert_one(doc)
+                saved = True
+                logger.info(f"Build {build_data['build_id']} saved to MongoDB")
+            except Exception as e:
+                logger.error(f"MongoDB save failed: {e}")
+        
+        # Try Supabase as secondary (if tables exist)
+        if self.supabase is not None and saved:
+            try:
+                record = {
+                    "build_id": build_data["build_id"],
+                    "mission": build_data.get("prompt", build_data.get("mission", "")),
+                    "tech_stack": build_data.get("tech_stack"),
+                    "status": build_data.get("status", "completed"),
+                    "files_count": build_data.get("stats", {}).get("files_created", 0),
+                    "total_lines": build_data.get("stats", {}).get("total_lines", 0),
+                    "total_bytes": build_data.get("stats", {}).get("total_bytes", 0),
+                    "tree": build_data.get("tree")
+                }
+                self.supabase.table("builds").insert(record).execute()
+                logger.info(f"Build {build_data['build_id']} also saved to Supabase")
+            except Exception as e:
+                # Supabase table might not exist yet - that's OK
+                logger.debug(f"Supabase save skipped: {e}")
+        
+        return build_data if saved else None
 
     async def get_build(self, build_id: str) -> Optional[Dict]:
         """Get a build by ID"""
