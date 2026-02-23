@@ -573,18 +573,22 @@ const IDEPage = ({ onNavigate }) => {
     setBuildResult(null);
     setCertificationStatus(null);
     
+    const stack = TECH_STACKS.find(s => s.id === selectedStack);
+    const fullMission = `[TECH STACK: ${stack.name} - ${stack.desc}]\n\n${mission}`;
+    
     addTerminal('═══════════════════════════════════════', 'system');
     addTerminal('FRANKLIN OS BUILD INITIATED', 'system');
+    addTerminal(`Stack: ${stack.name}`, 'info');
     addTerminal(`Mission: ${mission}`, 'info');
     addTerminal('═══════════════════════════════════════', 'system');
 
-    setFranklinChat(prev => [...prev, { role: 'franklin', content: `🚀 **BUILD INITIATED**\n\nBuilding: "${mission}"\n\nGenerating production-ready code...` }]);
+    setFranklinChat(prev => [...prev, { role: 'franklin', content: `🚀 **BUILD INITIATED**\n\n**Stack:** ${stack.icon} ${stack.name}\n**Building:** "${mission}"\n\nGenerating production-ready code...` }]);
 
     try {
       addTerminal('Calling Genesis agents...', 'info');
       
-      // Use fast-build for immediate results
-      const res = await axios.post(`${API}/api/build-orchestrator/fast-build`, { mission });
+      // Use fast-build with tech stack info
+      const res = await axios.post(`${API}/api/build-orchestrator/fast-build`, { mission: fullMission });
       
       if (res.data.success) {
         const { output, sections, governance_log, agents_involved } = res.data;
@@ -606,7 +610,7 @@ const IDEPage = ({ onNavigate }) => {
           setGeneratedCode(codeSection.code);
           addTerminal('═══════════════════════════════════════', 'success');
           addTerminal('CODE GENERATION COMPLETE', 'success');
-          addTerminal(`Lines: ~${codeSection.code.split('\n').length}`, 'success');
+          addTerminal(`Stack: ${stack.name} | Lines: ~${codeSection.code.split('\n').length}`, 'success');
         }
         
         // Set certification status
@@ -618,6 +622,7 @@ const IDEPage = ({ onNavigate }) => {
             certification: signoff.certification,
             timestamp: signoff.timestamp,
             agents: agents_involved,
+            stack: stack.name,
             auditHashes: sections.map(s => s.audit_hash)
           });
           addTerminal('═══════════════════════════════════════', 'success');
@@ -632,12 +637,13 @@ const IDEPage = ({ onNavigate }) => {
           architecture: archSection?.content || '',
           code: codeSection?.code || '',
           governance: governance_log,
-          agents: agents_involved
+          agents: agents_involved,
+          stack: stack.name
         });
 
         setFranklinChat(prev => [...prev, { 
           role: 'franklin', 
-          content: `✅ **BUILD COMPLETE - FRANKLIN OS CERTIFIED**\n\n**Agents:** ${agents_involved?.join(', ') || 'All agents'}\n\n**Delivered:**\n• Specification\n• Architecture\n• Production-ready code\n\nThe code is in the center panel. Use COPY or DOWNLOAD to get it.` 
+          content: `✅ **BUILD COMPLETE - FRANKLIN OS CERTIFIED**\n\n**Stack:** ${stack.icon} ${stack.name}\n**Agents:** ${agents_involved?.join(', ') || 'All agents'}\n\n**Delivered:**\n• Specification\n• Architecture\n• Production-ready ${stack.name} code\n\nThe code is in the center panel. Use COPY or DOWNLOAD to get it.` 
         }]);
 
       } else {
