@@ -1,11 +1,11 @@
 """
 TRINITY SPINE ROUTES
-Layer 0 API endpoints for FRANKLIN OS
+Layer 0 API endpoints for FRANKLIN OS - connects to Lithium API
 """
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import logging
 
 from trinity_spine import trinity_spine
@@ -14,6 +14,10 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/trinity", tags=["trinity-spine"])
 
+
+# ============================================================================
+# REQUEST MODELS
+# ============================================================================
 
 class GenerateRequest(BaseModel):
     prompt: str
@@ -24,21 +28,31 @@ class GenerateRequest(BaseModel):
     max_tokens: Optional[int] = 4096
 
 
-class GovernanceRequest(BaseModel):
-    artifact: Dict[str, Any]
-    policy_type: Optional[str] = "build"
+class BuildRequest(BaseModel):
+    mission: str
+    spec_content: Optional[str] = ""
+    architecture_content: Optional[str] = ""
+    code_content: Optional[str] = ""
+    health_report: Optional[str] = ""
+    user_id: Optional[str] = None
+    project_id: Optional[str] = None
+
+
+class CertifyRequest(BaseModel):
+    build_id: str
+
+
+class DeployAgentRequest(BaseModel):
+    agent_id: str
+    task: str
+    target: str
+    project_id: Optional[str] = None
 
 
 class LedgerRequest(BaseModel):
     event_type: str
     data: Dict[str, Any]
     signature: Optional[str] = None
-
-
-class MissionRequest(BaseModel):
-    name: str
-    description: str
-    spec: Dict[str, Any]
 
 
 # ============================================================================
@@ -59,12 +73,28 @@ async def trinity_providers():
         "providers": providers,
         "primary_order": ["gemini", "grok", "claude", "gpt"],
         "models": {
-            "gemini": "gemini-3-flash",
+            "gemini": "gemini-2.5-flash",
             "gpt": "gpt-5.2",
             "grok": "grok-3",
             "claude": "claude-4.5"
         }
     }
+
+
+# ============================================================================
+# SPINE STATUS (READ-ONLY)
+# ============================================================================
+
+@router.get("/spine/status")
+async def spine_status():
+    """Get spine status (read-only view from external Trinity)"""
+    return await trinity_spine.get_spine_status()
+
+
+@router.get("/spine/ledger/{ref}")
+async def spine_ledger(ref: str):
+    """Get ledger reference (read-only pointer)"""
+    return await trinity_spine.get_ledger_ref(ref)
 
 
 # ============================================================================
@@ -76,11 +106,7 @@ async def trinity_generate(request: GenerateRequest):
     """
     Generate text using Trinity's multi-provider LLM system.
     
-    Trinity handles:
-    - Provider selection and fallback
-    - Load balancing
-    - Rate limiting
-    - Response validation
+    Uses providers in order: Gemini -> OpenAI -> XAI
     """
     result = await trinity_spine.generate(
         prompt=request.prompt,
@@ -101,35 +127,92 @@ async def trinity_generate(request: GenerateRequest):
 
 
 # ============================================================================
-# GOVERNANCE & COMPLIANCE
+# LITHIUM BUILD API (proxy to external Trinity)
 # ============================================================================
 
-@router.post("/governance/validate")
-async def validate_governance(request: GovernanceRequest):
+@router.post("/lithium/build")
+async def lithium_build(request: BuildRequest):
     """
-    Validate an artifact against Trinity governance policies.
+    Create a build via external Lithium API.
     
-    Returns compliance score and any policy violations.
+    This proxies to the Trinity Engine's Lithium build endpoint.
     """
-    return await trinity_spine.validate_governance(
-        artifact=request.artifact,
-        policy_type=request.policy_type
+    result = await trinity_spine.create_build(
+        mission=request.mission,
+        spec_content=request.spec_content,
+        architecture_content=request.architecture_content,
+        code_content=request.code_content,
+        health_report=request.health_report,
+        user_id=request.user_id,
+        project_id=request.project_id
     )
+    
+    if "error" in result:
+        raise HTTPException(status_code=500, detail=result["error"])
+    
+    return result
 
 
-@router.get("/evolution/playbook/{domain}")
-async def get_evolution_playbook(domain: str = "default"):
-    """Get evolution playbook for a domain"""
-    playbook = await trinity_spine.get_evolution_playbook(domain)
+@router.post("/lithium/certify")
+async def lithium_certify(request: CertifyRequest):
+    """Run 8-gate certification via Lithium API"""
+    result = await trinity_spine.certify_build(request.build_id)
     
-    if not playbook:
-        return {
-            "domain": domain,
-            "playbook": None,
-            "message": "No playbook configured for this domain"
-        }
+    if "error" in result:
+        raise HTTPException(status_code=500, detail=result["error"])
     
-    return playbook
+    return result
+
+
+@router.get("/lithium/status/{build_id}")
+async def lithium_status(build_id: str):
+    """Get build and certification status from Lithium"""
+    return await trinity_spine.get_build_status(build_id)
+
+
+# ============================================================================
+# AGENT CATALOG
+# ============================================================================
+
+@router.get("/agents/catalog")
+async def agents_catalog():
+    """Get agent catalog from Trinity/Lithium"""
+    agents = await trinity_spine.get_agents_catalog()
+    return {"agents": agents}
+
+
+@router.post("/agents/deploy")
+async def deploy_agent(request: DeployAgentRequest):
+    """Deploy an agent via Trinity/Lithium"""
+    result = await trinity_spine.deploy_agent(
+        agent_id=request.agent_id,
+        task=request.task,
+        target=request.target,
+        project_id=request.project_id
+    )
+    
+    if "error" in result:
+        raise HTTPException(status_code=500, detail=result["error"])
+    
+    return result
+
+
+# ============================================================================
+# ACADEMY
+# ============================================================================
+
+@router.get("/academy/modules")
+async def academy_modules():
+    """Get academy training modules"""
+    modules = await trinity_spine.get_academy_modules()
+    return {"modules": modules}
+
+
+@router.get("/academy/badges")
+async def academy_badges():
+    """Get academy achievement badges"""
+    badges = await trinity_spine.get_academy_badges()
+    return {"badges": badges}
 
 
 # ============================================================================
@@ -152,28 +235,3 @@ async def anchor_to_ledger(request: LedgerRequest):
         data=request.data,
         signature=request.signature
     )
-
-
-# ============================================================================
-# MISSIONS
-# ============================================================================
-
-@router.post("/missions")
-async def create_mission(request: MissionRequest):
-    """Create a new mission in Trinity"""
-    return await trinity_spine.create_mission(
-        name=request.name,
-        description=request.description,
-        spec=request.spec
-    )
-
-
-@router.get("/missions/{mission_id}")
-async def get_mission(mission_id: str):
-    """Get mission by ID"""
-    mission = await trinity_spine.get_mission(mission_id)
-    
-    if not mission:
-        raise HTTPException(status_code=404, detail="Mission not found")
-    
-    return mission
