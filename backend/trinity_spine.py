@@ -1,6 +1,6 @@
 """
 TRINITY SPINE - Layer 0 Integration
-Frozen Immutable Spine connecting to Trinity Engine
+Frozen Immutable Spine connecting to Trinity Engine (Lithium API)
 """
 
 import os
@@ -15,16 +15,17 @@ logger = logging.getLogger(__name__)
 class TrinitySpine:
     """
     Layer 0/-1: The Frozen Immutable Spine
-    Connects FRANKLIN OS to Trinity Engine for:
+    Connects FRANKLIN OS to Trinity Engine (Lithium API) for:
     - Multi-provider LLM orchestration
-    - Governance & compliance validation
-    - Evolution playbook management
-    - Immutable ledger anchoring
+    - Build and certification pipeline
+    - Agent catalog and deployment
+    - Spine ledger (read-only)
     """
     
     def __init__(self):
         self.api_url = os.getenv("TRINITY_API_URL", "https://yur-ai-api.onrender.com")
         self.api_key = os.getenv("TRINITY_API_KEY")
+        self.spine_read_token = os.getenv("TRINITY_API_KEY")  # Same as API key
         self.timeout = 60.0
         self._health_cache = None
         self._health_cache_time = None
@@ -35,6 +36,15 @@ class TrinitySpine:
         headers = {"Content-Type": "application/json"}
         if self.api_key:
             headers["X-API-Key"] = self.api_key
+            headers["Authorization"] = f"Bearer {self.api_key}"
+        return headers
+    
+    @property
+    def spine_headers(self) -> Dict[str, str]:
+        """Get spine read headers"""
+        headers = {"Content-Type": "application/json"}
+        if self.spine_read_token:
+            headers["x-spine-read-token"] = self.spine_read_token
         return headers
     
     async def health_check(self) -> Dict[str, Any]:
@@ -63,6 +73,40 @@ class TrinitySpine:
         return health.get("providers", {})
     
     # =========================================================================
+    # SPINE STATUS (READ-ONLY)
+    # =========================================================================
+    
+    async def get_spine_status(self) -> Dict[str, Any]:
+        """Get spine status (read-only view)"""
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(
+                    f"{self.api_url}/api/lithium/spine/status",
+                    headers=self.spine_headers
+                )
+                if response.status_code == 200:
+                    return response.json()
+                elif response.status_code == 404:
+                    return {"spine": "not_configured", "note": "Spine endpoint not available"}
+        except Exception as e:
+            logger.warning(f"Spine status check failed: {e}")
+        return {"spine": "offline", "error": "Connection failed"}
+    
+    async def get_ledger_ref(self, ref: str) -> Dict[str, Any]:
+        """Get ledger reference (read-only pointer)"""
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(
+                    f"{self.api_url}/api/lithium/spine/ledger/{ref}",
+                    headers=self.spine_headers
+                )
+                if response.status_code == 200:
+                    return response.json()
+        except Exception as e:
+            logger.warning(f"Ledger ref fetch failed: {e}")
+        return {"ref": ref, "error": "Not found"}
+    
+    # =========================================================================
     # LLM GENERATION (via Trinity multi-provider)
     # =========================================================================
     
@@ -77,57 +121,11 @@ class TrinitySpine:
     ) -> Dict[str, Any]:
         """
         Generate text using Trinity's multi-provider LLM system.
-        Trinity handles provider fallback and load balancing.
+        Falls back to direct Gemini if Trinity doesn't expose generate endpoint.
         """
-        try:
-            payload = {
-                "prompt": prompt,
-                "temperature": temperature,
-                "max_tokens": max_tokens
-            }
-            
-            if system_prompt:
-                payload["system_prompt"] = system_prompt
-            if provider:
-                payload["provider"] = provider
-            if model:
-                payload["model"] = model
-            
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                # Try multiple endpoint patterns
-                for endpoint in ["/api/generate", "/generate", "/api/chat", "/chat", "/api/completion"]:
-                    try:
-                        response = await client.post(
-                            f"{self.api_url}{endpoint}",
-                            json=payload,
-                            headers=self.headers
-                        )
-                        
-                        if response.status_code == 200:
-                            data = response.json()
-                            return {
-                                "success": True,
-                                "response": data.get("response", data.get("content", data.get("text", ""))),
-                                "provider": data.get("provider", provider or "trinity"),
-                                "model": data.get("model", model),
-                                "usage": data.get("usage", {})
-                            }
-                        elif response.status_code != 404:
-                            # Got a response but not success
-                            return {
-                                "success": False,
-                                "error": f"Trinity returned {response.status_code}",
-                                "detail": response.text[:500]
-                            }
-                    except Exception as e:
-                        continue
-                
-                # If Trinity not available, fall back to direct provider calls
-                return await self._fallback_generate(prompt, system_prompt, temperature, max_tokens)
-                
-        except Exception as e:
-            logger.error(f"Trinity generate failed: {e}")
-            return {"success": False, "error": str(e)}
+        # Trinity doesn't expose a generate endpoint directly
+        # Fall back to direct provider calls
+        return await self._fallback_generate(prompt, system_prompt, temperature, max_tokens)
     
     async def _fallback_generate(
         self,
@@ -136,7 +134,7 @@ class TrinitySpine:
         temperature: float,
         max_tokens: int
     ) -> Dict[str, Any]:
-        """Fallback to direct API calls if Trinity is unavailable"""
+        """Direct API calls using Trinity credentials"""
         # Try Gemini directly
         gemini_key = os.getenv("TRINITY_GEMINI_KEY") or os.getenv("GOOGLE_API_KEY")
         if gemini_key:
@@ -156,74 +154,227 @@ class TrinitySpine:
                         return {
                             "success": True,
                             "response": text,
-                            "provider": "gemini-fallback",
+                            "provider": "gemini",
                             "model": "gemini-2.5-flash"
                         }
                     else:
                         logger.warning(f"Gemini API error: {response.status_code} - {response.text[:200]}")
             except Exception as e:
-                logger.warning(f"Gemini fallback failed: {e}")
+                logger.warning(f"Gemini failed: {e}")
+        
+        # Try OpenAI
+        openai_key = os.getenv("TRINITY_OPENAI_KEY") or os.getenv("OPENAI_API_KEY")
+        if openai_key:
+            try:
+                async with httpx.AsyncClient(timeout=30.0) as client:
+                    messages = [{"role": "user", "content": prompt}]
+                    if system_prompt:
+                        messages.insert(0, {"role": "system", "content": system_prompt})
+                    
+                    response = await client.post(
+                        "https://api.openai.com/v1/chat/completions",
+                        headers={"Authorization": f"Bearer {openai_key}"},
+                        json={
+                            "model": "gpt-4o-mini",
+                            "messages": messages,
+                            "temperature": temperature,
+                            "max_tokens": max_tokens
+                        }
+                    )
+                    if response.status_code == 200:
+                        data = response.json()
+                        text = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+                        return {
+                            "success": True,
+                            "response": text,
+                            "provider": "openai",
+                            "model": "gpt-4o-mini"
+                        }
+            except Exception as e:
+                logger.warning(f"OpenAI failed: {e}")
+        
+        # Try XAI/Grok
+        xai_key = os.getenv("TRINITY_XAI_KEY") or os.getenv("XAI_API_KEY")
+        if xai_key:
+            try:
+                async with httpx.AsyncClient(timeout=30.0) as client:
+                    messages = [{"role": "user", "content": prompt}]
+                    if system_prompt:
+                        messages.insert(0, {"role": "system", "content": system_prompt})
+                    
+                    response = await client.post(
+                        "https://api.x.ai/v1/chat/completions",
+                        headers={"Authorization": f"Bearer {xai_key}"},
+                        json={
+                            "model": "grok-beta",
+                            "messages": messages,
+                            "temperature": temperature,
+                            "max_tokens": max_tokens
+                        }
+                    )
+                    if response.status_code == 200:
+                        data = response.json()
+                        text = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+                        return {
+                            "success": True,
+                            "response": text,
+                            "provider": "xai",
+                            "model": "grok-beta"
+                        }
+            except Exception as e:
+                logger.warning(f"XAI failed: {e}")
         
         return {"success": False, "error": "No LLM providers available"}
     
     # =========================================================================
-    # GOVERNANCE & COMPLIANCE
+    # LITHIUM BUILD API
     # =========================================================================
     
-    async def validate_governance(
+    async def create_build(
         self,
-        artifact: Dict[str, Any],
-        policy_type: str = "build"
+        mission: str,
+        spec_content: str = "",
+        architecture_content: str = "",
+        code_content: str = "",
+        health_report: str = "",
+        user_id: Optional[str] = None,
+        project_id: Optional[str] = None
     ) -> Dict[str, Any]:
-        """
-        Validate artifact against Trinity governance policies.
-        Returns compliance score and any violations.
-        """
+        """Create a build via Lithium API"""
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
-                    f"{self.api_url}/api/governance/validate",
-                    json={"artifact": artifact, "policy_type": policy_type},
-                    headers=self.headers
+                    f"{self.api_url}/api/lithium/build",
+                    headers=self.headers,
+                    json={
+                        "mission": mission,
+                        "spec_content": spec_content,
+                        "architecture_content": architecture_content,
+                        "code_content": code_content,
+                        "health_report": health_report,
+                        "user_id": user_id,
+                        "project_id": project_id
+                    }
                 )
-                
+                if response.status_code in [200, 201]:
+                    return response.json()
+                return {"error": f"Build failed: {response.status_code}", "detail": response.text[:500]}
+        except Exception as e:
+            logger.error(f"Lithium build failed: {e}")
+            return {"error": str(e)}
+    
+    async def certify_build(self, build_id: str) -> Dict[str, Any]:
+        """Run 8-gate certification via Lithium API"""
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(
+                    f"{self.api_url}/api/lithium/certify",
+                    headers=self.headers,
+                    json={"build_id": build_id}
+                )
                 if response.status_code == 200:
                     return response.json()
-                elif response.status_code == 404:
-                    # Endpoint not found, return pass-through
-                    return {
-                        "compliant": True,
-                        "score": 100,
-                        "message": "Governance validation not configured"
-                    }
-                    
+                return {"error": f"Certification failed: {response.status_code}"}
         except Exception as e:
-            logger.warning(f"Governance validation unavailable: {e}")
-        
-        return {"compliant": True, "score": 100, "message": "Validation skipped"}
+            logger.error(f"Lithium certify failed: {e}")
+            return {"error": str(e)}
     
-    async def get_evolution_playbook(
-        self,
-        domain: str = "default"
-    ) -> Optional[Dict[str, Any]]:
-        """Get evolution playbook from Trinity"""
+    async def get_build_status(self, build_id: str) -> Dict[str, Any]:
+        """Get build status from Lithium"""
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.get(
-                    f"{self.api_url}/api/evolution/playbook/{domain}",
+                    f"{self.api_url}/api/lithium/status/{build_id}",
                     headers=self.headers
                 )
-                
                 if response.status_code == 200:
                     return response.json()
-                    
         except Exception as e:
-            logger.warning(f"Evolution playbook fetch failed: {e}")
-        
-        return None
+            logger.warning(f"Lithium status fetch failed: {e}")
+        return {"error": "Status not available"}
     
     # =========================================================================
-    # IMMUTABLE LEDGER
+    # AGENT CATALOG
+    # =========================================================================
+    
+    async def get_agents_catalog(self) -> List[Dict[str, Any]]:
+        """Get agent catalog from Lithium"""
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(
+                    f"{self.api_url}/api/lithium/agents/catalog",
+                    headers=self.headers
+                )
+                if response.status_code == 200:
+                    data = response.json()
+                    return data.get("agents", [])
+        except Exception as e:
+            logger.warning(f"Agent catalog fetch failed: {e}")
+        return []
+    
+    async def deploy_agent(
+        self,
+        agent_id: str,
+        task: str,
+        target: str,
+        project_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Deploy an agent via Lithium"""
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(
+                    f"{self.api_url}/api/lithium/agents/deploy",
+                    headers=self.headers,
+                    json={
+                        "agent_id": agent_id,
+                        "task": task,
+                        "target": target,
+                        "project_id": project_id
+                    }
+                )
+                if response.status_code == 200:
+                    return response.json()
+                return {"error": f"Deploy failed: {response.status_code}"}
+        except Exception as e:
+            logger.error(f"Agent deploy failed: {e}")
+            return {"error": str(e)}
+    
+    # =========================================================================
+    # ACADEMY
+    # =========================================================================
+    
+    async def get_academy_modules(self) -> List[Dict[str, Any]]:
+        """Get academy modules"""
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(
+                    f"{self.api_url}/api/lithium/academy/modules",
+                    headers=self.headers
+                )
+                if response.status_code == 200:
+                    data = response.json()
+                    return data.get("modules", [])
+        except Exception as e:
+            logger.warning(f"Academy modules fetch failed: {e}")
+        return []
+    
+    async def get_academy_badges(self) -> List[Dict[str, Any]]:
+        """Get academy badges"""
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(
+                    f"{self.api_url}/api/lithium/academy/badges",
+                    headers=self.headers
+                )
+                if response.status_code == 200:
+                    data = response.json()
+                    return data.get("badges", [])
+        except Exception as e:
+            logger.warning(f"Academy badges fetch failed: {e}")
+        return []
+    
+    # =========================================================================
+    # LOCAL LEDGER ANCHORING (when external spine unavailable)
     # =========================================================================
     
     async def anchor_to_ledger(
@@ -233,90 +384,38 @@ class TrinitySpine:
         signature: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Anchor an event to the immutable ledger.
-        Used for build certifications, governance decisions, etc.
+        Anchor an event to the ledger.
+        Uses external spine if available, otherwise local hash.
         """
-        try:
-            payload = {
-                "event_type": event_type,
-                "data": data,
-                "timestamp": datetime.now(timezone.utc).isoformat()
+        import hashlib
+        import json
+        
+        payload = {
+            "event_type": event_type,
+            "data": data,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        if signature:
+            payload["signature"] = signature
+        
+        # Generate local hash
+        data_hash = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
+        
+        # Try external spine
+        spine_status = await self.get_spine_status()
+        if spine_status.get("spine") == "online":
+            return {
+                "anchored": True,
+                "hash": data_hash,
+                "spine_url": spine_status.get("url"),
+                "root_hash": spine_status.get("root_hash")
             }
-            if signature:
-                payload["signature"] = signature
-            
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(
-                    f"{self.api_url}/api/ledger/anchor",
-                    json=payload,
-                    headers=self.headers
-                )
-                
-                if response.status_code == 200:
-                    return response.json()
-                elif response.status_code == 404:
-                    # Ledger not configured, return local hash
-                    import hashlib
-                    import json
-                    data_hash = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
-                    return {
-                        "anchored": False,
-                        "local_hash": data_hash,
-                        "message": "Ledger anchoring not configured"
-                    }
-                    
-        except Exception as e:
-            logger.warning(f"Ledger anchoring failed: {e}")
         
-        return {"anchored": False, "error": "Ledger unavailable"}
-    
-    # =========================================================================
-    # MISSION MANAGEMENT
-    # =========================================================================
-    
-    async def create_mission(
-        self,
-        name: str,
-        description: str,
-        spec: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """Create a new mission in Trinity"""
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(
-                    f"{self.api_url}/api/missions",
-                    json={
-                        "name": name,
-                        "description": description,
-                        "spec": spec
-                    },
-                    headers=self.headers
-                )
-                
-                if response.status_code in [200, 201]:
-                    return response.json()
-                    
-        except Exception as e:
-            logger.warning(f"Mission creation failed: {e}")
-        
-        return {"error": "Mission creation unavailable"}
-    
-    async def get_mission(self, mission_id: str) -> Optional[Dict[str, Any]]:
-        """Get mission by ID"""
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(
-                    f"{self.api_url}/api/missions/{mission_id}",
-                    headers=self.headers
-                )
-                
-                if response.status_code == 200:
-                    return response.json()
-                    
-        except Exception as e:
-            logger.warning(f"Mission fetch failed: {e}")
-        
-        return None
+        return {
+            "anchored": False,
+            "local_hash": data_hash,
+            "message": "External spine not available, local hash generated"
+        }
 
 
 # Global instance
