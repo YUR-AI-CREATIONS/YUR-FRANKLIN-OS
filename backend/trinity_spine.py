@@ -157,7 +157,7 @@ class TrinitySpine:
                             "success": True,
                             "response": text,
                             "provider": "gemini-fallback",
-                            "model": "gemini-1.5-flash"
+                            "model": "gemini-2.5-flash"
                         }
                     else:
                         logger.warning(f"Gemini API error: {response.status_code} - {response.text[:200]}")
