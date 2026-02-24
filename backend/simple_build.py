@@ -329,6 +329,7 @@ Generate clean, production-ready code."""
             except Exception as e:
                 print(f"[BUILD {build_id}] DB save failed: {e}")
         else:
+            print(f"[BUILD {build_id}] No database configured, skipping persistence")
 
         return {
             "success": True,
