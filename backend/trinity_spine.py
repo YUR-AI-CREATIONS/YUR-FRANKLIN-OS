@@ -142,8 +142,9 @@ class TrinitySpine:
         if gemini_key:
             try:
                 async with httpx.AsyncClient(timeout=30.0) as client:
+                    # Use gemini-1.5-flash which is current
                     response = await client.post(
-                        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}",
+                        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}",
                         json={
                             "contents": [{"parts": [{"text": prompt}]}],
                             "generationConfig": {"temperature": temperature, "maxOutputTokens": max_tokens}
@@ -156,8 +157,10 @@ class TrinitySpine:
                             "success": True,
                             "response": text,
                             "provider": "gemini-fallback",
-                            "model": "gemini-2.0-flash"
+                            "model": "gemini-1.5-flash"
                         }
+                    else:
+                        logger.warning(f"Gemini API error: {response.status_code} - {response.text[:200]}")
             except Exception as e:
                 logger.warning(f"Gemini fallback failed: {e}")
         
