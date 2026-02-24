@@ -142,9 +142,9 @@ class TrinitySpine:
         if gemini_key:
             try:
                 async with httpx.AsyncClient(timeout=30.0) as client:
-                    # Use gemini-1.5-flash which is current
+                    # Use gemini-2.5-flash which is current
                     response = await client.post(
-                        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}",
+                        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}",
                         json={
                             "contents": [{"parts": [{"text": prompt}]}],
                             "generationConfig": {"temperature": temperature, "maxOutputTokens": max_tokens}
