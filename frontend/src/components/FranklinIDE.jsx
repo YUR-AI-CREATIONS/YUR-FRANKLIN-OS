@@ -440,9 +440,9 @@ export const FranklinIDE = ({ onBack }) => {
         
         {/* Main Panels */}
         <div className="flex-1 overflow-hidden p-4">
-          <PanelGroup direction="horizontal" className="h-full">
+          <ResizablePanelGroup direction="horizontal" className="h-full">
             {/* Left Panel - Chat & Files */}
-            <Panel defaultSize={25} minSize={15}>
+            <ResizablePanel defaultSize={25} minSize={15}>
               <div className="glass-panel illuminated-border h-full flex flex-col">
                 <div className="panel-header">
                   <div className="status-dot" />
