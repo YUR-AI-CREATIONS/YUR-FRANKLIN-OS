@@ -381,7 +381,7 @@ export const LandingPage = ({ onNavigateToIDE }) => {
         {!showPricing ? (
           <>
             {/* Login Form */}
-            <form onSubmit={handleSubmit} className="w-full max-w-2xl mb-4">
+            <form onSubmit={handleSubmit} className="w-full max-w-2xl">
               <div className="flex items-center gap-3 rounded-full border border-white/15 bg-white/5 px-4 py-2 backdrop-blur-sm">
                 <input
                   type="text"
@@ -409,29 +409,6 @@ export const LandingPage = ({ onNavigateToIDE }) => {
                 </button>
               </div>
             </form>
-            
-            {/* Labels and CTAs */}
-            <div className="flex flex-col items-center gap-2 text-center mb-8">
-              <span className="text-[11px] uppercase tracking-[0.4em] text-white/35">
-                Input neural command
-              </span>
-              <div className="flex gap-3">
-                <button
-                  onClick={onEnterApp}
-                  className="rounded-full border border-white/20 px-4 py-2 text-[10px] uppercase tracking-[0.35em] text-white/60 hover:border-white/40 hover:text-white transition-all"
-                  data-testid="enter-app-btn"
-                >
-                  Open Franklin Garage Preview
-                </button>
-                <button
-                  onClick={() => setShowPricing(true)}
-                  className="rounded-full border border-cyan-500/40 px-4 py-2 text-[10px] uppercase tracking-[0.35em] text-cyan-400 hover:border-cyan-400 hover:bg-cyan-500/10 transition-all"
-                  data-testid="view-pricing-btn"
-                >
-                  View Pricing
-                </button>
-              </div>
-            </div>
           </>
         ) : (
           <>
@@ -481,28 +458,6 @@ export const LandingPage = ({ onNavigateToIDE }) => {
             </div>
           </>
         )}
-        
-        {/* Status Badges */}
-        <div className="flex flex-wrap justify-center gap-3 mb-4">
-          <StatusBadge label="Garage Online" />
-          <StatusBadge label="Oracle Online" />
-          <StatusBadge label="Franklin Online" />
-          <StatusBadge label="Agents Online" />
-        </div>
-        
-        <div className="flex justify-center mb-6">
-          <StatusBadge label="Bots Online" />
-        </div>
-        
-        {/* Footer Text */}
-        <div className="text-center max-w-2xl">
-          <p className="text-white/25 font-mono text-xs uppercase tracking-wider leading-relaxed">
-            You've reached the world-class Agent + Bot Academy, governed under Franklin OS.
-          </p>
-          <p className="text-white/35 font-mono text-xs uppercase tracking-wider mt-1">
-            Enter Franklin's Garage to explore the Academy and get a free Oracle consultation.
-          </p>
-        </div>
       </div>
     </div>
   );
