@@ -309,14 +309,52 @@ export const LandingPage = ({ onNavigateToIDE }) => {
       
       <div className="relative z-20 min-h-screen flex flex-col items-center justify-center px-6">
         
+        {/* YUR-AI Branding */}
+        <div className="text-center mb-6" data-testid="yurai-branding">
+          <h2 
+            className="text-[clamp(2rem,8vw,5rem)] font-bold tracking-[0.4em] mb-2"
+            style={{ 
+              fontFamily: "'Orbitron', sans-serif",
+              background: 'linear-gradient(135deg, #00f0ff 0%, #7000ff 50%, #00ff88 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              textShadow: '0 0 40px rgba(0, 240, 255, 0.5)'
+            }}
+          >
+            YUR-AI
+          </h2>
+          <p 
+            className="text-[clamp(0.7rem,2vw,1rem)] tracking-[0.2em] text-cyan-300/80 mb-4"
+            style={{ fontFamily: "'Rajdhani', sans-serif" }}
+          >
+            presents to all the dependable open-source TRUST engine
+          </p>
+        </div>
+        
         {/* FRANKLIN Title */}
         <h1
-          className="text-[clamp(3rem,12vw,9rem)] font-semibold tracking-[0.55em] select-none mb-8 franklin-chrome"
+          className="text-[clamp(3rem,12vw,9rem)] font-semibold tracking-[0.55em] select-none mb-2 franklin-chrome"
           style={{ fontFamily: "'Orbitron', sans-serif" }}
           data-testid="franklin-title"
         >
           FRANKLIN
         </h1>
+        
+        {/* OS Subtitle */}
+        <p 
+          className="text-[clamp(1rem,3vw,1.5rem)] tracking-[0.5em] text-cyan-400 mb-3"
+          style={{ fontFamily: "'Orbitron', sans-serif" }}
+        >
+          OS
+        </p>
+        
+        {/* Trust Tagline */}
+        <p 
+          className="text-[clamp(0.8rem,2.5vw,1.1rem)] tracking-[0.15em] text-white/60 mb-12 italic"
+          style={{ fontFamily: "'Rajdhani', sans-serif" }}
+        >
+          trust is not implied — it's verified
+        </p>
         
         <style>{`
           .franklin-chrome {
