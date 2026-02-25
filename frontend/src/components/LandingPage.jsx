@@ -312,19 +312,13 @@ export const LandingPage = ({ onNavigateToIDE }) => {
         {/* YUR-AI Branding */}
         <div className="text-center mb-6" data-testid="yurai-branding">
           <h2 
-            className="text-[clamp(2rem,8vw,5rem)] font-bold tracking-[0.4em] mb-2"
-            style={{ 
-              fontFamily: "'Orbitron', sans-serif",
-              background: 'linear-gradient(135deg, #00f0ff 0%, #7000ff 50%, #00ff88 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              textShadow: '0 0 40px rgba(0, 240, 255, 0.5)'
-            }}
+            className="text-[clamp(2rem,8vw,5rem)] font-bold tracking-[0.4em] mb-2 yurai-chrome"
+            style={{ fontFamily: "'Orbitron', sans-serif" }}
           >
             YUR-AI
           </h2>
           <p 
-            className="text-[clamp(0.7rem,2vw,1rem)] tracking-[0.2em] text-cyan-300/80 mb-4"
+            className="text-[clamp(0.7rem,2vw,1rem)] tracking-[0.2em] text-white/50 mb-4"
             style={{ fontFamily: "'Rajdhani', sans-serif" }}
           >
             presents to all the dependable open-source TRUST engine
