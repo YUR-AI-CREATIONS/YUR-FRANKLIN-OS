@@ -211,7 +211,8 @@ const PricingCard = ({ pkg, packageId, isPopular, onSelect, loading }) => {
   );
 };
 
-export const LandingPage = ({ onEnterApp }) => {
+export const LandingPage = ({ onNavigateToIDE }) => {
+  const onEnterApp = onNavigateToIDE; // Alias for backward compatibility
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPricing, setShowPricing] = useState(false);
