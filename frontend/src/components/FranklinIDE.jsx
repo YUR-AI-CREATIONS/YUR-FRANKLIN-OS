@@ -676,8 +676,8 @@ export const FranklinIDE = ({ onBack }) => {
                   </div>
                 </div>
               </div>
-            </Panel>
-          </PanelGroup>
+            </ResizablePanel>
+          </ResizablePanelGroup>
         </div>
       </div>
       
