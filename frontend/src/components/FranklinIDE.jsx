@@ -270,6 +270,9 @@ const CertificationTheater = ({ gates, currentGate }) => {
 
 // Main IDE Component
 export const FranklinIDE = ({ onBack }) => {
+  // Session ID for file uploads
+  const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+  
   // State
   const [prompt, setPrompt] = useState('');
   const [techStack, setTechStack] = useState('python');
