@@ -53,6 +53,7 @@ from marketing_routes import marketing_router as marketing_content_router
 from deployment_routes import deploy_router
 from payment_routes import payment_router, webhook_router
 from trinity_routes import router as trinity_router
+from upload_routes import router as upload_router
 
 
 ROOT_DIR = Path(__file__).parent
