@@ -1,53 +1,30 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import ReactFlow, { Background, Controls, useNodesState, useEdgesState, addEdge, MarkerType } from 'reactflow';
-import 'reactflow/dist/style.css';
-import axios from 'axios';
+import React, { useState } from 'react';
 import { LandingPage } from './components/LandingPage';
-import NeuralBrain from './components/NeuralBrain';
+import { FranklinIDE } from './components/FranklinIDE';
 import './App.css';
+import './LiquidGalaxy.css';
 
-const API = process.env.REACT_APP_BACKEND_URL || '';
-const PAGES = { LANDING: 'landing', IDE: 'ide', WORKFLOW: 'workflow' };
+const PAGES = { LANDING: 'landing', IDE: 'ide' };
 
-// Genesis Pipeline Stages
-const GENESIS_STAGES = [
-  { id: 'inception', name: 'INCEPTION', desc: 'Requirement validation' },
-  { id: 'specification', name: 'SPECIFICATION', desc: 'Detailed spec generation' },
-  { id: 'architecture', name: 'ARCHITECTURE', desc: 'System design' },
-  { id: 'construction', name: 'CONSTRUCTION', desc: 'Code generation' },
-  { id: 'validation', name: 'VALIDATION', desc: 'Testing' },
-  { id: 'evolution', name: 'EVOLUTION', desc: 'Optimization' },
-  { id: 'deployment', name: 'DEPLOYMENT', desc: 'Deployment prep' },
-  { id: 'governance', name: 'GOVERNANCE', desc: 'Compliance check' }
-];
+function App() {
+  const [currentPage, setCurrentPage] = useState(PAGES.LANDING);
+  
+  const navigateToIDE = () => setCurrentPage(PAGES.IDE);
+  const navigateToLanding = () => setCurrentPage(PAGES.LANDING);
+  
+  return (
+    <div className="App">
+      {currentPage === PAGES.LANDING && (
+        <LandingPage onNavigateToIDE={navigateToIDE} />
+      )}
+      {currentPage === PAGES.IDE && (
+        <FranklinIDE onBack={navigateToLanding} />
+      )}
+    </div>
+  );
+}
 
-// Quality Gate Dimensions
-const QUALITY_DIMENSIONS = [
-  { name: 'Completeness', weight: 1.5, score: 0 },
-  { name: 'Coherence', weight: 1.3, score: 0 },
-  { name: 'Correctness', weight: 1.5, score: 0 },
-  { name: 'Security', weight: 1.4, score: 0 },
-  { name: 'Performance', weight: 1.0, score: 0 },
-  { name: 'Scalability', weight: 1.0, score: 0 },
-  { name: 'Maintainability', weight: 1.1, score: 0 },
-  { name: 'Compliance', weight: 1.2, score: 0 }
-];
-
-// GALACTIC BACKGROUND
-const GalacticBackground = () => {
-  const canvasRef = useRef(null);
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let animationId, time = 0, stars = [];
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      stars = [];
-      for (let i = 0; i < 150; i++) stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 1.5 + 0.5, speed: Math.random() * 2 + 0.5, phase: Math.random() * Math.PI * 2 });
-    };
-    const draw = () => {
+export default App;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       stars.forEach(star => {
         const twinkle = Math.sin(time * star.speed * 0.05 + star.phase) * 0.5 + 0.5;
