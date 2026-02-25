@@ -489,12 +489,12 @@ export const FranklinIDE = ({ onBack }) => {
                   </div>
                 </div>
               </div>
-            </Panel>
+            </ResizablePanel>
             
-            <PanelResizeHandle className="resize-handle w-2 mx-1 rounded" />
+            <ResizableHandle className="resize-handle w-2 mx-1 rounded" />
             
             {/* Center Panel - Code & Certification */}
-            <Panel defaultSize={50} minSize={30}>
+            <ResizablePanel defaultSize={50} minSize={30}>
               <div className="glass-panel illuminated-border h-full flex flex-col">
                 {/* Tabs */}
                 <div className="tab-bar">
