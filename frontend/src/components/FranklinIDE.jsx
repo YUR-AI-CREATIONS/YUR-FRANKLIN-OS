@@ -627,12 +627,12 @@ export const FranklinIDE = ({ onBack }) => {
                   </AnimatePresence>
                 </div>
               </div>
-            </Panel>
+            </ResizablePanel>
             
-            <PanelResizeHandle className="resize-handle w-2 mx-1 rounded" />
+            <ResizableHandle className="resize-handle w-2 mx-1 rounded" />
             
             {/* Right Panel - Terminal */}
-            <Panel defaultSize={25} minSize={15}>
+            <ResizablePanel defaultSize={25} minSize={15}>
               <div className="glass-panel illuminated-border h-full flex flex-col">
                 {/* Terminal Tabs */}
                 <div className="tab-bar">
