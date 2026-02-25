@@ -351,7 +351,7 @@ export const LandingPage = ({ onNavigateToIDE }) => {
         </p>
         
         <style>{`
-          .franklin-chrome {
+          .franklin-chrome, .yurai-chrome {
             background: linear-gradient(
               135deg,
               rgba(60, 60, 60, 1) 0%,
