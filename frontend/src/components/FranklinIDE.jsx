@@ -318,48 +318,62 @@ export const FranklinIDE = ({ onBack }) => {
     setChatMessages(prev => [...prev, { role, content }]);
   };
   
-  // File upload handler
+  // File upload handler - REAL API
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: async (acceptedFiles) => {
       setIsProcessing(true);
       addTerminal(`Receiving ${acceptedFiles.length} file(s)...`, 'system');
       
-      const newFiles = [];
-      for (const file of acceptedFiles) {
-        try {
-          const content = await file.text();
-          newFiles.push({
-            name: file.name,
-            path: file.name,
-            size: file.size,
-            type: file.type,
-            content,
+      try {
+        // Create FormData and upload to backend
+        const formData = new FormData();
+        acceptedFiles.forEach(file => {
+          formData.append('files', file);
+        });
+        formData.append('session_id', sessionId);
+        
+        addTerminal('Uploading to server...', 'info');
+        
+        const response = await fetch(`${API}/api/upload/files`, {
+          method: 'POST',
+          body: formData,
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          // Update state with uploaded files
+          const newFiles = result.files.map(f => ({
+            file_id: f.file_id,
+            name: f.filename,
+            path: f.upload_path,
+            size: f.size,
+            checksum: f.checksum,
+            extension: f.extension,
+          }));
+          
+          setUploadedFiles(prev => [...prev, ...newFiles]);
+          
+          // Log each file
+          result.files.forEach(f => {
+            addTerminal(`Stored: ${f.filename} (${(f.size / 1024).toFixed(1)} KB) [${f.checksum.slice(0,8)}...]`, 'success');
           });
-          addTerminal(`Loaded: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`, 'info');
-        } catch (err) {
-          addTerminal(`Error loading ${file.name}: ${err.message}`, 'error');
+          
+          addTerminal(`Total: ${result.files.length} file(s), ${(result.total_size / 1024).toFixed(1)} KB`, 'success');
+          addChat('user', `Uploaded ${result.files.length} file(s): ${result.files.map(f => f.filename).join(', ')}`);
+          addChat('franklin', `Files received and stored securely. Checksums verified. Ready for analysis.`);
+          
+        } else {
+          addTerminal(`Upload failed: ${result.message}`, 'error');
+          addChat('franklin', `Upload encountered an issue: ${result.message}`);
         }
+        
+      } catch (err) {
+        addTerminal(`Upload error: ${err.message}`, 'error');
+        addChat('franklin', `Upload failed: ${err.message}`);
       }
       
-      setUploadedFiles(prev => [...prev, ...newFiles]);
-      addChat('user', `Uploaded ${newFiles.length} file(s): ${newFiles.map(f => f.name).join(', ')}`);
-      
-      // Analyze files
-      addTerminal('Analyzing uploaded files...', 'system');
-      addChat('franklin', 'Analyzing your files. I will extract requirements, identify patterns, and create a unified todo list...');
-      
-      // Simulate analysis (replace with actual API call)
-      setTimeout(() => {
-        const todos = newFiles.map(f => ({
-          file: f.name,
-          tasks: [`Parse and integrate ${f.name}`, `Validate structure of ${f.name}`]
-        }));
-        setAnalyzedTodos(todos);
-        setCurrentStage('verify');
-        addTerminal('Analysis complete', 'success');
-        addChat('franklin', `Analysis complete. I found ${todos.reduce((sum, t) => sum + t.tasks.length, 0)} tasks across ${newFiles.length} files. Please verify my understanding before I proceed.`);
-        setIsProcessing(false);
-      }, 2000);
+      setIsProcessing(false);
     },
     maxSize: 500 * 1024 * 1024, // 500MB
   });
