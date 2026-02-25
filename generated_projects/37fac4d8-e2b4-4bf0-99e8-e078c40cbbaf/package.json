@@ -1,0 +1,19 @@
+{
+  "name": "python-api",
+  "version": "1.0.0",
+  "description": "Complete REST API built with FastAPI",
+  "scripts": {
+    "start": "uvicorn main:app --host 0.0.0.0 --port 8000",
+    "dev": "uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+    "test": "pytest",
+    "lint": "flake8 ."
+  },
+  "keywords": [
+    "fastapi",
+    "python",
+    "rest-api",
+    "crud"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
