@@ -1099,15 +1099,54 @@ export const FranklinIDE = ({ onBack }) => {
                           {/* Proceed Button */}
                           <div className="flex justify-end pt-4">
                             <button
-                              onClick={() => {
+                              onClick={async () => {
                                 setCurrentStage('structure');
-                                addTerminal('Proceeding to file structure generation...', 'system');
-                                addChat('franklin', 'Workflow confirmed. Next step: Generate industry-standard file structure based on the workflow.');
+                                setIsProcessing(true);
+                                addTerminal('Generating file structure...', 'system');
+                                addChat('franklin', 'Generating industry-standard file structure for your project...');
+                                
+                                try {
+                                  const structureRes = await fetch(`${API}/api/file-structure/generate`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      session_id: sessionId,
+                                      tech_stack: techStack,
+                                      project_name: generatedWorkflow?.project_name || 'project'
+                                    })
+                                  });
+                                  
+                                  const structureData = await structureRes.json();
+                                  
+                                  if (structureData.tree) {
+                                    setGeneratedStructure(structureData);
+                                    setActiveTab('files');
+                                    
+                                    // Convert to project files format
+                                    const convertTree = (nodes) => nodes.map(node => ({
+                                      name: node.name,
+                                      path: node.path,
+                                      isFolder: node.type === 'folder',
+                                      content: node.content,
+                                      children: node.children ? convertTree(node.children) : []
+                                    }));
+                                    setProjectFiles(convertTree(structureData.tree));
+                                    
+                                    addTerminal(`Structure generated: ${structureData.total_folders} folders, ${structureData.total_files} files`, 'success');
+                                    addChat('franklin', `File structure created for ${structureData.tech_stack} project.\n\n${structureData.total_folders} folders and ${structureData.total_files} files ready.\n\nReview in the FILES tab.`);
+                                  }
+                                } catch (err) {
+                                  addTerminal(`Structure error: ${err.message}`, 'error');
+                                  addChat('franklin', `Error generating structure: ${err.message}`);
+                                }
+                                
+                                setIsProcessing(false);
                               }}
-                              className="px-6 py-2 bg-green-600 hover:bg-green-500 rounded font-semibold text-sm tracking-wider transition-colors"
+                              disabled={isProcessing}
+                              className="px-6 py-2 bg-green-600 hover:bg-green-500 rounded font-semibold text-sm tracking-wider transition-colors disabled:opacity-50"
                               style={{ fontFamily: "'Orbitron', sans-serif" }}
                             >
-                              PROCEED TO FILE STRUCTURE
+                              {isProcessing ? 'GENERATING...' : 'PROCEED TO FILE STRUCTURE'}
                             </button>
                           </div>
                         </div>
