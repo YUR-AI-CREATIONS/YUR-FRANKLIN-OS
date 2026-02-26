@@ -1336,6 +1336,151 @@ export const FranklinIDE = ({ onBack }) => {
                     </div>
                   )}
                   
+                  {activeTab === 'deployment' && (
+                    <div className="h-full overflow-y-auto p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-semibold tracking-wider text-white/80" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                          DEPLOYMENT CONFIG
+                        </h3>
+                        {!deploymentConfig && generatedArchitecture && (
+                          <button
+                            onClick={async () => {
+                              setIsProcessing(true);
+                              addTerminal('Generating deployment configurations...', 'system');
+                              
+                              try {
+                                const deployRes = await fetch(`${API}/api/deployment-config/generate`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    session_id: sessionId,
+                                    tech_stack: techStack,
+                                    project_name: generatedWorkflow?.project_name || 'project'
+                                  })
+                                });
+                                
+                                const deployData = await deployRes.json();
+                                if (deployData.files) {
+                                  setDeploymentConfig(deployData);
+                                  setCurrentStage('deployment');
+                                  addTerminal(`Deployment config generated: ${deployData.total_files} files`, 'success');
+                                  addChat('franklin', `Deployment configurations created:\n\n• Dockerfile\n• docker-compose.yml\n• Kubernetes manifests\n\nReady for container deployment.`);
+                                }
+                              } catch (err) {
+                                addTerminal(`Deployment error: ${err.message}`, 'error');
+                              }
+                              setIsProcessing(false);
+                            }}
+                            disabled={isProcessing}
+                            className="px-4 py-1.5 bg-orange-600 hover:bg-orange-500 rounded text-xs font-semibold transition-colors disabled:opacity-50"
+                          >
+                            {isProcessing ? 'GENERATING...' : 'GENERATE DEPLOYMENT'}
+                          </button>
+                        )}
+                      </div>
+                      
+                      {!deploymentConfig ? (
+                        <div className="text-center py-12 text-white/30">
+                          <Cloud size={48} className="mx-auto mb-4 opacity-50" />
+                          <p>No deployment config generated yet.</p>
+                          <p className="text-sm mt-2">Generate architecture first, then create deployment configs.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {/* Summary */}
+                          <div className="p-4 rounded-lg border border-orange-500/30 bg-orange-500/10">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-[10px] uppercase tracking-wider text-orange-400/60">Deployment Package</p>
+                                <p className="text-lg font-semibold text-orange-300">{deploymentConfig.project_name}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-xs text-white/50">{deploymentConfig.tech_stack}</p>
+                                <p className="text-xs text-white/30">{deploymentConfig.total_files} files</p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Files by type */}
+                          {['dockerfile', 'compose', 'k8s'].map(type => {
+                            const typeFiles = deploymentConfig.files?.filter(f => f.type === type) || [];
+                            if (typeFiles.length === 0) return null;
+                            
+                            const typeLabels = {
+                              dockerfile: { name: 'Docker', color: 'blue', icon: '🐳' },
+                              compose: { name: 'Docker Compose', color: 'purple', icon: '🔗' },
+                              k8s: { name: 'Kubernetes', color: 'cyan', icon: '☸️' }
+                            };
+                            const label = typeLabels[type];
+                            
+                            return (
+                              <div key={type} className="rounded-lg border border-white/10 overflow-hidden">
+                                <div className="px-4 py-2 bg-white/5 flex items-center gap-2">
+                                  <span>{label.icon}</span>
+                                  <span className="text-sm font-medium text-white/80">{label.name}</span>
+                                  <span className="text-xs text-white/30">({typeFiles.length} files)</span>
+                                </div>
+                                <div className="divide-y divide-white/5">
+                                  {typeFiles.map((file, fileIdx) => (
+                                    <div key={fileIdx} className="p-3">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <span className="text-xs font-mono text-white/60">{file.path}</span>
+                                        <button
+                                          onClick={() => {
+                                            setFileContent(file.content);
+                                            setActiveTab('code');
+                                          }}
+                                          className="text-[10px] px-2 py-0.5 bg-white/10 hover:bg-white/20 rounded transition-colors"
+                                        >
+                                          View
+                                        </button>
+                                      </div>
+                                      <pre className="text-[10px] text-white/40 bg-black/30 p-2 rounded overflow-x-auto max-h-32">
+                                        {file.content.slice(0, 300)}{file.content.length > 300 ? '...' : ''}
+                                      </pre>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                          
+                          {/* Deploy Commands */}
+                          <div className="p-4 rounded-lg border border-white/10 bg-white/5">
+                            <p className="text-[10px] uppercase tracking-wider text-white/40 mb-3">Deploy Commands</p>
+                            <div className="space-y-2 font-mono text-xs">
+                              <div className="p-2 bg-black/30 rounded">
+                                <span className="text-green-400">$</span> <span className="text-white/70">docker build -t {deploymentConfig.project_name} .</span>
+                              </div>
+                              <div className="p-2 bg-black/30 rounded">
+                                <span className="text-green-400">$</span> <span className="text-white/70">docker-compose up -d</span>
+                              </div>
+                              <div className="p-2 bg-black/30 rounded">
+                                <span className="text-green-400">$</span> <span className="text-white/70">kubectl apply -f k8s/</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Proceed Button */}
+                          <div className="flex justify-end pt-4">
+                            <button
+                              onClick={() => {
+                                setCurrentStage('env');
+                                setActiveTab('code');
+                                addTerminal('Deployment configs ready. Proceeding to .env generation...', 'system');
+                                addChat('franklin', 'Deployment configurations complete. Next: Generate environment variables.');
+                              }}
+                              className="px-6 py-2 bg-green-600 hover:bg-green-500 rounded font-semibold text-sm tracking-wider transition-colors"
+                              style={{ fontFamily: "'Orbitron', sans-serif" }}
+                            >
+                              PROCEED TO ENV CONFIG
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
                   {activeTab === 'certification' && (
                     <div className="h-full overflow-y-auto">
                       <CertificationTheater gates={certificationResults} currentGate={currentGate} />
