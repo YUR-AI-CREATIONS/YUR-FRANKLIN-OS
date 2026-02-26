@@ -55,6 +55,7 @@ from payment_routes import payment_router, webhook_router
 from trinity_routes import router as trinity_router
 from upload_routes import router as upload_router
 from analyze_routes import router as analyze_router
+from workflow_routes import router as workflow_router
 
 
 ROOT_DIR = Path(__file__).parent
