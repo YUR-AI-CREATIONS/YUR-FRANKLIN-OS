@@ -794,17 +794,20 @@ export const FranklinIDE = ({ onBack }) => {
               <div className="h-full flex flex-col bg-black/20">
                 {/* Tabs */}
                 <div className="flex border-b border-white/10">
-                  {['code', 'files', 'verification', 'certification'].map(tab => (
+                  {['code', 'files', 'verification', 'workflow', 'certification'].map(tab => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
                       className={`px-4 py-2 text-xs uppercase tracking-wider transition-colors ${
                         activeTab === tab ? 'text-white border-b-2 border-white' : 'text-white/50 hover:text-white/80'
-                      } ${tab === 'verification' && showVerification ? 'text-yellow-400' : ''}`}
+                      } ${tab === 'verification' && showVerification ? 'text-yellow-400' : ''} ${tab === 'workflow' && generatedWorkflow ? 'text-green-400' : ''}`}
                     >
                       {tab}
                       {tab === 'verification' && analyzedTodos.length > 0 && (
                         <span className="ml-1 px-1.5 py-0.5 text-[10px] bg-white/20 rounded">{analyzedTodos.length}</span>
+                      )}
+                      {tab === 'workflow' && generatedWorkflow && (
+                        <span className="ml-1 px-1.5 py-0.5 text-[10px] bg-green-500/30 rounded">{generatedWorkflow.total_phases}</span>
                       )}
                     </button>
                   ))}
