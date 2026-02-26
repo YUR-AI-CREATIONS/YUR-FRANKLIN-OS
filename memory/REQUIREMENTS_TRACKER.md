@@ -17,7 +17,7 @@
 | 2 | 500MB file upload (drag-drop) | ✅ DONE | Real API at /api/upload/files, stores to disk |
 | 3 | Scrub, analyze files into unified todo | ✅ DONE | LLM-based analysis with fallback scanner |
 | 4 | Verify understanding with user | ✅ DONE | UI tab with edit/add/delete/confirm |
-| 5 | Turn todo into unified workflow | ❌ NOT STARTED | Workflow generator - NEXT |
+| 5 | Turn todo into unified workflow | ✅ DONE | API + UI complete, phases/tasks/dependencies |
 | 6 | Industry standard file tree per language | ❌ NOT STARTED | Language templates |
 | 7 | Add architecture | 🟡 PARTIAL | Basic generation |
 | 8 | Add implementation | ✅ DONE | REAL code generation - verified |
