@@ -86,7 +86,9 @@
 5. Terminal shows build progress
 6. Workflow progress bar tracks stages
 7. Trust Vault displays (with mocked data)
-8. File upload zone accepts files (reads content)
+8. **File upload - REAL API** (stores to /app/uploads)
+9. **File analysis - REAL API** (LLM-based with fallback)
+10. **Verification tab - FULLY FUNCTIONAL** (add/edit/delete/confirm)
 
 ---
 
