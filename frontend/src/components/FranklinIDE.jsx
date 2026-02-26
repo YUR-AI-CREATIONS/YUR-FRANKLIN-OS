@@ -796,14 +796,14 @@ export const FranklinIDE = ({ onBack }) => {
             <ResizablePanel defaultSize={50} minSize={30}>
               <div className="h-full flex flex-col bg-black/20">
                 {/* Tabs */}
-                <div className="flex border-b border-white/10">
-                  {['code', 'files', 'verification', 'workflow', 'architecture', 'certification'].map(tab => (
+                <div className="flex border-b border-white/10 overflow-x-auto">
+                  {['code', 'files', 'verification', 'workflow', 'architecture', 'deployment', 'certification'].map(tab => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
-                      className={`px-4 py-2 text-xs uppercase tracking-wider transition-colors ${
+                      className={`px-3 py-2 text-xs uppercase tracking-wider transition-colors whitespace-nowrap ${
                         activeTab === tab ? 'text-white border-b-2 border-white' : 'text-white/50 hover:text-white/80'
-                      } ${tab === 'verification' && showVerification ? 'text-yellow-400' : ''} ${tab === 'workflow' && generatedWorkflow ? 'text-green-400' : ''} ${tab === 'architecture' && generatedArchitecture ? 'text-cyan-400' : ''}`}
+                      } ${tab === 'verification' && showVerification ? 'text-yellow-400' : ''} ${tab === 'workflow' && generatedWorkflow ? 'text-green-400' : ''} ${tab === 'architecture' && generatedArchitecture ? 'text-cyan-400' : ''} ${tab === 'deployment' && deploymentConfig ? 'text-orange-400' : ''}`}
                     >
                       {tab}
                       {tab === 'verification' && analyzedTodos.length > 0 && (
@@ -814,6 +814,9 @@ export const FranklinIDE = ({ onBack }) => {
                       )}
                       {tab === 'architecture' && generatedArchitecture && (
                         <span className="ml-1 px-1.5 py-0.5 text-[10px] bg-cyan-500/30 rounded">{generatedArchitecture.layers?.length}</span>
+                      )}
+                      {tab === 'deployment' && deploymentConfig && (
+                        <span className="ml-1 px-1.5 py-0.5 text-[10px] bg-orange-500/30 rounded">{deploymentConfig.total_files}</span>
                       )}
                     </button>
                   ))}
