@@ -331,7 +331,7 @@ EMERGENT_LLM_KEY=sk-emergent-xxxxx
 
 ### Frontend (.env)
 ```
-REACT_APP_BACKEND_URL=https://lithium-ide.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://franklin-ide.preview.emergentagent.com
 WDS_SOCKET_PORT=443
 ```
 
