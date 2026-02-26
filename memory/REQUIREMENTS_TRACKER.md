@@ -94,8 +94,8 @@
 ---
 
 ## PRIORITY NEXT STEPS
-1. ❌ **Item #5: Turn todo into unified workflow** (after user confirms todos)
-2. ❌ Item #6: Industry standard file tree per language
+1. ❌ **Item #6: Industry standard file tree per language** (after workflow confirmation)
+2. ❌ Item #7: Add architecture documentation
 3. ❌ Make Trust Vault show REAL API status
 4. ❌ Working terminal with real command execution
 
