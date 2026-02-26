@@ -1158,6 +1158,180 @@ export const FranklinIDE = ({ onBack }) => {
                     </div>
                   )}
                   
+                  {activeTab === 'architecture' && (
+                    <div className="h-full overflow-y-auto p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-semibold tracking-wider text-white/80" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                          SYSTEM ARCHITECTURE
+                        </h3>
+                        {!generatedArchitecture && generatedStructure && (
+                          <button
+                            onClick={async () => {
+                              setIsProcessing(true);
+                              addTerminal('Generating architecture documentation...', 'system');
+                              
+                              try {
+                                const archRes = await fetch(`${API}/api/architecture/generate`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    session_id: sessionId,
+                                    tech_stack: techStack,
+                                    project_name: generatedWorkflow?.project_name || 'project'
+                                  })
+                                });
+                                
+                                const archData = await archRes.json();
+                                if (archData.layers) {
+                                  setGeneratedArchitecture(archData);
+                                  setCurrentStage('architecture');
+                                  addTerminal(`Architecture generated: ${archData.architecture_type}`, 'success');
+                                  addChat('franklin', `Architecture documentation created: ${archData.architecture_type}\n\n${archData.layers.length} layers defined with data flow and security considerations.`);
+                                }
+                              } catch (err) {
+                                addTerminal(`Architecture error: ${err.message}`, 'error');
+                              }
+                              setIsProcessing(false);
+                            }}
+                            disabled={isProcessing}
+                            className="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 rounded text-xs font-semibold transition-colors disabled:opacity-50"
+                          >
+                            {isProcessing ? 'GENERATING...' : 'GENERATE ARCHITECTURE'}
+                          </button>
+                        )}
+                      </div>
+                      
+                      {!generatedArchitecture ? (
+                        <div className="text-center py-12 text-white/30">
+                          <Server size={48} className="mx-auto mb-4 opacity-50" />
+                          <p>No architecture generated yet.</p>
+                          <p className="text-sm mt-2">Generate file structure first, then generate architecture.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {/* Architecture Type */}
+                          <div className="p-4 rounded-lg border border-cyan-500/30 bg-cyan-500/10">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-[10px] uppercase tracking-wider text-cyan-400/60">Architecture Pattern</p>
+                                <p className="text-lg font-semibold text-cyan-300">{generatedArchitecture.architecture_type}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-xs text-white/50">{generatedArchitecture.tech_stack}</p>
+                                <p className="text-xs text-white/30">{generatedArchitecture.layers?.length} layers</p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Layers */}
+                          <div className="space-y-3">
+                            <p className="text-[10px] uppercase tracking-wider text-white/40">System Layers</p>
+                            {generatedArchitecture.layers?.map((layer, layerIdx) => (
+                              <div key={layerIdx} className="rounded-lg border border-white/10 overflow-hidden">
+                                <div className="px-4 py-2 bg-white/5 flex items-center justify-between">
+                                  <div>
+                                    <h4 className="text-sm font-medium text-white/90">{layer.name}</h4>
+                                    <p className="text-[10px] text-white/40">{layer.description}</p>
+                                  </div>
+                                  <span className="text-xs text-white/30">{layer.components?.length} components</span>
+                                </div>
+                                <div className="p-3 space-y-2">
+                                  {layer.components?.map((comp, compIdx) => (
+                                    <div key={compIdx} className="flex items-start gap-3 p-2 rounded bg-white/5">
+                                      <div className={`w-2 h-2 mt-1.5 rounded-full flex-shrink-0 ${
+                                        comp.type === 'api' ? 'bg-green-500' :
+                                        comp.type === 'service' ? 'bg-blue-500' :
+                                        comp.type === 'database' ? 'bg-purple-500' :
+                                        comp.type === 'cache' ? 'bg-yellow-500' :
+                                        'bg-gray-500'
+                                      }`} />
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-xs font-medium text-white/80">{comp.name}</span>
+                                          <span className="text-[10px] px-1.5 py-0.5 bg-white/10 rounded text-white/50">{comp.type}</span>
+                                        </div>
+                                        <p className="text-[10px] text-white/40 mt-1">{comp.description}</p>
+                                        {comp.responsibilities?.length > 0 && (
+                                          <div className="flex flex-wrap gap-1 mt-2">
+                                            {comp.responsibilities.map((r, i) => (
+                                              <span key={i} className="text-[10px] px-1.5 py-0.5 bg-white/5 rounded text-white/40">{r}</span>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {/* Data Flow */}
+                          {generatedArchitecture.data_flow?.length > 0 && (
+                            <div className="p-4 rounded-lg border border-white/10 bg-white/5">
+                              <p className="text-[10px] uppercase tracking-wider text-white/40 mb-3">Data Flow</p>
+                              <div className="space-y-2">
+                                {generatedArchitecture.data_flow.map((flow, i) => (
+                                  <div key={i} className="flex items-center gap-2 text-xs">
+                                    <span className="text-white/60">{flow.from}</span>
+                                    <ChevronRight size={12} className="text-white/30" />
+                                    <span className="text-white/60">{flow.to}</span>
+                                    <span className="text-white/30 ml-2">({flow.description})</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Key Decisions & Security */}
+                          <div className="grid grid-cols-2 gap-4">
+                            {generatedArchitecture.key_decisions?.length > 0 && (
+                              <div className="p-4 rounded-lg border border-white/10 bg-white/5">
+                                <p className="text-[10px] uppercase tracking-wider text-white/40 mb-2">Key Decisions</p>
+                                <ul className="space-y-1">
+                                  {generatedArchitecture.key_decisions.map((d, i) => (
+                                    <li key={i} className="text-xs text-white/60 flex items-start gap-2">
+                                      <Check size={10} className="mt-1 text-green-500 flex-shrink-0" />
+                                      {d}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            {generatedArchitecture.security_considerations?.length > 0 && (
+                              <div className="p-4 rounded-lg border border-white/10 bg-white/5">
+                                <p className="text-[10px] uppercase tracking-wider text-white/40 mb-2">Security</p>
+                                <ul className="space-y-1">
+                                  {generatedArchitecture.security_considerations.map((s, i) => (
+                                    <li key={i} className="text-xs text-white/60 flex items-start gap-2">
+                                      <Shield size={10} className="mt-1 text-yellow-500 flex-shrink-0" />
+                                      {s}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Proceed Button */}
+                          <div className="flex justify-end pt-4">
+                            <button
+                              onClick={() => {
+                                setCurrentStage('implementation');
+                                addTerminal('Proceeding to implementation...', 'system');
+                                addChat('franklin', 'Architecture documented. Ready for implementation phase.');
+                              }}
+                              className="px-6 py-2 bg-green-600 hover:bg-green-500 rounded font-semibold text-sm tracking-wider transition-colors"
+                              style={{ fontFamily: "'Orbitron', sans-serif" }}
+                            >
+                              PROCEED TO IMPLEMENTATION
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
                   {activeTab === 'certification' && (
                     <div className="h-full overflow-y-auto">
                       <CertificationTheater gates={certificationResults} currentGate={currentGate} />
