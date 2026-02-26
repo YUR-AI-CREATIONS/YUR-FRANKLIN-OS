@@ -301,6 +301,8 @@ export const FranklinIDE = ({ onBack }) => {
     { name: 'Supabase', status: 'active', tokensUsed: 0, tokensTotal: null, rotateIn: '7d' },
     { name: 'MongoDB', status: 'active', tokensUsed: 0, tokensTotal: null, rotateIn: '14d' },
   ]);
+  const [showVerification, setShowVerification] = useState(false);
+  const [verifiedTodos, setVerifiedTodos] = useState([]);
   
   const terminalRef = useRef(null);
   
