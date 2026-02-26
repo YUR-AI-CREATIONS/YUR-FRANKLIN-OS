@@ -58,6 +58,7 @@ from analyze_routes import router as analyze_router
 from workflow_routes import router as workflow_router
 from file_structure_routes import router as file_structure_router
 from architecture_routes import router as architecture_router
+from deployment_config_routes import router as deployment_config_router
 
 
 ROOT_DIR = Path(__file__).parent
