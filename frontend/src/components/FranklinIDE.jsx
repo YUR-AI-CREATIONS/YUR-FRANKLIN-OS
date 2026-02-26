@@ -884,7 +884,7 @@ export const FranklinIDE = ({ onBack }) => {
                         </div>
                       )}
                     </div>
-                  )}}
+                  )}
                   
                   {activeTab === 'files' && (
                     <div className="h-full overflow-y-auto p-2">
