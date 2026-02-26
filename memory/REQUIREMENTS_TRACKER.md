@@ -14,10 +14,10 @@
 | # | Requirement | Status | Notes |
 |---|-------------|--------|-------|
 | 1 | IDE page matching landing page colors | ✅ DONE | Chrome theme applied, verified working |
-| 2 | 500MB file upload (drag-drop) | 🟡 PARTIAL | UI works, files read into memory |
-| 3 | Scrub, analyze files into unified todo | ❌ NOT STARTED | Needs LLM pipeline |
-| 4 | Verify understanding with user | ❌ NOT STARTED | Confirmation flow |
-| 5 | Turn todo into unified workflow | ❌ NOT STARTED | Workflow generator |
+| 2 | 500MB file upload (drag-drop) | ✅ DONE | Real API at /api/upload/files, stores to disk |
+| 3 | Scrub, analyze files into unified todo | ✅ DONE | LLM-based analysis with fallback scanner |
+| 4 | Verify understanding with user | ✅ DONE | UI tab with edit/add/delete/confirm |
+| 5 | Turn todo into unified workflow | ❌ NOT STARTED | Workflow generator - NEXT |
 | 6 | Industry standard file tree per language | ❌ NOT STARTED | Language templates |
 | 7 | Add architecture | 🟡 PARTIAL | Basic generation |
 | 8 | Add implementation | ✅ DONE | REAL code generation - verified |
