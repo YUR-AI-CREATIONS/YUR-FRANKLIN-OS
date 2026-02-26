@@ -93,9 +93,9 @@
 ---
 
 ## PRIORITY NEXT STEPS
-1. ❌ Make Trust Vault show REAL API status
-2. ❌ Implement real file analysis pipeline  
-3. ❌ Add deployment (Docker + K8s generation)
+1. ❌ **Item #5: Turn todo into unified workflow** (after user confirms todos)
+2. ❌ Item #6: Industry standard file tree per language
+3. ❌ Make Trust Vault show REAL API status
 4. ❌ Working terminal with real command execution
 
 ---
