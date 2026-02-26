@@ -99,77 +99,113 @@ async def analyze_with_llm(files_content: Dict[str, str]) -> Dict[str, Any]:
     for filename, content in files_content.items():
         if content:
             # Truncate very large files
-            truncated = content[:5000] if len(content) > 5000 else content
+            truncated = content[:3000] if len(content) > 3000 else content
             files_text += f"\n\n=== FILE: {filename} ===\n{truncated}"
     
-    analysis_prompt = f"""Analyze the following project files and extract:
+    analysis_prompt = f"""Analyze these project files. Extract ALL TODO comments and issues.
 
-1. A summary of what this project does
-2. A list of TODO items with priority (high/medium/low) and category (requirement/bug/feature/refactor/test/docs)
-3. Dependencies detected
-4. Code patterns detected
-5. Suggested file structure for a clean implementation
-
-FILES:
 {files_text}
 
-Respond in this exact JSON format:
-{{
-    "project_summary": "Brief description of the project",
-    "todos": [
-        {{"task": "Description of task", "priority": "high|medium|low", "category": "requirement|bug|feature|refactor|test|docs", "source_file": "filename or null"}}
-    ],
-    "dependencies": ["list", "of", "dependencies"],
-    "patterns": ["list", "of", "patterns", "detected"],
-    "suggested_structure": {{
-        "folders": ["src", "tests", "config"],
-        "files": {{"main.py": "entry point", "config.py": "configuration"}}
-    }}
-}}
+Return JSON with this structure:
+{{"project_summary": "what this project does", "todos": [{{"task": "task description", "priority": "high/medium/low", "category": "requirement/bug/feature/refactor/test/docs", "source_file": "filename"}}], "dependencies": ["dep1"], "patterns": ["pattern1"]}}
 
-Return ONLY valid JSON, no markdown or explanation."""
+Important: Find ALL TODO, FIXME, BUG comments in the code. Return ONLY valid JSON."""
 
     # Call LLM
     result = await trinity_spine.generate(
         prompt=analysis_prompt,
-        system_prompt="You are a senior software architect analyzing project files. Extract actionable todos and provide clear structure recommendations. Always respond with valid JSON only.",
-        temperature=0.3,
+        system_prompt="You are a code analyzer. Extract TODO items from code. Return only valid JSON.",
+        temperature=0.2,
         max_tokens=2000
     )
     
     if not result.get("success"):
-        return {
-            "project_summary": "Analysis failed - using fallback",
-            "todos": [],
-            "dependencies": [],
-            "patterns": [],
-            "suggested_structure": {"folders": [], "files": {}}
-        }
+        # Return fallback with file-based todos
+        return create_fallback_analysis(files_content)
     
     # Parse JSON response
     response_text = result.get("response", "")
     
     # Try to extract JSON from response
     try:
+        # Clean up response - remove markdown code blocks if present
+        clean_response = response_text.strip()
+        if clean_response.startswith("```"):
+            # Remove markdown code block
+            lines = clean_response.split('\n')
+            clean_response = '\n'.join(lines[1:-1] if lines[-1].strip() == '```' else lines[1:])
+        
         # Find JSON in response
-        start = response_text.find('{')
-        end = response_text.rfind('}') + 1
+        start = clean_response.find('{')
+        end = clean_response.rfind('}') + 1
         if start >= 0 and end > start:
-            json_str = response_text[start:end]
-            return json.loads(json_str)
-    except json.JSONDecodeError:
-        pass
+            json_str = clean_response[start:end]
+            parsed = json.loads(json_str)
+            
+            # Validate structure
+            if "todos" in parsed:
+                return parsed
+    except json.JSONDecodeError as e:
+        print(f"JSON parse error: {e}")
     
-    # Fallback: create basic analysis from file inspection
+    # Fallback: scan files for TODO/FIXME/BUG comments manually
+    return create_fallback_analysis(files_content)
+
+
+def create_fallback_analysis(files_content: Dict[str, str]) -> Dict[str, Any]:
+    """Create analysis by scanning files for TODO/FIXME/BUG comments"""
+    todos = []
+    
+    for filename, content in files_content.items():
+        if not content:
+            continue
+            
+        lines = content.split('\n')
+        for i, line in enumerate(lines):
+            line_lower = line.lower()
+            
+            # Check for TODO comments
+            if 'todo:' in line_lower or 'todo ' in line_lower:
+                task = line.split('TODO', 1)[-1].split('TODO:', 1)[-1].strip(' :#')
+                if task:
+                    todos.append({
+                        "task": task,
+                        "priority": "medium",
+                        "category": "feature",
+                        "source_file": filename,
+                        "line_reference": f"Line {i+1}"
+                    })
+            
+            # Check for FIXME comments
+            elif 'fixme' in line_lower:
+                task = line.split('FIXME', 1)[-1].split('FIXME:', 1)[-1].strip(' :#')
+                if task:
+                    todos.append({
+                        "task": task,
+                        "priority": "high",
+                        "category": "bug",
+                        "source_file": filename,
+                        "line_reference": f"Line {i+1}"
+                    })
+            
+            # Check for BUG comments
+            elif 'bug:' in line_lower or 'bug ' in line_lower:
+                task = line.split('BUG', 1)[-1].split('BUG:', 1)[-1].strip(' :#')
+                if task:
+                    todos.append({
+                        "task": task,
+                        "priority": "high",
+                        "category": "bug",
+                        "source_file": filename,
+                        "line_reference": f"Line {i+1}"
+                    })
+    
     return {
-        "project_summary": f"Project with {len(files_content)} files",
-        "todos": [
-            {"task": f"Review and integrate {fn}", "priority": "medium", "category": "requirement", "source_file": fn}
-            for fn in files_content.keys()
-        ],
+        "project_summary": f"Project with {len(files_content)} files, {len(todos)} action items found",
+        "todos": todos,
         "dependencies": [],
         "patterns": [],
-        "suggested_structure": {"folders": ["src", "tests"], "files": {}}
+        "suggested_structure": {"folders": ["src", "tests", "config"], "files": {}}
     }
 
 
