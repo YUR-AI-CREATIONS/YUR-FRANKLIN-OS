@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="fas fa-rocket me-2"></i>What's Next?</h1>
+            <button class="btn btn-primary" onclick="getNextTask()">
+                <i class="fas fa-magic me-2"></i>What Should I Do Next?
+            </button>
+        </div>
+
+        <div id="next-task-suggestion" class="alert alert-info d-none">
+            <h5><i class="fas fa-lightbulb me-2"></i>Suggestion:</h5>
+            <div id="suggestion-content"></div>
+        </div>
+
+        {% if tasks %}
+            <div class="row">
+                {% for task in tasks %}
+                <div class="col-md-6 mb-3">
+                    <div class="card task-card priority-{{ task.priority }} {% if loop.first %}next-task-highlight{% endif %}">
+                        <div class="card-body">
+                            {% if loop.first %}
+                                <div class="badge bg-light text-dark mb-2">
+                                    <i class="fas fa-star me-1"></i>NEXT UP
+                                </div>
+                            {% endif %}
+                            <h5 class="card-title">{{ task.title }}</h5>
+                            {% if task.description %}
+                                <p class="card-text">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge bg-{% if task.priority == 'high' %}danger{% elif task.priority == 'medium' %}warning{% else %}success{% endif %}">
+                                        {{ task.priority.title() }}
+                                    </span>
+                                    {% if task.due_date %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            {{ task.due_date.strftime('%m/%d') }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-success" onclick="markComplete({{ task.id }})">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <a href="{{ url_for('view_task', task_id=task.id) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                <h3 class="mt-3">All caught up!</h3>
+                <p class="text-muted">You don't have any pending tasks.</p>
+                <a href="{{ url_for('add_task') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add New Task
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function markComplete(taskId) {
+    if (confirm('Mark this task as complete?')) {
+        fetch(`/update_task/${taskId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({status: 'completed'})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error updating task');
+            }
+        });
+    }
+}
+
+function getNextTask() {
+    fetch('/api/next_task')
+        .then(response => response.json())
+        .then(data => {
+            const suggestionDiv = document.getElementById('next-task-suggestion');
+            const contentDiv = document.getElementById('suggestion-content');
+            
+            if (data.success) {
+                contentDiv.innerHTML = `
+                    <strong>${data.task.title}</strong>
+                    <br>
+                    <small class="text-muted">Priority: ${data.task.priority} | Created: ${new Date(data.task.created_at).toLocaleDateString()}</small>
+                `;
+                suggestionDiv.className = 'alert alert-primary';
+            } else {
+                contentDiv.innerHTML = data.message;
+                suggestionDiv.className = 'alert alert-success';
+            }
+            
+            suggestionDiv.classList.remove('d-none');
+            suggestionDiv.scrollIntoView({behavior: 'smooth'});
+        });
+}
+</script>
+{% endblock %}

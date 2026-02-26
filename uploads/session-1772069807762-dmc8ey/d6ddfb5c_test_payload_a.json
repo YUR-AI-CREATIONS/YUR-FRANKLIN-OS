@@ -1,0 +1,11 @@
+{
+  "id": "probe-tele",
+  "name": "Quantum Teleportation Protocol",
+  "agent_role": "executor",
+  "use_grok": true,
+  "task_type": "quantum_algorithm",
+  "task_data": {
+    "algorithm": "teleportation",
+    "qubits": 3
+  }
+}

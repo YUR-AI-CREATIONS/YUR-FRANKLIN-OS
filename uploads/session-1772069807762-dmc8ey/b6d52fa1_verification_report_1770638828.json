@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-02-09 06:06:56",
+  "services": {
+    "yur_8080": true,
+    "yur_3000": true,
+    "yur_3001": false,
+    "yur_5000": true,
+    "sovereign_8000": false,
+    "sovereign_5173": false,
+    "bridge_8001": true
+  },
+  "integration": {
+    "bridge_health": true,
+    "yur_agents": false
+  },
+  "errors": []
+}

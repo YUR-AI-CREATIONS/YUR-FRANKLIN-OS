@@ -1,0 +1,17 @@
+name: xai_grok_genesis_env
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - numpy=2.4.2
+  - pip:
+    - requests>=2.31.0
+    - python-dotenv>=1.0.0
+    - colorama>=0.4.6
+    - termcolor>=2.3.0
+    - PyQt5>=5.15.9
+    - pyttsx3>=2.90
+    - cryptography>=46.0.4
+    - openai>=1.0.0

@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # FastAPI Backend
+  sovereign-api:
+    build:
+      context: ./sovereign-api
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - XAI_API_KEY=${XAI_API_KEY}
+    volumes:
+      - ./sovereign-api:/app
+      - ./uploads:/app/uploads
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - sovereign-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # React Frontend
+  sovereign-frontend:
+    build:
+      context: ./sovereign-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - REACT_APP_API_URL=http://sovereign-api:8000
+    volumes:
+      - ./sovereign-frontend/src:/app/src
+    depends_on:
+      - sovereign-api
+    networks:
+      - sovereign-network
+
+networks:
+  sovereign-network:
+    driver: bridge
+
+volumes:
+  uploads:

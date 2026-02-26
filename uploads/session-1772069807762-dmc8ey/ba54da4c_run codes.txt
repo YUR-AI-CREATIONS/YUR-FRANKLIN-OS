@@ -1,0 +1,8 @@
+cd C:\XAI_GROK_GENESIS
+python yur_oracle_gui.py
+
+cd C:\XAI_GROK_GENESIS
+python yur_vault_citadel.py
+
+cd C:\XAI_GROK_GENESIS
+python grok_genesis.py

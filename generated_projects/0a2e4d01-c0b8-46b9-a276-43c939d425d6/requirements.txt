@@ -1,0 +1,5 @@
+# No external dependencies required - uses only Python standard library
+pathlib>=1.0.1
+argparse>=1.4.0
+json>=2.0.0
+fnmatch>=1.0.0
