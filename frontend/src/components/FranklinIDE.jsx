@@ -382,6 +382,7 @@ export const FranklinIDE = ({ onBack }) => {
           
           if (analysisResult.unified_todo) {
             setAnalyzedTodos(analysisResult.unified_todo);
+            setShowVerification(true);  // Show verification panel
             
             addTerminal(`Analysis complete: ${analysisResult.unified_todo.length} action items found`, 'success');
             
@@ -391,7 +392,7 @@ export const FranklinIDE = ({ onBack }) => {
               addTerminal(`[${todo.priority.toUpperCase()}] ${todo.id}: ${todo.task}`, priorityColor);
             });
             
-            addChat('franklin', `Analysis complete. Found ${analysisResult.unified_todo.length} action items:\n\n${analysisResult.project_summary}\n\nPlease review the TODO list and confirm if my understanding is correct.`);
+            addChat('franklin', `Analysis complete. Found ${analysisResult.unified_todo.length} action items.\n\nPlease review the TODO list in the center panel and click "CONFIRM" if my understanding is correct, or edit as needed.`);
           }
           
         } else {
