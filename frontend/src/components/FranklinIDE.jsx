@@ -304,6 +304,40 @@ export const FranklinIDE = ({ onBack }) => {
   const [showVerification, setShowVerification] = useState(false);
   const [verifiedTodos, setVerifiedTodos] = useState([]);
   
+  // Master requirements list from user
+  const [masterRequirements, setMasterRequirements] = useState([
+    { id: 'REQ-001', task: '500 MB all file upload drag-drop', priority: 'high', category: 'feature', status: 'done' },
+    { id: 'REQ-002', task: 'Scrub analyze compile unified todo log', priority: 'high', category: 'feature', status: 'done' },
+    { id: 'REQ-003', task: 'Verify understanding with user', priority: 'high', category: 'feature', status: 'in-progress' },
+    { id: 'REQ-004', task: 'Turn todo into unified workflow', priority: 'high', category: 'feature', status: 'pending' },
+    { id: 'REQ-005', task: 'Industry standard file tree per language', priority: 'high', category: 'feature', status: 'pending' },
+    { id: 'REQ-006', task: 'Add architecture', priority: 'high', category: 'feature', status: 'pending' },
+    { id: 'REQ-007', task: 'Add implementation', priority: 'high', category: 'feature', status: 'partial' },
+    { id: 'REQ-008', task: 'Add deployment', priority: 'high', category: 'feature', status: 'pending' },
+    { id: 'REQ-009', task: 'Add .env generation', priority: 'high', category: 'feature', status: 'pending' },
+    { id: 'REQ-010', task: 'Trust vault with real API connectors', priority: 'high', category: 'feature', status: 'pending' },
+    { id: 'REQ-011', task: 'Real-time connector status (tokens used/remaining)', priority: 'high', category: 'feature', status: 'pending' },
+    { id: 'REQ-012', task: 'Auto-rotate keys weekly or on signal', priority: 'medium', category: 'feature', status: 'pending' },
+    { id: 'REQ-013', task: 'Daily uptime reports by provider', priority: 'medium', category: 'feature', status: 'pending' },
+    { id: 'REQ-014', task: 'Secure domain for user', priority: 'medium', category: 'feature', status: 'pending' },
+    { id: 'REQ-015', task: 'DNS transfer and setup', priority: 'medium', category: 'feature', status: 'pending' },
+    { id: 'REQ-016', task: 'Onboard AI assistant for all aspects', priority: 'high', category: 'feature', status: 'partial' },
+    { id: 'REQ-017', task: 'No bottlenecks or user friction', priority: 'high', category: 'requirement', status: 'pending' },
+    { id: 'REQ-018', task: 'No false positive code manipulation', priority: 'high', category: 'requirement', status: 'pending' },
+    { id: 'REQ-019', task: 'Regulated industry compliance', priority: 'high', category: 'requirement', status: 'pending' },
+    { id: 'REQ-020', task: 'Terminals: SQLite, MCP, PowerShell, Bash, Git', priority: 'high', category: 'feature', status: 'pending' },
+    { id: 'REQ-021', task: 'Render images', priority: 'medium', category: 'feature', status: 'pending' },
+    { id: 'REQ-022', task: 'Render videos', priority: 'medium', category: 'feature', status: 'pending' },
+    { id: 'REQ-023', task: 'Edit images', priority: 'low', category: 'feature', status: 'pending' },
+    { id: 'REQ-024', task: 'Edit videos', priority: 'low', category: 'feature', status: 'pending' },
+    { id: 'REQ-025', task: 'Export to Google Workspace', priority: 'medium', category: 'feature', status: 'pending' },
+    { id: 'REQ-026', task: 'Export to OneDrive', priority: 'medium', category: 'feature', status: 'pending' },
+    { id: 'REQ-027', task: 'Export to AWS', priority: 'medium', category: 'feature', status: 'pending' },
+    { id: 'REQ-028', task: 'Export to Docker', priority: 'high', category: 'feature', status: 'pending' },
+    { id: 'REQ-029', task: 'Export to Kubernetes', priority: 'medium', category: 'feature', status: 'pending' },
+    { id: 'REQ-030', task: '8-gate certification', priority: 'high', category: 'feature', status: 'done' },
+  ]);
+  
   const terminalRef = useRef(null);
   
   // Auto-scroll terminal
