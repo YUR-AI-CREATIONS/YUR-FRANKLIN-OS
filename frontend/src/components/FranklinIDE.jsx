@@ -947,6 +947,173 @@ export const FranklinIDE = ({ onBack }) => {
                     </div>
                   )}
                   
+                  {activeTab === 'workflow' && (
+                    <div className="h-full overflow-y-auto p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-semibold tracking-wider text-white/80" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                          UNIFIED WORKFLOW
+                        </h3>
+                        {generatedWorkflow && (
+                          <div className="flex items-center gap-3 text-xs text-white/50">
+                            <span>{generatedWorkflow.total_phases} Phases</span>
+                            <span>•</span>
+                            <span>{generatedWorkflow.total_tasks} Tasks</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {!generatedWorkflow ? (
+                        <div className="text-center py-12 text-white/30">
+                          <Layers size={48} className="mx-auto mb-4 opacity-50" />
+                          <p>No workflow generated yet.</p>
+                          <p className="text-sm mt-2">Upload files, analyze, and confirm TODOs to generate a workflow.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {/* Project Info */}
+                          <div className="p-4 rounded-lg border border-white/10 bg-white/5">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-white/80">{generatedWorkflow.project_name}</span>
+                              <span className="text-xs px-2 py-1 bg-white/10 rounded text-white/60">{generatedWorkflow.tech_stack}</span>
+                            </div>
+                            {generatedWorkflow.architecture_notes?.length > 0 && (
+                              <div className="mt-3 pt-3 border-t border-white/10">
+                                <p className="text-[10px] uppercase tracking-wider text-white/40 mb-2">Architecture Notes</p>
+                                <ul className="space-y-1">
+                                  {generatedWorkflow.architecture_notes.map((note, i) => (
+                                    <li key={i} className="text-xs text-white/50 flex items-start gap-2">
+                                      <ChevronRight size={12} className="mt-0.5 flex-shrink-0" />
+                                      {note}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Phases */}
+                          {generatedWorkflow.phases.map((phase, phaseIdx) => (
+                            <div key={phaseIdx} className="rounded-lg border border-white/10 overflow-hidden">
+                              <div className="px-4 py-3 bg-white/5 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-sm font-bold text-white/80">
+                                    {phase.phase_num}
+                                  </div>
+                                  <div>
+                                    <h4 className="text-sm font-medium text-white/90">{phase.name}</h4>
+                                    <p className="text-[10px] text-white/40">{phase.description}</p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-xs text-white/50">{phase.tasks.length} tasks</div>
+                                  <div className="text-[10px] text-white/30">{phase.estimated_duration}</div>
+                                </div>
+                              </div>
+                              
+                              <div className="divide-y divide-white/5">
+                                {phase.tasks.map((task, taskIdx) => (
+                                  <div key={taskIdx} className="px-4 py-3 hover:bg-white/5 transition-colors">
+                                    <div className="flex items-start gap-3">
+                                      <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${
+                                        task.priority === 'high' ? 'bg-red-500' :
+                                        task.priority === 'medium' ? 'bg-yellow-500' : 'bg-blue-500'
+                                      }`} />
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <span className="text-xs font-mono text-white/40">{task.id}</span>
+                                          <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                                            task.priority === 'high' ? 'bg-red-500/20 text-red-300' :
+                                            task.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-300' :
+                                            'bg-blue-500/20 text-blue-300'
+                                          }`}>{task.priority}</span>
+                                          <span className="text-[10px] px-1.5 py-0.5 bg-white/10 rounded text-white/50">{task.category}</span>
+                                        </div>
+                                        <p className="text-sm text-white/80">{task.name}</p>
+                                        {task.description && task.description !== task.name && (
+                                          <p className="text-xs text-white/40 mt-1">{task.description}</p>
+                                        )}
+                                        {task.deliverables?.length > 0 && (
+                                          <div className="flex flex-wrap gap-1 mt-2">
+                                            {task.deliverables.map((d, i) => (
+                                              <span key={i} className="text-[10px] px-2 py-0.5 bg-green-500/10 text-green-400 rounded">
+                                                {d}
+                                              </span>
+                                            ))}
+                                          </div>
+                                        )}
+                                        {task.dependencies?.length > 0 && (
+                                          <div className="flex items-center gap-1 mt-2 text-[10px] text-white/30">
+                                            <span>Depends on:</span>
+                                            {task.dependencies.map((dep, i) => (
+                                              <span key={i} className="px-1 bg-white/10 rounded">{dep}</span>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="text-[10px] text-white/30 flex-shrink-0">
+                                        {task.estimated_effort}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                          
+                          {/* File Structure */}
+                          {generatedWorkflow.file_structure && (
+                            <div className="p-4 rounded-lg border border-white/10 bg-white/5">
+                              <p className="text-[10px] uppercase tracking-wider text-white/40 mb-3">Recommended File Structure</p>
+                              <div className="grid grid-cols-2 gap-4">
+                                {generatedWorkflow.file_structure.folders && (
+                                  <div>
+                                    <p className="text-xs text-white/60 mb-2">Folders</p>
+                                    <div className="flex flex-wrap gap-1">
+                                      {generatedWorkflow.file_structure.folders.map((f, i) => (
+                                        <span key={i} className="text-xs px-2 py-1 bg-white/10 rounded text-white/70 flex items-center gap-1">
+                                          <Folder size={10} />
+                                          {f}/
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                                {generatedWorkflow.file_structure.key_files && (
+                                  <div>
+                                    <p className="text-xs text-white/60 mb-2">Key Files</p>
+                                    <div className="flex flex-wrap gap-1">
+                                      {generatedWorkflow.file_structure.key_files.map((f, i) => (
+                                        <span key={i} className="text-xs px-2 py-1 bg-white/10 rounded text-white/70 flex items-center gap-1">
+                                          <File size={10} />
+                                          {f}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Proceed Button */}
+                          <div className="flex justify-end pt-4">
+                            <button
+                              onClick={() => {
+                                setCurrentStage('structure');
+                                addTerminal('Proceeding to file structure generation...', 'system');
+                                addChat('franklin', 'Workflow confirmed. Next step: Generate industry-standard file structure based on the workflow.');
+                              }}
+                              className="px-6 py-2 bg-green-600 hover:bg-green-500 rounded font-semibold text-sm tracking-wider transition-colors"
+                              style={{ fontFamily: "'Orbitron', sans-serif" }}
+                            >
+                              PROCEED TO FILE STRUCTURE
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
                   {activeTab === 'certification' && (
                     <div className="h-full overflow-y-auto">
                       <CertificationTheater gates={certificationResults} currentGate={currentGate} />
