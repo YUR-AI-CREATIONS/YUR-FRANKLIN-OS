@@ -89,6 +89,7 @@
 8. **File upload - REAL API** (stores to /app/uploads)
 9. **File analysis - REAL API** (LLM-based with fallback)
 10. **Verification tab - FULLY FUNCTIONAL** (add/edit/delete/confirm)
+11. **Workflow generation - REAL API** (phases, tasks, dependencies, file structure)
 
 ---
 
