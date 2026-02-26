@@ -303,6 +303,7 @@ export const FranklinIDE = ({ onBack }) => {
   ]);
   const [showVerification, setShowVerification] = useState(false);
   const [verifiedTodos, setVerifiedTodos] = useState([]);
+  const [generatedWorkflow, setGeneratedWorkflow] = useState(null);
   
   // Master requirements list from user
   const [masterRequirements, setMasterRequirements] = useState([
