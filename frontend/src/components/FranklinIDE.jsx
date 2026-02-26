@@ -474,16 +474,61 @@ export const FranklinIDE = ({ onBack }) => {
   };
   
   // Handle verification confirm
-  const handleVerificationConfirm = () => {
+  const handleVerificationConfirm = async () => {
     setVerifiedTodos([...analyzedTodos]);
     setShowVerification(false);
     setCurrentStage('workflow');
+    setIsProcessing(true);
     
     addTerminal('Understanding confirmed by user', 'success');
     addTerminal(`${analyzedTodos.length} action items verified`, 'success');
-    addChat('franklin', `Thank you for confirming. I now have a clear understanding of ${analyzedTodos.length} tasks. Proceeding to generate the unified workflow...`);
+    addChat('franklin', `Thank you for confirming. I now have a clear understanding of ${analyzedTodos.length} tasks. Generating unified workflow...`);
     
-    // TODO: Next step - generate workflow (Item #4)
+    // Generate workflow from confirmed TODOs
+    try {
+      addTerminal('Generating unified workflow...', 'system');
+      
+      const workflowRes = await fetch(`${API}/api/workflow/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sessionId,
+          todos: analyzedTodos.map(t => ({
+            id: t.id,
+            task: t.task,
+            priority: t.priority,
+            category: t.category,
+            source_file: t.source_file,
+            line_reference: t.line_reference
+          })),
+          tech_stack: techStack
+        })
+      });
+      
+      const workflowData = await workflowRes.json();
+      
+      if (workflowData.phases) {
+        setGeneratedWorkflow(workflowData);
+        setActiveTab('workflow');
+        
+        addTerminal(`Workflow generated: ${workflowData.total_phases} phases, ${workflowData.total_tasks} tasks`, 'success');
+        
+        // Log phases
+        workflowData.phases.forEach(phase => {
+          addTerminal(`Phase ${phase.phase_num}: ${phase.name} (${phase.tasks.length} tasks)`, 'info');
+        });
+        
+        addChat('franklin', `Unified workflow created with ${workflowData.total_phases} phases and ${workflowData.total_tasks} tasks.\n\nProject: ${workflowData.project_name}\n\nReview the workflow in the "WORKFLOW" tab. Click on any phase to see detailed tasks.`);
+      } else {
+        addTerminal('Workflow generation returned no phases', 'warning');
+        addChat('franklin', 'Workflow generation completed but returned empty. Please try again.');
+      }
+    } catch (err) {
+      addTerminal(`Workflow error: ${err.message}`, 'error');
+      addChat('franklin', `Error generating workflow: ${err.message}`);
+    }
+    
+    setIsProcessing(false);
   };
 
   // Handle build
