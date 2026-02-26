@@ -1828,6 +1828,7 @@ app.include_router(deploy_router)
 app.include_router(simple_build_router)  # REAL FILE BUILD
 app.include_router(trinity_router)  # LAYER 0 - TRINITY SPINE
 app.include_router(upload_router)  # FILE UPLOAD (500MB)
+app.include_router(analyze_router)  # FILE ANALYSIS & TODO
 
 # Payment routers
 app.include_router(payment_router)
