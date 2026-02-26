@@ -410,6 +410,47 @@ export const FranklinIDE = ({ onBack }) => {
     maxSize: 500 * 1024 * 1024, // 500MB
   });
   
+  // Handle todo edit
+  const handleTodoEdit = (index, field, value) => {
+    setAnalyzedTodos(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
+  
+  // Handle todo delete
+  const handleTodoDelete = (index) => {
+    setAnalyzedTodos(prev => prev.filter((_, i) => i !== index));
+    addTerminal(`Removed TODO item`, 'info');
+  };
+  
+  // Handle todo add
+  const handleTodoAdd = () => {
+    const newId = `TODO-${String(analyzedTodos.length + 1).padStart(3, '0')}`;
+    setAnalyzedTodos(prev => [...prev, {
+      id: newId,
+      task: 'New task - click to edit',
+      priority: 'medium',
+      category: 'feature',
+      source_file: null,
+    }]);
+    addTerminal(`Added new TODO item: ${newId}`, 'info');
+  };
+  
+  // Handle verification confirm
+  const handleVerificationConfirm = () => {
+    setVerifiedTodos([...analyzedTodos]);
+    setShowVerification(false);
+    setCurrentStage('workflow');
+    
+    addTerminal('Understanding confirmed by user', 'success');
+    addTerminal(`${analyzedTodos.length} action items verified`, 'success');
+    addChat('franklin', `Thank you for confirming. I now have a clear understanding of ${analyzedTodos.length} tasks. Proceeding to generate the unified workflow...`);
+    
+    // TODO: Next step - generate workflow (Item #4)
+  };
+
   // Handle build
   const handleBuild = async () => {
     if (!prompt.trim() && uploadedFiles.length === 0) return;
