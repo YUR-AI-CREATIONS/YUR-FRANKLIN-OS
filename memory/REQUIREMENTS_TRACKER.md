@@ -18,7 +18,7 @@
 | 3 | Scrub, analyze files into unified todo | ✅ DONE | LLM-based analysis with fallback scanner |
 | 4 | Verify understanding with user | ✅ DONE | UI tab with edit/add/delete/confirm |
 | 5 | Turn todo into unified workflow | ✅ DONE | API + UI complete, phases/tasks/dependencies |
-| 6 | Industry standard file tree per language | ❌ NOT STARTED | Language templates |
+| 6 | Industry standard file tree per language | ✅ DONE | Python/JS/TS/Go/Rust templates |
 | 7 | Add architecture | 🟡 PARTIAL | Basic generation |
 | 8 | Add implementation | ✅ DONE | REAL code generation - verified |
 | 9 | Add deployment config | ❌ NOT STARTED | Docker/K8s configs |
