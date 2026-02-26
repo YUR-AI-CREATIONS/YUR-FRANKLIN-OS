@@ -305,6 +305,7 @@ export const FranklinIDE = ({ onBack }) => {
   const [verifiedTodos, setVerifiedTodos] = useState([]);
   const [generatedWorkflow, setGeneratedWorkflow] = useState(null);
   const [generatedStructure, setGeneratedStructure] = useState(null);
+  const [generatedArchitecture, setGeneratedArchitecture] = useState(null);
   
   // Master requirements list from user
   const [masterRequirements, setMasterRequirements] = useState([
