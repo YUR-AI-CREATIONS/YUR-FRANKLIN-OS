@@ -364,7 +364,33 @@ export const FranklinIDE = ({ onBack }) => {
           
           addTerminal(`Total: ${result.files.length} file(s), ${(result.total_size / 1024).toFixed(1)} KB`, 'success');
           addChat('user', `Uploaded ${result.files.length} file(s): ${result.files.map(f => f.filename).join(', ')}`);
-          addChat('franklin', `Files received and stored securely. Checksums verified. Ready for analysis.`);
+          addChat('franklin', `Files received and stored. Starting analysis...`);
+          
+          // ANALYZE FILES
+          addTerminal('Analyzing files for TODOs and requirements...', 'system');
+          setCurrentStage('verify');
+          
+          const analyzeResponse = await fetch(`${API}/api/analyze/files`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: sessionId }),
+          });
+          
+          const analysisResult = await analyzeResponse.json();
+          
+          if (analysisResult.unified_todo) {
+            setAnalyzedTodos(analysisResult.unified_todo);
+            
+            addTerminal(`Analysis complete: ${analysisResult.unified_todo.length} action items found`, 'success');
+            
+            // Show todos in terminal
+            analysisResult.unified_todo.forEach(todo => {
+              const priorityColor = todo.priority === 'high' ? 'error' : todo.priority === 'medium' ? 'warning' : 'info';
+              addTerminal(`[${todo.priority.toUpperCase()}] ${todo.id}: ${todo.task}`, priorityColor);
+            });
+            
+            addChat('franklin', `Analysis complete. Found ${analysisResult.unified_todo.length} action items:\n\n${analysisResult.project_summary}\n\nPlease review the TODO list and confirm if my understanding is correct.`);
+          }
           
         } else {
           addTerminal(`Upload failed: ${result.message}`, 'error');
@@ -372,8 +398,8 @@ export const FranklinIDE = ({ onBack }) => {
         }
         
       } catch (err) {
-        addTerminal(`Upload error: ${err.message}`, 'error');
-        addChat('franklin', `Upload failed: ${err.message}`);
+        addTerminal(`Error: ${err.message}`, 'error');
+        addChat('franklin', `Error: ${err.message}`);
       }
       
       setIsProcessing(false);
