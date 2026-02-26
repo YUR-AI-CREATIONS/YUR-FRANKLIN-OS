@@ -19,7 +19,7 @@
 | 4 | Verify understanding with user | ✅ DONE | UI tab with edit/add/delete/confirm |
 | 5 | Turn todo into unified workflow | ✅ DONE | API + UI complete, phases/tasks/dependencies |
 | 6 | Industry standard file tree per language | ✅ DONE | Python/JS/TS/Go/Rust templates |
-| 7 | Add architecture | 🟡 PARTIAL | Basic generation |
+| 7 | Add architecture | ✅ DONE | Full architecture docs with layers, data flow, security |
 | 8 | Add implementation | ✅ DONE | REAL code generation - verified |
 | 9 | Add deployment config | ❌ NOT STARTED | Docker/K8s configs |
 | 10 | Add .env generation | ❌ NOT STARTED | Environment file creation |
