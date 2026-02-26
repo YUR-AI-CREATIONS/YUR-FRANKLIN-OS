@@ -1834,6 +1834,7 @@ app.include_router(upload_router)  # FILE UPLOAD (500MB)
 app.include_router(analyze_router)  # FILE ANALYSIS & TODO
 app.include_router(workflow_router)  # WORKFLOW GENERATION (Item #5)
 app.include_router(file_structure_router)  # FILE STRUCTURE (Item #6)
+app.include_router(architecture_router)  # ARCHITECTURE (Item #7)
 
 # Payment routers
 app.include_router(payment_router)
