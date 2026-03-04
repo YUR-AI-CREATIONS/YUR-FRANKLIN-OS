@@ -79,6 +79,11 @@ from simple_build_routes import router as simple_build_router
 from socratic_routes import api_router as socratic_router, set_db, AnalyzeRequest, ResolveRequest, SOCRATIC_SYSTEM_PROMPT
 from headless_worker import start_worker
 
+# Import Concierge (Franklin intake + real build pipeline)
+from concierge_routes import router as concierge_router
+from franklin_concierge import get_concierge
+from franklin_orchestrator import FranklinOrchestrator
+
 # Refinement system prompt for Ouroboros loop
 REFINEMENT_SYSTEM_PROMPT = """You are an AI code quality improvement engine.
 You receive an artifact with quality scores and improvement priorities.
@@ -1946,6 +1951,9 @@ app.include_router(lithium_router)
 # SIMPLE BUILD - One prompt to real files
 app.include_router(simple_build_router)
 
+# CONCIERGE — Franklin's adaptive intake + real build pipeline
+app.include_router(concierge_router)
+
 # Start headless worker
 try:
     import asyncio
@@ -1972,7 +1980,17 @@ logger = logging.getLogger(__name__)
 async def startup_event():
     """Initialize services on startup"""
     await initialize_llm_provider()
-    logger.info("Sovereign Genesis Platform started - LLM Provider initialized")
+
+    # Wire Franklin orchestrator into app.state so concierge routes can call LLM
+    orchestrator = FranklinOrchestrator()
+    await orchestrator.connect_to_spine()
+    app.state.orchestrator = orchestrator
+    app.state.llm_caller = orchestrator.call_llm
+
+    # Warm up the concierge with the LLM caller
+    get_concierge(llm_caller=orchestrator.call_llm)
+
+    logger.info("Franklin OS started — concierge online, Spine connected")
 
 
 @app.on_event("shutdown")

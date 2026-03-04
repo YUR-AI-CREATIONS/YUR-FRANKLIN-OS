@@ -27,12 +27,14 @@ import {
   Plus,
   ChevronDown,
   Eye,
+  Bot,
 } from 'lucide-react';
 
 import GlassPanel from '../ui/GlassPanel';
 import ContextWindow from '../ui/ContextWindow';
 import GhostFranklin from '../ui/GhostFranklin';
 import PreviewPortal from './PreviewPortal';
+import FranklinConcierge from './FranklinConcierge';
 
 // GalacticBackground Component - Reused from App.js
 const GalacticBackground = () => {
@@ -194,6 +196,22 @@ const FranklinIDE = ({ onNavigate, project }) => {
               <GlassPanel variant="blue" title="CODE EDITOR" rounded="md" className="flex-1 !p-0 flex flex-col">
                 {/* Tab Bar */}
                 <div className="flex items-center gap-1 px-3 py-2 border-b border-slate-700/40 overflow-x-auto">
+                  {/* Concierge Tab */}
+                  <button
+                    onClick={() => setActivePreviewTab('concierge')}
+                    className={`
+                      px-3 py-1 rounded text-xs font-mono whitespace-nowrap
+                      flex items-center gap-2 transition-all
+                      ${activePreviewTab === 'concierge'
+                        ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300'
+                        : 'text-slate-400 hover:bg-white/5'
+                      }
+                    `}
+                  >
+                    <Bot className="w-3 h-3" />
+                    Franklin
+                  </button>
+
                   {/* Preview Tab */}
                   <button
                     onClick={() => setActivePreviewTab('preview')}
@@ -205,9 +223,9 @@ const FranklinIDE = ({ onNavigate, project }) => {
                         : 'text-slate-400 hover:bg-white/5'
                       }
                     `}
+                  >
                     <Eye className="w-3 h-3" />
                     Preview
-                    👁️ Preview
                   </button>
 
                   {/* Code Tabs */}
@@ -239,7 +257,23 @@ const FranklinIDE = ({ onNavigate, project }) => {
 
                 {/* Editor Content */}
                 <div className="flex-1 overflow-auto">
-                  {activePreviewTab === 'preview' ? (
+                  {activePreviewTab === 'concierge' ? (
+                    <FranklinConcierge
+                      onBuildComplete={(result) => {
+                        setBuildResult(result);
+                        if (result?.files?.length) {
+                          setOpenFiles(result.files.map((f, i) => ({
+                            id: `build-${i}`,
+                            name: f.filename || f.name || `file-${i}`,
+                            language: (f.filename || '').split('.').pop() || 'text',
+                            content: f.content || '',
+                          })));
+                          setActivePreviewTab('code');
+                          setActiveTab('build-0');
+                        }
+                      }}
+                    />
+                  ) : activePreviewTab === 'preview' ? (
                     <PreviewPortal
                       buildResult={buildResult}
                       generatedCode={generatedCode}
