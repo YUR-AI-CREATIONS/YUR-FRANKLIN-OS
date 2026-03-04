@@ -325,9 +325,9 @@ async def _run_build(session_id: str, app):
         # ── STAGE 4: VALIDATION / CERTIFICATION ───────────────────────────
         await emit("cert", "validation", "Running 8-gate certification...", progress=75)
         cert_result = await _stage_certification(build_id, contract, spec, architecture, files)
-        gates_passed = cert_result.get("gates_passed", 0)
-        gates_total = cert_result.get("gates_total", 8)
-        cert_hash = cert_result.get("certification_hash", "")
+        gates_passed = cert_result.get("gates_passed") or cert_result.get("passed_gates", 0)
+        gates_total = cert_result.get("gates_total") or cert_result.get("total_gates", 8)
+        cert_hash = cert_result.get("certification_hash") or ""
         await emit("cert", "validation", f"Certification: {gates_passed}/{gates_total} gates passed. Hash: {cert_hash[:12]}...", cert_result, progress=85)
         chain.append("cert_complete", cert_result, stage="validation")
 
@@ -364,7 +364,8 @@ async def _run_build(session_id: str, app):
         logger.info(f"Build complete: {build_id} — {file_count} files, cert {cert_hash[:12]}")
 
     except Exception as e:
-        logger.error(f"Build pipeline error: {e}", exc_info=True)
+        import traceback
+        logger.error(f"Build pipeline error: {e}\n{''.join(traceback.format_exc())}", exc_info=False)
         chain.append("build_error", {"error": str(e)}, stage="error")
 
         # Heal attempt
