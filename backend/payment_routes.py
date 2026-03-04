@@ -27,11 +27,12 @@ from pydantic import BaseModel
 from typing import Optional
 
 class CheckoutSessionRequest(BaseModel):
-    amount: int
+    amount: int  # Amount in cents (e.g. 999 = $9.99)
     currency: str = "usd"
     product_name: str
     success_url: str
     cancel_url: str
+    metadata: Optional[Dict[str, str]] = None
 
 class CheckoutSessionResponse(BaseModel):
     session_id: str
@@ -39,14 +40,23 @@ class CheckoutSessionResponse(BaseModel):
 
 class CheckoutStatusResponse(BaseModel):
     status: str
-    amount: int
+    payment_status: str
+    amount_total: int
     currency: str
+    metadata: Optional[Dict] = None
+
+class WebhookResponse(BaseModel):
+    event_id: str
+    event_type: str
+    session_id: Optional[str] = None
+    payment_status: Optional[str] = None
 
 class StripeCheckout:
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, webhook_url: Optional[str] = None, webhook_secret: Optional[str] = None):
         stripe.api_key = api_key
+        self.webhook_secret = webhook_secret or os.environ.get("STRIPE_WEBHOOK_SECRET")
 
-    async def create_session(self, request: CheckoutSessionRequest) -> CheckoutSessionResponse:
+    async def create_checkout_session(self, request: CheckoutSessionRequest) -> CheckoutSessionResponse:
         session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
@@ -62,15 +72,44 @@ class StripeCheckout:
             mode='payment',
             success_url=request.success_url,
             cancel_url=request.cancel_url,
+            metadata=request.metadata or {},
         )
         return CheckoutSessionResponse(session_id=session.id, url=session.url)
 
-    async def get_session_status(self, session_id: str) -> CheckoutStatusResponse:
+    async def get_checkout_status(self, session_id: str) -> CheckoutStatusResponse:
         session = stripe.checkout.Session.retrieve(session_id)
         return CheckoutStatusResponse(
-            status=session.payment_status,
-            amount=session.amount_total,
-            currency=session.currency
+            status=session.status or "unknown",
+            payment_status=session.payment_status or "unknown",
+            amount_total=session.amount_total or 0,
+            currency=session.currency or "usd",
+            metadata=dict(session.metadata) if session.metadata else None
+        )
+
+    async def handle_webhook(self, payload: bytes, signature: str) -> WebhookResponse:
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, signature, self.webhook_secret
+            )
+        except stripe.error.SignatureVerificationError as e:
+            raise ValueError(f"Invalid webhook signature: {e}")
+
+        session_id = None
+        payment_status = None
+        if event.type in (
+            'checkout.session.completed',
+            'checkout.session.async_payment_succeeded',
+            'checkout.session.async_payment_failed',
+        ):
+            obj = event.data.object
+            session_id = obj.id
+            payment_status = obj.payment_status
+
+        return WebhookResponse(
+            event_id=event.id,
+            event_type=event.type,
+            session_id=session_id,
+            payment_status=payment_status,
         )
 
 # Create router
@@ -164,13 +203,11 @@ async def create_checkout_session(request: CreateCheckoutRequest, http_request: 
     # Build URLs from frontend origin
     success_url = f"{request.origin_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}"
     cancel_url = f"{request.origin_url}/payment/cancel"
-    
+
     # Initialize Stripe
-    host_url = str(http_request.base_url)
-    webhook_url = f"{host_url}api/webhook/stripe"
-    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
-    
-    # Create metadata
+    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY)
+
+    # Create metadata (Stripe metadata values must be strings)
     checkout_metadata = {
         "package_id": request.package_id,
         "package_name": package["name"],
@@ -180,11 +217,12 @@ async def create_checkout_session(request: CreateCheckoutRequest, http_request: 
         checkout_metadata["user_email"] = request.user_email
     if request.metadata:
         checkout_metadata.update(request.metadata)
-    
-    # Create checkout session
+
+    # Create checkout session (amount converted to cents)
     checkout_request = CheckoutSessionRequest(
-        amount=package["amount"],
+        amount=int(package["amount"] * 100),
         currency="usd",
+        product_name=package["name"],
         success_url=success_url,
         cancel_url=cancel_url,
         metadata=checkout_metadata
@@ -234,7 +272,7 @@ async def get_payment_status(session_id: str, http_request: Request):
     
     if not STRIPE_API_KEY:
         raise HTTPException(status_code=500, detail="Stripe not configured")
-    
+
     # Check if already processed
     existing = await payment_transactions.find_one({"session_id": session_id})
     if existing and existing.get("payment_status") == "paid":
@@ -245,11 +283,9 @@ async def get_payment_status(session_id: str, http_request: Request):
             amount=existing.get("amount", 0),
             user_email=existing.get("user_email")
         )
-    
+
     # Initialize Stripe and check status
-    host_url = str(http_request.base_url)
-    webhook_url = f"{host_url}api/webhook/stripe"
-    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY)
     
     try:
         status: CheckoutStatusResponse = await stripe_checkout.get_checkout_status(session_id)
@@ -268,7 +304,7 @@ async def get_payment_status(session_id: str, http_request: Request):
         
         # If payment successful, create/update user
         if status.payment_status == "paid" and existing:
-            user_email = existing.get("user_email") or status.metadata.get("user_email")
+            user_email = existing.get("user_email") or (status.metadata or {}).get("user_email")
             if user_email:
                 await users.update_one(
                     {"email": user_email},
@@ -287,7 +323,7 @@ async def get_payment_status(session_id: str, http_request: Request):
             status=status.status,
             payment_status=status.payment_status,
             package=existing.get("package_id", "unknown") if existing else "unknown",
-            amount=float(status.amount_total) / 100 if status.amount_total else 0,
+            amount=status.amount_total / 100,
             user_email=existing.get("user_email") if existing else None
         )
         
@@ -328,12 +364,10 @@ async def stripe_webhook(request: Request):
         raise HTTPException(status_code=500, detail="Stripe not configured")
     
     body = await request.body()
-    signature = request.headers.get("Stripe-Signature")
-    
-    host_url = str(request.base_url)
-    webhook_url = f"{host_url}api/webhook/stripe"
-    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
-    
+    signature = request.headers.get("Stripe-Signature", "")
+
+    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY)
+
     try:
         webhook_response = await stripe_checkout.handle_webhook(body, signature)
         

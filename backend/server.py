@@ -76,7 +76,15 @@ from lithium_routes import router as lithium_router
 from simple_build_routes import router as simple_build_router
 
 # Import Socratic routes
-from socratic_routes import api_router as socratic_router, set_db, set_emergent_key, AnalyzeRequest, ResolveRequest
+from socratic_routes import api_router as socratic_router, set_db, AnalyzeRequest, ResolveRequest, SOCRATIC_SYSTEM_PROMPT
+from headless_worker import start_worker
+
+# Refinement system prompt for Ouroboros loop
+REFINEMENT_SYSTEM_PROMPT = """You are an AI code quality improvement engine.
+You receive an artifact with quality scores and improvement priorities.
+Apply targeted improvements to address the lowest-scoring dimensions.
+Maintain all existing structure and only enhance what is flagged.
+Return a JSON artifact of the same schema with improvements applied."""
 
 
 ROOT_DIR = Path(__file__).parent
@@ -110,12 +118,6 @@ marketing_router = APIRouter(prefix="/api/marketing")
 video_router = APIRouter(prefix="/api/video")
 supabase_router = APIRouter(prefix="/api/supabase")
 
-# LLM Configuration
-EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
-
-# Set emergent key in socratic routes
-set_emergent_key(EMERGENT_LLM_KEY)
-
 from llm_shared import initialize_llm_provider
 
 # Supabase setup
@@ -145,7 +147,6 @@ def get_default_llm_config() -> LLMConfig:
         mode=LLMMode.CLOUD,  # Default to cloud
         cloud_provider="anthropic",
         cloud_model="claude-sonnet-4-5-20250929",
-        emergent_key=EMERGENT_LLM_KEY,
         local_url="http://localhost:11434",
         local_model="llama3.1:8b",
         fallback_to_cloud=True,
@@ -269,7 +270,6 @@ def create_chat(session_id: str, system_message: str) -> LlmChat:
         mode=LLMMode.CLOUD,
         cloud_provider="anthropic",
         cloud_model="claude-sonnet-4-5-20250929",
-        emergent_key=EMERGENT_LLM_KEY
     )
     provider = HybridLLMProvider(llm_config)
     chat = LlmChat(provider, system_message)
@@ -1099,7 +1099,7 @@ async def get_llm_status():
         "configuration": status,
         "recommended_models": RECOMMENDED_MODELS,
         "instructions": {
-            "cloud": "Uses Emergent LLM Key for Claude/GPT access. Costs per request.",
+            "cloud": "Uses direct provider API keys (ANTHROPIC_API_KEY, OPENAI_API_KEY, XAI_API_KEY, GOOGLE_API_KEY). Costs per request.",
             "local": "Requires Ollama installed locally. Free unlimited usage.",
             "hybrid": "Uses local when available, falls back to cloud.",
             "setup_ollama": "curl -fsSL https://ollama.com/install.sh | sh && ollama pull llama3.1:8b"
@@ -1129,7 +1129,6 @@ async def configure_llm(request: LLMConfigRequest):
         mode=mode,
         cloud_provider="anthropic",
         cloud_model="claude-sonnet-4-5-20250929",
-        emergent_key=EMERGENT_LLM_KEY,
         local_url=request.local_url or "http://localhost:11434",
         local_model=request.local_model or "llama3.1:8b",
         fallback_to_cloud=request.fallback_to_cloud if request.fallback_to_cloud is not None else True,
@@ -1153,7 +1152,7 @@ async def configure_llm(request: LLMConfigRequest):
 
 
 class SetAPIKeyRequest(BaseModel):
-    provider: Literal["openai", "anthropic", "xai", "google", "emergent"]
+    provider: Literal["openai", "anthropic", "xai", "google"]
     api_key: str
 
 
@@ -1161,16 +1160,15 @@ class SetAPIKeyRequest(BaseModel):
 async def set_api_key(request: SetAPIKeyRequest):
     """
     Set API key at runtime without restarting.
-    
+
     Provider options:
     - "openai": Direct OpenAI (GPT-4o, etc.)
     - "anthropic": Direct Anthropic (Claude)
     - "xai": xAI/Grok
     - "google": Google/Gemini
-    - "emergent": Emergent Universal Key
     """
     global llm_provider
-    
+
     # Set environment variable
     if request.provider == "openai":
         os.environ["OPENAI_API_KEY"] = request.api_key
@@ -1184,9 +1182,6 @@ async def set_api_key(request: SetAPIKeyRequest):
     elif request.provider == "google":
         os.environ["GOOGLE_API_KEY"] = request.api_key
         os.environ["LLM_PROVIDER"] = "google"
-    else:
-        os.environ["EMERGENT_LLM_KEY"] = request.api_key
-        os.environ["LLM_PROVIDER"] = "emergent"
     
     # Reinitialize provider
     config = get_default_llm_config()

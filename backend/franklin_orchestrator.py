@@ -99,28 +99,11 @@ class FranklinOrchestrator:
     """
     
     def __init__(self, spine_url: str = "https://yur-ai-api.onrender.com", spine_key: Optional[str] = None):
+        # Spine connection
         self.spine_url = spine_url
         self.spine_key = spine_key or os.environ.get("TRINITY_API_KEY")
-        self.sessions: Dict[str, BuildSession] = {}
         self.http_client = httpx.AsyncClient(timeout=30.0)
-
-    async def connect_to_spine(self) -> bool:
-        """Handshake with the Frozen Spine"""
-        try:
-            response = await self.http_client.get(f"{self.spine_url}/health")
-            if response.status_code == 200:
-                data = response.json()
-                logger.info(f"✅ Connected to Frozen Spine: {data}")
-                return True
-            logger.error(f"❌ Spine connection failed: {response.status_code}")
-            return False
-        except Exception as e:
-            logger.error(f"❌ Spine connection error: {e}")
-            return False
-
-    def __init__(self):
-        # Use Emergent LLM Key for Anthropic
-        self.emergent_key = os.getenv("EMERGENT_LLM_KEY")
+        # LLM keys (direct providers)
         self.anthropic_key = os.getenv("ANTHROPIC_API_KEY")
         self.xai_api_key = os.getenv("XAI_API_KEY")
         self.xai_url = "https://api.x.ai/v1/chat/completions"
@@ -162,7 +145,34 @@ class FranklinOrchestrator:
         }
         
         logger.info(f">>> FRANKLIN ORCHESTRATOR ONLINE (LLM Provider: {self.llm_provider})")
-    
+
+    async def connect_to_spine(self) -> bool:
+        """Handshake with the Frozen Spine (https://yur-ai-api.onrender.com)
+
+        Auth: x-api-key header (lowercase) — TRINITY_API_KEY env var
+        Public paths: /health (no auth needed)
+        Protected paths: everything else requires x-api-key header
+        """
+        try:
+            response = await self.http_client.get(f"{self.spine_url}/health")
+            if response.status_code == 200:
+                data = response.json()
+                providers = data.get("providers", {})
+                active = [k for k, v in providers.items() if v]
+                logger.info(f"Frozen Spine live — providers: {active}")
+                return True
+            logger.warning(f"Spine /health returned {response.status_code}")
+            return False
+        except Exception as e:
+            logger.warning(f"Spine unreachable: {e} — Franklin will use direct LLM cascade")
+            return False
+
+    def _spine_headers(self) -> dict:
+        """Auth headers for protected Spine endpoints"""
+        if self.spine_key:
+            return {"x-api-key": self.spine_key, "Content-Type": "application/json"}
+        return {"Content-Type": "application/json"}
+
     def _generate_hash(self, content: str) -> str:
         """Generate audit hash for content"""
         return hashlib.sha256(content.encode()).hexdigest()[:16]
@@ -192,11 +202,17 @@ class FranklinOrchestrator:
         sid = session_id or self.active_session
         return self.sessions.get(sid) if sid else None
     
-    async def call_llm(self, system_prompt: str, user_prompt: str, 
+    async def call_llm(self, system_prompt: str, user_prompt: str,
                         temperature: float = 0.7, max_tokens: int = 2000) -> Optional[str]:
         """
-        TRINITY ORCHESTRATION
-        Multi-layer LLM fallback: XAI (Grok) → Anthropic → OpenAI → Google
+        TRINITY LLM CASCADE — direct provider routing
+        Layer 1: XAI (Grok) — primary
+        Layer 2: Anthropic (Claude)
+        Layer 3: OpenAI (GPT-4o)
+        Layer 4: Google (Gemini)
+
+        Note: The Frozen Spine is an orchestration backbone (missions/governance),
+        not a chat proxy — use connect_to_spine() for orchestration calls.
         """
         # Layer 1: XAI (Grok) - Primary
         xai_key = os.getenv("XAI_API_KEY")
@@ -239,7 +255,7 @@ class FranklinOrchestrator:
                             "Content-Type": "application/json"
                         },
                         json={
-                            "model": "claude-sonnet-4-20250514",
+                            "model": "claude-opus-4-6",
                             "max_tokens": max_tokens,
                             "system": system_prompt,
                             "messages": [{"role": "user", "content": user_prompt}]

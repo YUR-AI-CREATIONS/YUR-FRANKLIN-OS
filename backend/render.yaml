@@ -2,26 +2,39 @@ services:
   - type: web
     name: sovereign-genesis-api
     runtime: python
-    pythonVersion: "3.11"
-    
+
     # Build configuration
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
-    
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT --workers 2
+
     # Resource allocation
     plan: starter
-    
+
     # Health check
     healthCheckPath: /api/
-    
+
     # Auto-deployment
     autoDeploy: true
-    
-    # Environment variables (non-sensitive)
+
+    # Environment variables (non-sensitive — set secrets in Render dashboard)
     envVars:
       - key: ENVIRONMENT
         value: production
       - key: CORS_ORIGINS
         value: "*"
       - key: DB_NAME
-        value: sgp_production
+        value: franklin_os
+      - key: LLM_PROVIDER
+        value: anthropic
+      # ── Set the following in the Render dashboard (sensitive) ──
+      # MONGO_URL          → MongoDB Atlas connection string
+      # ANTHROPIC_API_KEY  → Claude API key
+      # OPENAI_API_KEY     → OpenAI API key (optional)
+      # XAI_API_KEY        → xAI/Grok API key (optional)
+      # GOOGLE_API_KEY     → Gemini API key (optional)
+      # SUPABASE_URL       → https://<project>.supabase.co
+      # SUPABASE_ANON_KEY  → Supabase anon/public key
+      # DIRECT_URL         → Supabase direct Postgres URL (postgresql://...)
+      # STRIPE_API_KEY     → Stripe secret key
+      # STRIPE_WEBHOOK_SECRET → Stripe webhook signing secret
+      # TRINITY_API_KEY    → Internal spine auth key

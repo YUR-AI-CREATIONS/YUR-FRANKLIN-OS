@@ -18,17 +18,11 @@ from motor.motor_asyncio import AsyncIOMotorClient
 api_router = APIRouter(prefix="/api")
 
 # Global instances (shared with server.py)
-# These should be moved to a shared config module later
 db = None  # Will be set from server
-EMERGENT_LLM_KEY = None
 
 def set_db(database):
     global db
     db = database
-
-def set_emergent_key(key):
-    global EMERGENT_LLM_KEY
-    EMERGENT_LLM_KEY = key
 
 # ============================================================================
 #                        LLM PROVIDER MANAGEMENT
