@@ -101,7 +101,7 @@ Generate clean, production-ready code."""
                     "Content-Type": "application/json"
                 },
                 json={
-                    "model": "claude-sonnet-4-20250514",
+                    "model": "claude-opus-4-6",
                     "max_tokens": max_tokens,
                     "system": system,
                     "messages": [{"role": "user", "content": prompt}]

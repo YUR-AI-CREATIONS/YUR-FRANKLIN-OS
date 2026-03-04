@@ -32,7 +32,7 @@ class LLMConfig:
     mode: LLMMode
     # Cloud settings
     cloud_provider: str = "anthropic"
-    cloud_model: str = "claude-sonnet-4-5-20250929"
+    cloud_model: str = "claude-opus-4-6"
     emergent_key: Optional[str] = None
     # Local settings
     local_url: str = "http://localhost:11434"
@@ -143,7 +143,7 @@ class CloudProvider(BaseLLMProvider):
     """
     
     def __init__(self, api_key: str, provider: str = "anthropic",
-                 model: str = "claude-sonnet-4-5-20250929",
+                 model: str = "claude-opus-4-6",
                  provider_type: str = "emergent"):
         self.api_key = api_key
         self.provider = provider
@@ -214,7 +214,7 @@ class CloudProvider(BaseLLMProvider):
             
         elif self.provider_type == "anthropic_direct":
             response = await self.anthropic_client.messages.create(
-                model=self.model or "claude-sonnet-4-5-20250929",
+                model=self.model or "claude-opus-4-6",
                 max_tokens=4096,
                 system=system_prompt,
                 messages=[{"role": "user", "content": user_message}],
@@ -303,7 +303,7 @@ class HybridLLMProvider:
             self.cloud_provider = CloudProvider(
                 api_key=anthropic_key,
                 provider="anthropic",
-                model="claude-sonnet-4-5-20250929",
+                model="claude-opus-4-6",
                 provider_type="anthropic_direct"
             )
             self.active_provider_type = "anthropic_direct"

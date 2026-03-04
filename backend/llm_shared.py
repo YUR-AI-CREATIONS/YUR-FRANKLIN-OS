@@ -12,7 +12,7 @@ def get_default_llm_config() -> LLMConfig:
     return LLMConfig(
         mode=LLMMode.CLOUD,  # Default to cloud
         cloud_provider="anthropic",
-        cloud_model="claude-sonnet-4-5-20250929",
+        cloud_model="claude-opus-4-6",
         emergent_key=None,  # Set from env
         local_url="http://localhost:11434",
         local_model="llama3.1:8b",

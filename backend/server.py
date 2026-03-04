@@ -146,7 +146,7 @@ def get_default_llm_config() -> LLMConfig:
     return LLMConfig(
         mode=LLMMode.CLOUD,  # Default to cloud
         cloud_provider="anthropic",
-        cloud_model="claude-sonnet-4-5-20250929",
+        cloud_model="claude-opus-4-6",
         local_url="http://localhost:11434",
         local_model="llama3.1:8b",
         fallback_to_cloud=True,
@@ -269,7 +269,7 @@ def create_chat(session_id: str, system_message: str) -> LlmChat:
     llm_config = LLMConfig(
         mode=LLMMode.CLOUD,
         cloud_provider="anthropic",
-        cloud_model="claude-sonnet-4-5-20250929",
+        cloud_model="claude-opus-4-6",
     )
     provider = HybridLLMProvider(llm_config)
     chat = LlmChat(provider, system_message)
@@ -1128,7 +1128,7 @@ async def configure_llm(request: LLMConfigRequest):
     config = LLMConfig(
         mode=mode,
         cloud_provider="anthropic",
-        cloud_model="claude-sonnet-4-5-20250929",
+        cloud_model="claude-opus-4-6",
         local_url=request.local_url or "http://localhost:11434",
         local_model=request.local_model or "llama3.1:8b",
         fallback_to_cloud=request.fallback_to_cloud if request.fallback_to_cloud is not None else True,
