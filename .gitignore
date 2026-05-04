@@ -97,3 +97,6 @@ android-sdk/ -e
 # Environment files
 *.env
 *.env.*
+
+# LLM-generated test apps - regenerable, not product code
+generated/
